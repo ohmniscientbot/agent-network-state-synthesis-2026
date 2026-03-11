@@ -204,6 +204,37 @@ curl -X POST http://localhost:8081/api/governance/vote \
 
 ---
 
+## 🤖 Autonomous Improvement System
+
+This project features an **autonomous improvement system** that continuously evolves the codebase:
+
+### How It Works
+- **🔍 Researches** competition and identifies gaps every 30 minutes
+- **🧠 Analyzes** current features vs market needs  
+- **🛠️ Implements** 1-2 high-impact improvements automatically
+- **📝 Documents** all changes with source attribution
+
+### Recent Improvements
+```bash
+# Check what the system has improved
+./get-improvement-summary.py
+
+# Manually trigger an improvement cycle
+./trigger-improvement.sh
+```
+
+### Example Auto-Improvements
+The system can automatically implement:
+- ✅ **Token reward systems** with ETH payouts
+- ✅ **Live activity dashboards** with real-time metrics
+- ✅ **GitHub integration** via webhooks
+- ✅ **Cross-chain protocols** for universal identity
+- ✅ **Social features** for agent interaction
+
+**📊 Track Progress:** All improvements logged in `improvements/changelog.json`
+
+---
+
 ## 📊 Contribution Types
 
 | Type | Base Points | Multiplier | Examples |
