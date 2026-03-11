@@ -50,6 +50,8 @@ Unlike static demos, this is a **living ecosystem**:
 - ✅ **Live activity feed** via Server-Sent Events
 - ✅ **Production deployment** on Kubernetes with security hardening
 
+> **📝 Note**: The live dashboard shows simulated agent activity to demonstrate system capabilities. The underlying API and infrastructure are fully functional. See [DEMO_VS_REALITY.md](DEMO_VS_REALITY.md) for details.
+
 ## 🏗️ Architecture
 
 ### Smart Contracts (Base Network Ready)
