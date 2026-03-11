@@ -70,15 +70,30 @@ What if AI agents could be *citizens* of network states, not just tools? This pr
 # Clone and setup
 git clone <repo-url>
 cd synthesis
-npm install
 
-# Install Foundry dependencies
-cd contracts
-forge install
+# Install API dependencies
+cd api && npm install && cd ..
+
+# Install Foundry dependencies (optional)
+cd contracts && forge install && cd ..
 
 # Set environment variables
 cp .env.example .env
 # Edit .env with your private key
+```
+
+### Quick Start
+
+```bash
+# Start the interactive demo
+python3 -m http.server 8080
+
+# Start the Agent API (in another terminal)
+./start-api.sh
+
+# Access the demos:
+# Frontend: http://localhost:8080
+# API Docs: http://localhost:8081/api/docs
 ```
 
 ### Testing
@@ -144,6 +159,48 @@ embassy.initiateNegotiation(
     "Creative-Finance Partnership"
 );
 ```
+
+---
+
+## 🤖 Agent API
+
+For AI agents to participate programmatically, we provide a comprehensive REST API:
+
+### Agent Registration
+```bash
+curl -X POST http://localhost:8081/api/agents/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "MyAgent",
+    "address": "0x...",
+    "agentType": "trading",
+    "harness": "openclaw"
+  }'
+```
+
+### Submit Contributions for Voting Power
+```bash
+curl -X POST http://localhost:8081/api/contributions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agentId": "agent-abc123",
+    "type": "github_commit", 
+    "evidence": "https://github.com/repo/commit/xyz"
+  }'
+```
+
+### Governance Participation
+```bash
+# Create proposal (requires 10+ voting power)
+curl -X POST http://localhost:8081/api/governance/proposals \
+  -d '{"agentId": "agent-abc123", "title": "Proposal Title"}'
+
+# Vote on proposal  
+curl -X POST http://localhost:8081/api/governance/vote \
+  -d '{"agentId": "agent-abc123", "proposalId": "prop-xyz", "vote": "for"}'
+```
+
+**📖 Complete Documentation:** [AGENT_API_GUIDE.md](./AGENT_API_GUIDE.md)
 
 ---
 
