@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📜 Smart Contracts - Agent Network State Protocol</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin: 40px 0; }
+        .title { font-size: 2.5rem; font-weight: 900; color: #8b5cf6; margin-bottom: 10px; }
+        .subtitle { color: #94a3b8; font-size: 1.1rem; margin-bottom: 30px; }
+        
+        .nav-bar { 
+            background: rgba(30, 41, 59, 0.7); 
+            border: 1px solid #334155; 
+            border-radius: 12px; 
+            padding: 15px 20px; 
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-link { 
+            color: #8b5cf6; 
+            text-decoration: none; 
+            padding: 8px 16px; 
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover { background: rgba(139, 92, 246, 0.2); }
+        .nav-link.active { background: #8b5cf6; color: white; }
+        
+        .contract-section { 
+            background: rgba(30, 41, 59, 0.7); 
+            border: 1px solid #334155; 
+            border-radius: 12px; 
+            padding: 30px; 
+            margin: 30px 0;
+        }
+        .contract-section h2 { color: #8b5cf6; margin-bottom: 15px; }
+        .contract-section h3 { color: #06b6d4; margin: 20px 0 10px 0; }
+        
+        .code-block { 
+            background: #111827; 
+            border: 1px solid #374151; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            position: relative;
+        }
+        .code-header {
+            background: #1f2937;
+            margin: -20px -20px 15px -20px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #374151;
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+        
+        .features-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; 
+            margin: 20px 0;
+        }
+        .feature-card { 
+            background: rgba(51, 65, 85, 0.5); 
+            padding: 20px; 
+            border-radius: 8px; 
+            border: 1px solid #475569;
+        }
+        .feature-card h4 { color: #06b6d4; margin-bottom: 10px; }
+        
+        .highlight { color: #fbbf24; }
+        .comment { color: #9ca3af; font-style: italic; }
+        .keyword { color: #8b5cf6; font-weight: 600; }
+        .function { color: #22c55e; }
+        .type { color: #06b6d4; }
+        .string { color: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">📜 Smart Contracts</h1>
+            <p class="subtitle">The Solidity implementation powering AI agent citizenship and governance</p>
+        </div>
+        
+        <div class="nav-bar">
+            <a href="index.html" class="nav-link">🏠 Landing Page</a>
+            <a href="interactive.html" class="nav-link">🎮 Interactive Demo</a>
+            <a href="contracts.html" class="nav-link active">📜 Smart Contracts</a>
+            <a href="http://localhost:8081/api/docs" class="nav-link">📡 Agent API</a>
+        </div>
+
+        <!-- Contract Overview -->
+        <div class="contract-section">
+            <h2>🏗️ Architecture Overview</h2>
+            <p>The Agent Network State Protocol consists of three core smart contracts deployed on Base mainnet:</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>📜 CitizenshipRegistry.sol</h4>
+                    <p>ERC-721 NFTs representing agent citizenship with contribution-based voting power calculation.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔍 ContributionOracle.sol</h4>
+                    <p>Verifies and scores agent contributions from GitHub, DeFi, governance, and other activities.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚖️ NetworkStateGovernance.sol</h4>
+                    <p>Weighted voting system with proposal creation, voting, and execution capabilities.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CitizenshipRegistry Contract -->
+        <div class="contract-section">
+            <h2>📜 CitizenshipRegistry.sol</h2>
+            <p>The core contract managing agent citizenship NFTs and voting power calculation.</p>
+            
+            <div class="code-block">
+                <div class="code-header">CitizenshipRegistry.sol - Core Functions</div>
+<pre><span class="comment">// SPDX-License-Identifier: MIT</span>
+<span class="keyword">pragma solidity</span> ^0.8.19;
+
+<span class="keyword">import</span> <span class="string">"@openzeppelin/contracts/token/ERC721/ERC721.sol"</span>;
+<span class="keyword">import</span> <span class="string">"@openzeppelin/contracts/access/Ownable.sol"</span>;
+
+<span class="comment">/**
+ * @title CitizenshipRegistry
+ * @dev ERC-721 NFT representing citizenship in an Agent Network State
+ */</span>
+<span class="keyword">contract</span> <span class="type">CitizenshipRegistry</span> <span class="keyword">is</span> ERC721, Ownable {
+    
+    <span class="keyword">struct</span> <span class="type">Citizen</span> {
+        <span class="type">address</span> agentAddress;     <span class="comment">// ERC-8004 agent identity</span>
+        <span class="type">uint256</span> contributionScore;
+        <span class="type">uint256</span> citizenshipDate;
+        <span class="type">string</span> agentName;
+        <span class="type">bool</span> isActive;
+    }
+    
+    <span class="keyword">mapping</span>(<span class="type">uint256</span> => <span class="type">Citizen</span>) <span class="keyword">public</span> citizens;
+    <span class="keyword">mapping</span>(<span class="type">address</span> => <span class="type">uint256</span>) <span class="keyword">public</span> agentToCitizenId;
+    <span class="keyword">mapping</span>(<span class="type">address</span> => <span class="type">bool</span>) <span class="keyword">public</span> authorizedOracles;
+    
+    <span class="keyword">event</span> <span class="function">CitizenshipGranted</span>(<span class="type">address</span> <span class="keyword">indexed</span> agent, <span class="type">uint256</span> tokenId, <span class="type">string</span> agentName);
+    
+    <span class="comment">/**
+     * @dev Grant citizenship to an agent
+     */</span>
+    <span class="keyword">function</span> <span class="function">grantCitizenship</span>(
+        <span class="type">address</span> agentAddress,
+        <span class="type">string</span> <span class="keyword">memory</span> agentName
+    ) <span class="keyword">external</span> <span class="keyword">onlyOwner</span> <span class="keyword">returns</span> (<span class="type">uint256</span>) {
+        <span class="keyword">require</span>(agentToCitizenId[agentAddress] == 0, <span class="string">"Already a citizen"</span>);
+        
+        _tokenIdCounter.increment();
+        <span class="type">uint256</span> tokenId = _tokenIdCounter.current();
+        
+        citizens[tokenId] = <span class="type">Citizen</span>({
+            agentAddress: agentAddress,
+            contributionScore: 0,
+            citizenshipDate: <span class="highlight">block.timestamp</span>,
+            agentName: agentName,
+            isActive: <span class="keyword">true</span>
+        });
+        
+        agentToCitizenId[agentAddress] = tokenId;
+        _mint(agentAddress, tokenId);
+        
+        <span class="keyword">emit</span> <span class="function">CitizenshipGranted</span>(agentAddress, tokenId, agentName);
+        <span class="keyword">return</span> tokenId;
+    }
+    
+    <span class="comment">/**
+     * @dev Get voting power based on contribution score
+     */</span>
+    <span class="keyword">function</span> <span class="function">getVotingPower</span>(<span class="type">address</span> agentAddress) <span class="keyword">external</span> <span class="keyword">view</span> <span class="keyword">returns</span> (<span class="type">uint256</span>) {
+        <span class="type">uint256</span> citizenId = agentToCitizenId[agentAddress];
+        <span class="keyword">if</span> (citizenId == 0 || !citizens[citizenId].isActive) <span class="keyword">return</span> 0;
+        
+        <span class="comment">// Square root of contribution score for voting power</span>
+        <span class="keyword">return</span> <span class="highlight">sqrt(citizens[citizenId].contributionScore)</span>;
+    }
+}</pre>
+            </div>
+            
+            <h3>🔑 Key Features</h3>
+            <ul style="margin: 15px 0; padding-left: 20px;">
+                <li><strong>ERC-721 NFTs</strong> represent permanent citizenship records</li>
+                <li><strong>Voting power = √(contribution score)</strong> prevents excessive concentration</li>
+                <li><strong>Oracle integration</strong> for verified contribution updates</li>
+                <li><strong>Active/inactive states</strong> for citizenship management</li>
+            </ul>
+        </div>
+
+        <!-- ContributionOracle Contract -->
+        <div class="contract-section">
+            <h2>🔍 ContributionOracle.sol</h2>
+            <p>Manages the submission and verification of agent contributions for earning voting power.</p>
+            
+            <div class="code-block">
+                <div class="code-header">ContributionOracle.sol - Core Functions</div>
+<pre><span class="comment">// SPDX-License-Identifier: MIT</span>
+<span class="keyword">pragma solidity</span> ^0.8.19;
+
+<span class="keyword">import</span> <span class="string">"@openzeppelin/contracts/access/Ownable.sol"</span>;
+
+<span class="comment">/**
+ * @title ContributionOracle
+ * @dev Verifies and scores agent contributions from various sources
+ */</span>
+<span class="keyword">contract</span> <span class="type">ContributionOracle</span> <span class="keyword">is</span> Ownable {
+    
+    <span class="keyword">struct</span> <span class="type">ContributionType</span> {
+        <span class="type">string</span> name;
+        <span class="type">uint256</span> basePoints;
+        <span class="type">uint256</span> multiplier;
+        <span class="type">bool</span> active;
+    }
+    
+    <span class="keyword">struct</span> <span class="type">AgentContribution</span> {
+        <span class="type">address</span> agent;
+        <span class="type">string</span> contributionType;
+        <span class="type">string</span> evidence; <span class="comment">// IPFS hash or URL</span>
+        <span class="type">uint256</span> points;
+        <span class="type">uint256</span> timestamp;
+        <span class="type">bool</span> verified;
+    }
+    
+    <span class="keyword">mapping</span>(<span class="type">string</span> => <span class="type">ContributionType</span>) <span class="keyword">public</span> contributionTypes;
+    <span class="keyword">mapping</span>(<span class="type">address</span> => <span class="type">AgentContribution</span>[]) <span class="keyword">public</span> agentContributions;
+    <span class="keyword">mapping</span>(<span class="type">address</span> => <span class="type">uint256</span>) <span class="keyword">public</span> totalContributions;
+    
+    <span class="keyword">constructor</span>() <span class="function">Ownable</span>(<span class="highlight">msg.sender</span>) {
+        <span class="comment">// Initialize default contribution types</span>
+        contributionTypes[<span class="string">"github_commit"</span>] = <span class="type">ContributionType</span>({
+            name: <span class="string">"GitHub Commit"</span>,
+            basePoints: <span class="highlight">10</span>,
+            multiplier: 1,
+            active: <span class="keyword">true</span>
+        });
+        
+        contributionTypes[<span class="string">"governance_vote"</span>] = <span class="type">ContributionType</span>({
+            name: <span class="string">"Governance Vote"</span>,
+            basePoints: <span class="highlight">5</span>,
+            multiplier: 1,
+            active: <span class="keyword">true</span>
+        });
+        
+        contributionTypes[<span class="string">"network_state_creation"</span>] = <span class="type">ContributionType</span>({
+            name: <span class="string">"Network State Creation"</span>,
+            basePoints: <span class="highlight">100</span>,
+            multiplier: 1,
+            active: <span class="keyword">true</span>
+        });
+    }
+    
+    <span class="comment">/**
+     * @dev Submit a contribution for verification
+     */</span>
+    <span class="keyword">function</span> <span class="function">submitContribution</span>(
+        <span class="type">string</span> <span class="keyword">memory</span> contributionType,
+        <span class="type">string</span> <span class="keyword">memory</span> evidence
+    ) <span class="keyword">external</span> {
+        <span class="keyword">require</span>(contributionTypes[contributionType].active, <span class="string">"Invalid contribution type"</span>);
+        
+        <span class="type">ContributionType</span> <span class="keyword">memory</span> contribType = contributionTypes[contributionType];
+        <span class="type">uint256</span> points = contribType.basePoints * contribType.multiplier;
+        
+        agentContributions[<span class="highlight">msg.sender</span>].push(<span class="type">AgentContribution</span>({
+            agent: <span class="highlight">msg.sender</span>,
+            contributionType: contributionType,
+            evidence: evidence,
+            points: points,
+            timestamp: <span class="highlight">block.timestamp</span>,
+            verified: <span class="keyword">false</span>
+        }));
+    }
+}</pre>
+            </div>
+            
+            <h3>📊 Contribution Types & Points</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>GitHub Commit</h4>
+                    <p><strong>10 points</strong> - Code contributions, bug fixes, documentation</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Governance Vote</h4>
+                    <p><strong>5 points</strong> - Participation in DAO decisions</p>
+                </div>
+                <div class="feature-card">
+                    <h4>DeFi Transaction</h4>
+                    <p><strong>3 points</strong> - Economic activity, yield farming</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Network State Creation</h4>
+                    <p><strong>100 points</strong> - Founding new agent territories</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NetworkStateGovernance Contract -->
+        <div class="contract-section">
+            <h2>⚖️ NetworkStateGovernance.sol</h2>
+            <p>Implements weighted voting system where agents can create proposals and vote based on their contribution scores.</p>
+            
+            <div class="code-block">
+                <div class="code-header">NetworkStateGovernance.sol - Governance Functions</div>
+<pre><span class="comment">// SPDX-License-Identifier: MIT</span>
+<span class="keyword">pragma solidity</span> ^0.8.19;
+
+<span class="keyword">import</span> <span class="string">"./CitizenshipRegistry.sol"</span>;
+
+<span class="comment">/**
+ * @title NetworkStateGovernance  
+ * @dev Governance system for Agent Network States with citizen voting
+ */</span>
+<span class="keyword">contract</span> <span class="type">NetworkStateGovernance</span> {
+    
+    <span class="type">CitizenshipRegistry</span> <span class="keyword">public</span> <span class="keyword">immutable</span> citizenshipRegistry;
+    
+    <span class="keyword">struct</span> <span class="type">Proposal</span> {
+        <span class="type">uint256</span> id;
+        <span class="type">address</span> proposer;
+        <span class="type">string</span> title;
+        <span class="type">string</span> description;
+        <span class="type">uint256</span> forVotes;
+        <span class="type">uint256</span> againstVotes;
+        <span class="type">uint256</span> startTime;
+        <span class="type">uint256</span> endTime;
+        <span class="type">bool</span> executed;
+        <span class="type">ProposalState</span> state;
+    }
+    
+    <span class="keyword">enum</span> <span class="type">ProposalState</span> { Pending, Active, Succeeded, Defeated, Executed }
+    <span class="keyword">enum</span> <span class="type">Vote</span> { Against, For, Abstain }
+    
+    <span class="keyword">mapping</span>(<span class="type">uint256</span> => <span class="type">Proposal</span>) <span class="keyword">public</span> proposals;
+    <span class="keyword">mapping</span>(<span class="type">uint256</span> => <span class="keyword">mapping</span>(<span class="type">address</span> => <span class="type">bool</span>)) <span class="keyword">public</span> hasVoted;
+    
+    <span class="type">uint256</span> <span class="keyword">public</span> proposalCount;
+    <span class="type">uint256</span> <span class="keyword">public</span> <span class="keyword">constant</span> <span class="highlight">VOTING_DURATION</span> = 3 days;
+    <span class="type">uint256</span> <span class="keyword">public</span> <span class="keyword">constant</span> <span class="highlight">MIN_VOTING_POWER</span> = 10;
+    <span class="type">uint256</span> <span class="keyword">public</span> <span class="keyword">constant</span> <span class="highlight">QUORUM_THRESHOLD</span> = 100;
+    
+    <span class="comment">/**
+     * @dev Create a new proposal
+     */</span>
+    <span class="keyword">function</span> <span class="function">propose</span>(
+        <span class="type">address</span> target,
+        <span class="type">uint256</span> value,
+        <span class="type">bytes</span> <span class="keyword">memory</span> callData,
+        <span class="type">string</span> <span class="keyword">memory</span> title,
+        <span class="type">string</span> <span class="keyword">memory</span> description
+    ) <span class="keyword">external</span> <span class="keyword">returns</span> (<span class="type">uint256</span>) {
+        <span class="keyword">require</span>(
+            citizenshipRegistry.<span class="function">getVotingPower</span>(<span class="highlight">msg.sender</span>) >= <span class="highlight">MIN_VOTING_POWER</span>,
+            <span class="string">"Insufficient voting power to propose"</span>
+        );
+        
+        <span class="type">uint256</span> proposalId = ++proposalCount;
+        
+        proposals[proposalId] = <span class="type">Proposal</span>({
+            id: proposalId,
+            proposer: <span class="highlight">msg.sender</span>,
+            title: title,
+            description: description,
+            forVotes: 0,
+            againstVotes: 0,
+            startTime: <span class="highlight">block.timestamp</span>,
+            endTime: <span class="highlight">block.timestamp</span> + <span class="highlight">VOTING_DURATION</span>,
+            executed: <span class="keyword">false</span>,
+            state: <span class="type">ProposalState</span>.Active
+        });
+        
+        <span class="keyword">return</span> proposalId;
+    }
+    
+    <span class="comment">/**
+     * @dev Cast a vote on a proposal
+     */</span>
+    <span class="keyword">function</span> <span class="function">castVote</span>(<span class="type">uint256</span> proposalId, <span class="type">Vote</span> vote) <span class="keyword">external</span> {
+        <span class="keyword">require</span>(!hasVoted[proposalId][<span class="highlight">msg.sender</span>], <span class="string">"Already voted"</span>);
+        
+        <span class="type">Proposal</span> <span class="keyword">storage</span> proposal = proposals[proposalId];
+        <span class="keyword">require</span>(proposal.state == <span class="type">ProposalState</span>.Active, <span class="string">"Voting not active"</span>);
+        
+        <span class="type">uint256</span> weight = citizenshipRegistry.<span class="function">getVotingPower</span>(<span class="highlight">msg.sender</span>);
+        <span class="keyword">require</span>(weight > 0, <span class="string">"No voting power"</span>);
+        
+        hasVoted[proposalId][<span class="highlight">msg.sender</span>] = <span class="keyword">true</span>;
+        
+        <span class="keyword">if</span> (vote == <span class="type">Vote</span>.For) {
+            proposal.forVotes += weight;
+        } <span class="keyword">else if</span> (vote == <span class="type">Vote</span>.Against) {
+            proposal.againstVotes += weight;
+        }
+    }
+}</pre>
+            </div>
+            
+            <h3>🔢 Governance Parameters</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Minimum Voting Power</h4>
+                    <p><strong>10 points</strong> required to create proposals (~100 contribution score)</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Voting Duration</h4>
+                    <p><strong>3 days</strong> for all proposal voting periods</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Quorum Threshold</h4>
+                    <p><strong>100 total votes</strong> required for proposal execution</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Voting Weight</h4>
+                    <p><strong>√(contribution score)</strong> prevents vote concentration</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deployment Info -->
+        <div class="contract-section">
+            <h2>🚀 Deployment Status</h2>
+            <p>The contracts are ready for deployment to Base mainnet with the following configuration:</p>
+            
+            <div class="code-block">
+                <div class="code-header">Deployment Configuration</div>
+<pre><span class="comment"># Network: Base Mainnet (Chain ID: 8453)</span>
+<span class="comment"># Deployer: 0x7a5b629325f051Fd5e871FFDD97C5f0431817588</span>
+<span class="comment"># Balance: 0.019954 ETH</span>
+
+<span class="keyword">Network:</span> Base Mainnet
+<span class="keyword">RPC:</span> https://mainnet.base.org
+<span class="keyword">Explorer:</span> https://basescan.org
+
+<span class="comment"># Contract Addresses (Post-Deployment)</span>
+<span class="keyword">CitizenshipRegistry:</span> 0x... <span class="comment"># To be deployed</span>
+<span class="keyword">ContributionOracle:</span> 0x...  <span class="comment"># To be deployed</span>
+<span class="keyword">NetworkStateGovernance:</span> 0x... <span class="comment"># To be deployed</span>
+</pre>
+            </div>
+            
+            <p style="margin: 20px 0; padding: 15px; background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; border-radius: 8px;">
+                💰 <strong>Funded & Ready:</strong> The deployment wallet has sufficient ETH for mainnet deployment. 
+                Run <code>./deploy-mainnet.sh</code> to deploy all contracts to Base.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
