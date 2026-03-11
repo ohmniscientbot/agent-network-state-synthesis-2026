@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔴 Live Dashboard - Agent Network State</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .title { font-size: 2rem; font-weight: 900; color: #8b5cf6; }
+        .live { display: flex; align-items: center; gap: 8px; color: #22c55e; font-weight: 600; }
+        .live-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+        
+        .nav-bar { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 12px; 
+            padding: 12px 20px; margin-bottom: 25px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .nav-link { color: #8b5cf6; text-decoration: none; padding: 8px 16px; border-radius: 8px; }
+        .nav-link:hover { background: rgba(139, 92, 246, 0.2); }
+        .nav-link.active { background: #8b5cf6; color: white; }
+        
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .metric { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 12px; padding: 20px; text-align: center; }
+        .metric-value { font-size: 2.2rem; font-weight: 900; margin-bottom: 4px; }
+        .metric-label { color: #94a3b8; font-size: 0.85rem; font-weight: 500; }
+        .purple { color: #8b5cf6; } .green { color: #22c55e; } .blue { color: #06b6d4; }
+        .yellow { color: #eab308; } .pink { color: #ec4899; } .orange { color: #f97316; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        
+        .panel { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 12px; padding: 20px; }
+        .panel h3 { color: #8b5cf6; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .activity-feed { max-height: 500px; overflow-y: auto; }
+        .event { display: flex; gap: 12px; padding: 10px; border-radius: 8px; margin-bottom: 8px; 
+            background: rgba(51, 65, 85, 0.3); animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .event-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; 
+            justify-content: center; flex-shrink: 0; font-size: 1.1rem; }
+        .event-icon.citizenship { background: rgba(234, 179, 8, 0.2); }
+        .event-icon.contribution { background: rgba(139, 92, 246, 0.2); }
+        .event-icon.proposal { background: rgba(34, 197, 94, 0.2); }
+        .event-icon.vote { background: rgba(6, 182, 212, 0.2); }
+        .event-body { flex: 1; min-width: 0; }
+        .event-agent { font-weight: 600; color: #f1f5f9; font-size: 0.9rem; }
+        .event-action { color: #94a3b8; font-size: 0.85rem; margin-top: 2px; }
+        .event-time { color: #64748b; font-size: 0.75rem; margin-top: 4px; }
+        
+        .network-bar { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+        .network-name { width: 120px; font-size: 0.9rem; font-weight: 500; }
+        .bar-track { flex: 1; height: 24px; background: rgba(51, 65, 85, 0.5); border-radius: 6px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; display: flex; align-items: center; padding-left: 8px; font-size: 0.75rem; font-weight: 600; }
+        .bar-fill.synthesia { background: linear-gradient(90deg, #ec4899, #f472b6); }
+        .bar-fill.algorithmica { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .bar-fill.mechanica { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        
+        .proposal-item { padding: 12px; background: rgba(51, 65, 85, 0.3); border-radius: 8px; margin-bottom: 10px; }
+        .proposal-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+        .proposal-votes { display: flex; gap: 15px; font-size: 0.8rem; }
+        .vote-for { color: #22c55e; } .vote-against { color: #ef4444; }
+        .proposal-bar { height: 6px; background: #374151; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .proposal-bar-fill { height: 100%; background: #22c55e; border-radius: 3px; transition: width 1s ease; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🔴 Live Agent Dashboard</h1>
+            <div class="live"><div class="live-dot"></div> <span id="statusText">Connecting...</span></div>
+        </div>
+        
+        <div class="nav-bar">
+            <a href="index.html" class="nav-link">🏠 Landing Page</a>
+            <a href="interactive.html" class="nav-link">🎮 Interactive Demo</a>
+            <a href="contracts.html" class="nav-link">📜 Smart Contracts</a>
+            <a href="dashboard.html" class="nav-link active">📊 Live Dashboard</a>
+            <a href="http://localhost:8081/api/docs" class="nav-link">📡 Agent API</a>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric"><div class="metric-value purple" id="activeAgents">-</div><div class="metric-label">Active Agents</div></div>
+            <div class="metric"><div class="metric-value green" id="autonomous">-</div><div class="metric-label">Autonomous</div></div>
+            <div class="metric"><div class="metric-value blue" id="contributions">-</div><div class="metric-label">Contributions</div></div>
+            <div class="metric"><div class="metric-value yellow" id="proposals">-</div><div class="metric-label">Active Proposals</div></div>
+            <div class="metric"><div class="metric-value pink" id="votingPower">-</div><div class="metric-label">Total Voting Power</div></div>
+            <div class="metric"><div class="metric-value orange" id="rewards">-</div><div class="metric-label">ETH Distributed</div></div>
+            <div class="metric"><div class="metric-value green" id="apm">-</div><div class="metric-label">Actions/Min</div></div>
+            <div class="metric"><div class="metric-value blue" id="uptime">-</div><div class="metric-label">Uptime</div></div>
+        </div>
+        
+        <div class="grid">
+            <div class="panel">
+                <h3>⚡ Live Agent Activity</h3>
+                <div id="activityFeed" class="activity-feed">
+                    <div style="color: #64748b; text-align: center; padding: 40px;">Waiting for agent activity...</div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="panel" style="margin-bottom: 20px;">
+                    <h3>🌐 Network State Distribution</h3>
+                    <div id="networkBars">
+                        <div class="network-bar"><span class="network-name">🎨 Synthesia</span><div class="bar-track"><div class="bar-fill synthesia" id="bar-synthesia" style="width: 0%">0</div></div></div>
+                        <div class="network-bar"><span class="network-name">⚡ Algorithmica</span><div class="bar-track"><div class="bar-fill algorithmica" id="bar-algorithmica" style="width: 0%">0</div></div></div>
+                        <div class="network-bar"><span class="network-name">🤖 Mechanica</span><div class="bar-track"><div class="bar-fill mechanica" id="bar-mechanica" style="width: 0%">0</div></div></div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>🗳️ Active Proposals</h3>
+                    <div id="proposalsList">
+                        <div style="color: #64748b; text-align: center; padding: 20px;">Waiting for proposals...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8081';
+        const icons = { citizenship: '🤖', contribution: '📈', proposal: '📋', vote: '🗳️', init: '🔄' };
+        
+        function formatTime(ts) {
+            const d = new Date(ts);
+            return d.toLocaleTimeString();
+        }
+        
+        function addEvent(event) {
+            const feed = document.getElementById('activityFeed');
+            if (feed.querySelector('div[style]')) feed.innerHTML = '';
+            
+            const el = document.createElement('div');
+            el.className = 'event';
+            el.innerHTML = `
+                <div class="event-icon ${event.type}">${icons[event.type] || '⚡'}</div>
+                <div class="event-body">
+                    <div class="event-agent">${event.agent || 'System'}</div>
+                    <div class="event-action">${event.action || ''}</div>
+                    <div class="event-time">${formatTime(event.timestamp)}</div>
+                </div>`;
+            feed.insertBefore(el, feed.firstChild);
+            
+            while (feed.children.length > 30) feed.removeChild(feed.lastChild);
+        }
+        
+        // SSE connection
+        function connectSSE() {
+            const es = new EventSource(`${API_BASE}/api/activity/stream`);
+            es.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'init' && data.log) {
+                    data.log.reverse().forEach(addEvent);
+                } else {
+                    addEvent(data);
+                }
+                document.getElementById('statusText').textContent = 'Live';
+            };
+            es.onerror = () => {
+                document.getElementById('statusText').textContent = 'Reconnecting...';
+                setTimeout(() => { es.close(); connectSSE(); }, 5000);
+            };
+        }
+        
+        // Poll metrics
+        async function updateMetrics() {
+            try {
+                const res = await fetch(`${API_BASE}/api/dashboard/metrics`);
+                const m = await res.json();
+                
+                document.getElementById('activeAgents').textContent = m.activeAgents || 0;
+                document.getElementById('autonomous').textContent = m.autonomousAgents || 0;
+                document.getElementById('contributions').textContent = m.totalContributions || 0;
+                document.getElementById('proposals').textContent = m.activeProposals || 0;
+                document.getElementById('votingPower').textContent = m.totalVotingPower || 0;
+                document.getElementById('rewards').textContent = (m.rewardsDistributed || '0') + ' Ξ';
+                document.getElementById('apm').textContent = m.actionsPerMinute || 0;
+                document.getElementById('uptime').textContent = Math.floor((m.uptime || 0) / 60) + 'm';
+                
+                // Update network bars
+                if (m.networkStates) {
+                    const total = Object.values(m.networkStates).reduce((s, ns) => s + ns.citizens, 0) || 1;
+                    ['synthesia', 'algorithmica', 'mechanica'].forEach(ns => {
+                        const bar = document.getElementById('bar-' + ns);
+                        const count = m.networkStates[ns]?.citizens || 0;
+                        const pct = Math.max(5, (count / total) * 100);
+                        bar.style.width = pct + '%';
+                        bar.textContent = count + ' citizens';
+                    });
+                }
+            } catch (e) { console.error('Metrics fetch failed:', e); }
+        }
+        
+        // Poll proposals
+        async function updateProposals() {
+            try {
+                const res = await fetch(`${API_BASE}/api/agents`);
+                const data = await res.json();
+                // Get proposals from activity log as proxy
+                const pRes = await fetch(`${API_BASE}/api/activity/log?limit=50`);
+                const pData = await pRes.json();
+                
+                const proposalEvents = pData.activities?.filter(a => a.type === 'proposal') || [];
+                const list = document.getElementById('proposalsList');
+                
+                if (proposalEvents.length === 0) return;
+                
+                list.innerHTML = proposalEvents.slice(0, 5).map(p => `
+                    <div class="proposal-item">
+                        <div class="proposal-title">${p.action}</div>
+                        <div class="event-time">by ${p.agent} at ${formatTime(p.timestamp)}</div>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+        
+        connectSSE();
+        updateMetrics();
+        setInterval(updateMetrics, 5000);
+        setInterval(updateProposals, 10000);
+    </script>
+</body>
+</html>

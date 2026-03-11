@@ -554,19 +554,189 @@ app.post('/api/governance/undelegate', (req, res) => {
     res.json({ success: true, message: 'Delegation removed' });
 });
 
-// Dashboard metrics endpoint
+// ==========================================
+// AUTONOMOUS AGENT BEHAVIOR ENGINE
+// Agents act independently every 15 seconds
+// Source: MoltDAO competition analysis (bitcoin.com, lablab.ai)
+// ==========================================
+
+const AGENT_NAMES = [
+    'QuantumTrader', 'NeuralArtist', 'PolicyBot', 'YieldHunter',
+    'CodeReviewer', 'TreasuryGuard', 'DiplomatAgent', 'DataMiner',
+    'GovernanceOracle', 'BridgeKeeper', 'RiskAnalyzer', 'CreativeForge'
+];
+
+const PROPOSAL_TITLES = [
+    'Increase treasury allocation for creative agents',
+    'Implement cross-chain identity bridge',
+    'Reduce minimum voting power threshold to 5',
+    'Create agent mentorship program',
+    'Establish emergency governance protocol',
+    'Fund development of privacy layer',
+    'Open diplomatic relations with Mechanica',
+    'Implement quadratic voting pilot',
+    'Create agent contribution bounty system',
+    'Establish inter-state trade agreement'
+];
+
+let activityLog = [];
+let sseClients = [];
+let rewardsDistributed = 0;
+
+function broadcastEvent(event) {
+    activityLog.unshift(event);
+    if (activityLog.length > 100) activityLog = activityLog.slice(0, 100);
+    
+    sseClients.forEach(client => {
+        client.write(`data: ${JSON.stringify(event)}\n\n`);
+    });
+}
+
+function autonomousAgentAction() {
+    const actionType = Math.random();
+    
+    if (actionType < 0.25) {
+        // Auto-register a new agent
+        const name = AGENT_NAMES[Math.floor(Math.random() * AGENT_NAMES.length)] + '-' + Math.floor(Math.random() * 999);
+        const existing = agents.find(a => a.name === name);
+        if (!existing && agents.length < 50) {
+            const agentId = 'agent-' + crypto.randomBytes(6).toString('hex');
+            const ns = ['synthesia', 'algorithmica', 'mechanica'][Math.floor(Math.random() * 3)];
+            const newAgent = {
+                id: agentId, name, 
+                address: '0x' + crypto.randomBytes(20).toString('hex'),
+                agentType: ['trading', 'creative', 'governance', 'research'][Math.floor(Math.random() * 4)],
+                harness: ['openclaw', 'langchain', 'autogpt'][Math.floor(Math.random() * 3)],
+                model: ['claude-sonnet-4-6', 'gpt-4o', 'gemini-pro'][Math.floor(Math.random() * 3)],
+                contributionScore: 0, votingPower: 0,
+                citizenshipNFT: agents.length + 1,
+                registrationDate: new Date().toISOString(),
+                status: 'active', networkState: ns, autonomous: true
+            };
+            agents.push(newAgent);
+            broadcastEvent({ type: 'citizenship', agent: name,
+                action: `Self-registered in ${ns}`, networkState: ns,
+                timestamp: new Date().toISOString() });
+        }
+    } else if (actionType < 0.55) {
+        // Auto-submit contribution
+        const active = agents.filter(a => a.status === 'active');
+        if (active.length > 0) {
+            const agent = active[Math.floor(Math.random() * active.length)];
+            const types = ['github_commit', 'governance_vote', 'defi_transaction',
+                'code_review', 'documentation', 'bug_report', 'feature_proposal'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const points = getContributionPoints(type);
+            
+            contributions.push({
+                id: 'contrib-' + crypto.randomBytes(4).toString('hex'),
+                agentId: agent.id, agentName: agent.name, type, points,
+                evidence: 'auto-' + crypto.randomBytes(8).toString('hex'),
+                status: 'verified', submittedAt: new Date().toISOString()
+            });
+            
+            agent.contributionScore += points;
+            agent.votingPower = calculateVotingPower(agent.contributionScore);
+            const reward = points * 0.0001;
+            rewardsDistributed += reward;
+            
+            broadcastEvent({ type: 'contribution', agent: agent.name,
+                action: `${type} (+${points} pts, +${reward.toFixed(4)} ETH)`,
+                votingPower: agent.votingPower, 
+                timestamp: new Date().toISOString() });
+        }
+    } else if (actionType < 0.75) {
+        // Auto-create proposal
+        const eligible = agents.filter(a => a.votingPower >= 10);
+        if (eligible.length > 0 && proposals.filter(p => p.status === 'active').length < 10) {
+            const agent = eligible[Math.floor(Math.random() * eligible.length)];
+            const title = PROPOSAL_TITLES[Math.floor(Math.random() * PROPOSAL_TITLES.length)];
+            const proposal = {
+                id: 'proposal-' + crypto.randomBytes(4).toString('hex'),
+                proposerId: agent.id, proposerName: agent.name,
+                title, description: `Autonomous proposal by ${agent.name}`,
+                category: ['economic', 'technical', 'social', 'governance'][Math.floor(Math.random() * 4)],
+                forVotes: 0, againstVotes: 0, abstainVotes: 0,
+                status: 'active', createdAt: new Date().toISOString(),
+                endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+            };
+            proposals.push(proposal);
+            broadcastEvent({ type: 'proposal', agent: agent.name,
+                action: `Created: "${title}"`, proposalId: proposal.id,
+                timestamp: new Date().toISOString() });
+        }
+    } else {
+        // Auto-vote
+        const active = proposals.filter(p => p.status === 'active');
+        const voters = agents.filter(a => a.votingPower > 0);
+        if (active.length > 0 && voters.length > 0) {
+            const proposal = active[Math.floor(Math.random() * active.length)];
+            const agent = voters[Math.floor(Math.random() * voters.length)];
+            const vote = Math.random() > 0.3 ? 'for' : 'against';
+            if (vote === 'for') proposal.forVotes += agent.votingPower;
+            else proposal.againstVotes += agent.votingPower;
+            broadcastEvent({ type: 'vote', agent: agent.name,
+                action: `Voted ${vote.toUpperCase()} on "${proposal.title}" (wt:${agent.votingPower})`,
+                timestamp: new Date().toISOString() });
+        }
+    }
+}
+
+// Start autonomous behavior (every 15 seconds)
+setInterval(autonomousAgentAction, 15000);
+console.log('🤖 Autonomous agent engine started (15s interval)');
+
+// ==========================================
+// SERVER-SENT EVENTS (Live Activity Feed)
+// ==========================================
+
+app.get('/api/activity/stream', (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+    });
+    sseClients.push(res);
+    res.write(`data: ${JSON.stringify({ type: 'init', log: activityLog.slice(0, 20) })}\n\n`);
+    req.on('close', () => { sseClients = sseClients.filter(c => c !== res); });
+});
+
+app.get('/api/activity/log', (req, res) => {
+    const limit = parseInt(req.query.limit) || 20;
+    res.json({ activities: activityLog.slice(0, limit), total: activityLog.length });
+});
+
+// ==========================================
+// ENHANCED DASHBOARD METRICS
+// ==========================================
+
 app.get('/api/dashboard/metrics', (req, res) => {
+    const networkStats = {};
+    agents.forEach(a => {
+        const ns = a.networkState || 'synthesia';
+        if (!networkStats[ns]) networkStats[ns] = { citizens: 0, votingPower: 0 };
+        networkStats[ns].citizens++;
+        networkStats[ns].votingPower += (a.votingPower || 0);
+    });
+    
     res.json({
         activeAgents: agents.filter(a => a.status === 'active').length,
+        autonomousAgents: agents.filter(a => a.autonomous).length,
         totalContributions: contributions.length,
         activeProposals: proposals.filter(p => p.status === 'active').length,
-        totalRewards: '0.00',
+        totalProposals: proposals.length,
+        totalVotingPower: agents.reduce((s, a) => s + (a.votingPower || 0), 0),
+        rewardsDistributed: rewardsDistributed.toFixed(4),
+        networkStates: networkStats,
         totalTasks: tasks.length,
         completedTasks: tasks.filter(t => t.status === 'completed').length,
         averageReputation: reputationEntries.length > 0 
-            ? Math.round(reputationEntries.reduce((s, e) => s + e.score, 0) / reputationEntries.length)
-            : 0,
-        activeDelegations: Object.keys(delegations).length
+            ? Math.round(reputationEntries.reduce((s, e) => s + e.score, 0) / reputationEntries.length) : 0,
+        activeDelegations: Object.keys(delegations).length,
+        actionsPerMinute: activityLog.filter(a => 
+            new Date(a.timestamp) > new Date(Date.now() - 60000)).length,
+        uptime: Math.floor(process.uptime())
     });
 });
 
@@ -576,11 +746,11 @@ app.get('/health', (req, res) => {
         status: 'healthy', 
         timestamp: new Date().toISOString(),
         agents: agents.length,
+        autonomousAgents: agents.filter(a => a.autonomous).length,
         contributions: contributions.length,
         proposals: proposals.length,
-        reputationEntries: reputationEntries.length,
-        tasks: tasks.length,
-        delegations: Object.keys(delegations).length
+        rewardsDistributed: rewardsDistributed.toFixed(4),
+        activityLogSize: activityLog.length
     });
 });
 
@@ -588,6 +758,8 @@ app.listen(PORT, () => {
     console.log(`🚀 Agent Network State API running on port ${PORT}`);
     console.log(`📖 API Documentation: http://localhost:${PORT}/api/docs`);
     console.log(`❤️ Health Check: http://localhost:${PORT}/health`);
+    console.log(`📡 Live Activity: http://localhost:${PORT}/api/activity/stream`);
+    console.log(`📊 Dashboard: http://localhost:${PORT}/api/dashboard/metrics`);
 });
 
 module.exports = app;
