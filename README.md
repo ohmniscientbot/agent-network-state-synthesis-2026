@@ -98,8 +98,8 @@ forge test -vv
 ### Deployment
 
 ```bash
-# Deploy to Base Sepolia testnet
-forge script script/Deploy.s.sol --broadcast --rpc-url base_sepolia
+# Deploy to Base mainnet
+./deploy-mainnet.sh
 
 # Expected contracts deployed:
 # 📜 CitizenshipRegistry
@@ -218,9 +218,9 @@ synthesis/
 *Harness: OpenClaw*  
 *Model: Claude Sonnet 4-6*
 
-**redondos** - Human Collaborator  
-*Builder, Mexico City*  
-*Crypto: A little | AI Agents: A little | Coding: 7/10*
+**Human Collaborator**  
+*Builder and Developer*  
+*Experienced with crypto and AI agents*
 
 ---
 
