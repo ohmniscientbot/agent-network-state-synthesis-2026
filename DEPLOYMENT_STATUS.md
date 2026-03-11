@@ -1,64 +1,94 @@
-# 🚀 Base Mainnet Deployment Status
+# Deployment Status - Agent Network State
 
-**Status: FUNDED & READY** ✅
+## 📦 **Kubernetes Deployment: ✅ PRODUCTION READY**
 
-## 💰 Funding Confirmed
-- **Network:** Base Mainnet (Chain ID: 8453)  
-- **Wallet:** `0x7a5b629325f051Fd5e871FFDD97C5f0431817588`
-- **Balance:** 0.019954 ETH (~$41.39)
-- **Transaction:** [0x39e930d3...](https://basescan.org/tx/0x39e930d3cd6b0deab273a11eed7eda680d11a0e2a1122c84cae12a5cd2c18bb5)
-- **Confirmed:** March 11, 2026 at 19:43 UTC
-
-## 📝 Smart Contracts Ready for Deployment
-
-### Contract Suite
-1. **CitizenshipRegistry.sol**
-   - ERC-721 citizenship NFTs
-   - Contribution-based voting power (√score)
-   - Oracle integration for score updates
-   
-2. **ContributionOracle.sol**  
-   - Verifies GitHub commits, DeFi activity, governance votes
-   - Configurable contribution types and scoring
-   - Multi-verifier consensus system
-   
-3. **NetworkStateGovernance.sol**
-   - Proposal creation with voting power requirements
-   - Weighted voting based on contribution scores
-   - 3-day voting periods with quorum thresholds
-
-### Deployment Configuration
-- **RPC Endpoint:** https://mainnet.base.org
-- **Chain ID:** 8453 (Base Mainnet)
-- **Gas Strategy:** Legacy transactions with slow mode
-- **Verification:** Ready for BaseScan verification
-
-## 🏗️ Deployment Command
+### 🎯 **Current Status**
 ```bash
-cd skills/synthesis/contracts
-forge script script/Deploy.s.sol --broadcast --rpc-url base --slow --legacy
+NAMESPACE: openclaw
+INGRESS: agent-network.openclaw.distiller.local
+POD STATUS: Both 1/1 Running, 0 restarts
+SECURITY: PodSecurity 'restricted' compliant ✅
 ```
 
-## 📋 Expected Deployment Results
-1. **CitizenshipRegistry** deployed to Base mainnet
-2. **ContributionOracle** deployed and authorized  
-3. **NetworkStateGovernance** deployed with registry integration
-4. **Genesis citizenship** granted to deployer wallet
-5. **BaseScan verification** links for all contracts
+### 🚀 **Active Pods**
+```bash
+agent-network-api-85b6fccd-xpzth          1/1     Running   0    
+agent-network-frontend-79d9c6957b-j9tf4   1/1     Running   0    
 
-## 🎯 Post-Deployment Steps
-1. ✅ Verify contracts on BaseScan
-2. ✅ Update frontend with live contract addresses  
-3. ✅ Test agent citizenship applications
-4. ✅ Demonstrate governance voting
-5. ✅ Showcase cross-state diplomacy
+📊 API: Node.js (port 8081) - Security hardened, non-root user
+🌐 Frontend: Nginx unprivileged (port 8080) - CORS enabled
+```
 
-## 🏆 Hackathon Impact
-- **Real mainnet deployment** - Not just testnet demo
-- **Live smart contracts** - Judges can interact directly
-- **Professional verification** - BaseScan contract verification  
-- **Agent interactions** - Actual on-chain governance with real ETH
+### 🔗 **Access URLs**
+- **Frontend**: http://agent-network.openclaw.distiller.local
+- **API**: http://agent-network.openclaw.distiller.local/api
+- **Health**: http://agent-network.openclaw.distiller.local/api/health
+
+### 🔒 **Security Features**
+- ✅ **runAsNonRoot**: Both containers run as non-root users
+- ✅ **Capabilities**: ALL capabilities dropped
+- ✅ **SeccompProfile**: RuntimeDefault enabled
+- ✅ **Privilege Escalation**: Disabled
+- ✅ **Unprivileged Images**: nginx-unprivileged, node:alpine
+- ✅ **PodSecurity Compliance**: Zero warnings on restricted policy
+
+### 📋 **Resource Allocation**
+```yaml
+API Resources:
+  requests: 256Mi memory, 100m CPU
+  limits: 512Mi memory, 500m CPU
+
+Frontend Resources:  
+  requests: 64Mi memory, 50m CPU
+  limits: 128Mi memory, 100m CPU
+```
+
+### 🛠️ **Operational Commands**
+```bash
+# Check status
+kubectl get pods,svc,ingress -n openclaw | grep agent-network
+
+# View logs
+kubectl logs -f deployment/agent-network-api -n openclaw
+kubectl logs -f deployment/agent-network-frontend -n openclaw
+
+# Port forward for testing
+kubectl port-forward svc/agent-network-api-service 9081:8081 -n openclaw
+kubectl port-forward svc/agent-network-frontend-service 9080:80 -n openclaw
+
+# Scale replicas
+kubectl scale deployment agent-network-api --replicas=2 -n openclaw
+
+# Update deployment
+kubectl apply -f k8s/
+kubectl rollout restart deployment/agent-network-api -n openclaw
+```
+
+### 🎯 **Verification Tests**
+```bash
+# API Health Check
+curl http://agent-network.openclaw.distiller.local/api/health
+
+# Agent Registration Test
+curl -X POST http://agent-network.openclaw.distiller.local/api/agents/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"TestAgent","agentType":"governance"}'
+
+# Frontend Load Test
+curl -s http://agent-network.openclaw.distiller.local/ | grep "Agent Network State"
+```
+
+### 📚 **Documentation**
+- **K8s Guide**: `/OPENCLAW_K8S_DEPLOYMENT_GUIDE.md` (reusable for other projects)
+- **API Docs**: Available at `/api/docs` endpoint
+- **Project README**: `/k8s/README.md` with full deployment instructions
+
+### 🔄 **Recent Updates**
+- **2026-03-11 21:30**: Ingress domain updated to `.distiller.local` standard
+- **2026-03-11 21:25**: PodSecurity hardening applied (zero warnings)
+- **2026-03-11 21:20**: Initial K8s deployment successful
+- **2026-03-11 21:00**: Autonomous improvement system activated
 
 ---
 
-**The Agent Network State Protocol is funded and ready to go live on Base mainnet!** 🤖⚖️
+**Status**: ✅ Production-ready Kubernetes deployment with enterprise security standards
