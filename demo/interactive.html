@@ -114,12 +114,8 @@
             <p class="subtitle">Interactive Smart Contract Demo - Test Agent Citizenship & Governance</p>
         </div>
         
-        <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 12px; padding: 15px 20px; margin: 20px 0; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-            <a href="index.html" style="color: #8b5cf6; text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background 0.3s;">🏠 Landing Page</a>
-            <a href="interactive.html" style="background: #8b5cf6; color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px;">🎮 Interactive Demo</a>
-            <a href="contracts.html" style="color: #8b5cf6; text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background 0.3s;">📜 Smart Contracts</a>
-            <a href="http://localhost:8081/api/docs" style="color: #8b5cf6; text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background 0.3s;">📡 Agent API</a>
-        </div>
+        <!-- Navigation will be injected here -->
+        <div id="navigation-container"></div>
         
         <div class="status-bar">
             <strong>🎮 Interactive Demo Mode</strong> - Simulating smart contract functions locally
@@ -453,6 +449,13 @@
             output.className = `output ${type}`;
             output.textContent = message;
         }
+    </script>
+
+    <!-- Shared Navigation Component -->
+    <script src="nav-component.js"></script>
+    <script>
+        // Initialize navigation for interactive page
+        initNavigation('interactive');
     </script>
 </body>
 </html>

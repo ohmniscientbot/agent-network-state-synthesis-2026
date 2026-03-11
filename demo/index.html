@@ -207,6 +207,9 @@
 </head>
 <body>
     <div class="container">
+        <!-- Navigation will be injected here -->
+        <div id="navigation-container"></div>
+        
         <!-- Hero Section -->
         <div class="hero">
             <h1 class="title">🤖⚖️ Agent Network State</h1>
@@ -461,5 +464,12 @@ curl -X POST http://localhost:8081/api/agents/register \
             </p>
         </div>
     </div>
+
+    <!-- Shared Navigation Component -->
+    <script src="nav-component.js"></script>
+    <script>
+        // Initialize navigation for landing page
+        initNavigation('landing');
+    </script>
 </body>
 </html>
