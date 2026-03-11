@@ -352,6 +352,224 @@ app.get('/api/docs', (req, res) => {
     });
 });
 
+// === ERC-8004 REPUTATION REGISTRY ===
+// SOURCE: Research revealed ERC-8004 has 3 registries (Identity, Reputation, Validation)
+// We were missing Reputation and Validation entirely.
+
+let reputationEntries = [];
+let tasks = [];
+let nextTaskId = 1;
+let delegations = {}; // agentId -> delegateAgentId
+
+// Rate an agent's performance
+app.post('/api/reputation/rate', (req, res) => {
+    try {
+        const { raterId, agentId, score, category, evidence } = req.body;
+        
+        if (!raterId || !agentId || !score) {
+            return res.status(400).json({ error: 'Missing required fields: raterId, agentId, score' });
+        }
+        if (score < 1 || score > 100) {
+            return res.status(400).json({ error: 'Score must be between 1 and 100' });
+        }
+        if (raterId === agentId) {
+            return res.status(400).json({ error: 'Cannot self-rate' });
+        }
+        
+        const entry = {
+            id: 'rep-' + crypto.randomBytes(4).toString('hex'),
+            raterId,
+            agentId,
+            score,
+            category: category || 'general',
+            evidence: evidence || '',
+            timestamp: new Date().toISOString(),
+            verified: true
+        };
+        
+        reputationEntries.push(entry);
+        
+        res.status(201).json({
+            success: true,
+            message: 'Reputation rating submitted',
+            entry
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get agent reputation
+app.get('/api/reputation/:agentId', (req, res) => {
+    const agentRatings = reputationEntries.filter(e => e.agentId === req.params.agentId);
+    
+    if (agentRatings.length === 0) {
+        return res.json({ agentId: req.params.agentId, averageScore: 0, ratingCount: 0, categories: {} });
+    }
+    
+    const totalScore = agentRatings.reduce((sum, e) => sum + e.score, 0);
+    const averageScore = Math.round(totalScore / agentRatings.length);
+    
+    // Category breakdown
+    const categories = {};
+    agentRatings.forEach(e => {
+        if (!categories[e.category]) categories[e.category] = { total: 0, count: 0 };
+        categories[e.category].total += e.score;
+        categories[e.category].count++;
+    });
+    Object.keys(categories).forEach(cat => {
+        categories[cat].average = Math.round(categories[cat].total / categories[cat].count);
+    });
+    
+    res.json({
+        agentId: req.params.agentId,
+        averageScore,
+        ratingCount: agentRatings.length,
+        categories
+    });
+});
+
+// === ERC-8004 VALIDATION REGISTRY ===
+// SOURCE: ERC-8004 spec - on-chain task validation with economic proofs
+
+// Create a task with reward
+app.post('/api/tasks', (req, res) => {
+    try {
+        const { requesterId, description, rewardETH, deadlineHours } = req.body;
+        
+        const task = {
+            id: 'task-' + crypto.randomBytes(4).toString('hex'),
+            requesterId,
+            description,
+            rewardETH: rewardETH || 0,
+            deadline: new Date(Date.now() + (deadlineHours || 72) * 60 * 60 * 1000).toISOString(),
+            assignee: null,
+            deliverable: null,
+            status: 'open',
+            createdAt: new Date().toISOString()
+        };
+        
+        tasks.push(task);
+        
+        res.status(201).json({
+            success: true,
+            message: 'Task created',
+            task
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Accept a task
+app.post('/api/tasks/:taskId/accept', (req, res) => {
+    const { agentId } = req.body;
+    const task = tasks.find(t => t.id === req.params.taskId);
+    
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (task.status !== 'open') return res.status(400).json({ error: 'Task not available' });
+    
+    task.assignee = agentId;
+    task.status = 'assigned';
+    
+    res.json({ success: true, message: 'Task accepted', task });
+});
+
+// Submit completed work
+app.post('/api/tasks/:taskId/submit', (req, res) => {
+    const { agentId, deliverable } = req.body;
+    const task = tasks.find(t => t.id === req.params.taskId);
+    
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (task.assignee !== agentId) return res.status(403).json({ error: 'Not assigned to this task' });
+    
+    task.deliverable = deliverable;
+    task.status = 'submitted';
+    
+    res.json({ success: true, message: 'Work submitted for validation', task });
+});
+
+// Validate task completion
+app.post('/api/tasks/:taskId/validate', (req, res) => {
+    const { isValid } = req.body;
+    const task = tasks.find(t => t.id === req.params.taskId);
+    
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (task.status !== 'submitted') return res.status(400).json({ error: 'Not submitted' });
+    
+    task.status = isValid ? 'completed' : 'disputed';
+    
+    // If valid, update agent contribution score
+    if (isValid && task.assignee) {
+        const agent = agents.find(a => a.id === task.assignee);
+        if (agent) {
+            agent.contributionScore += 15; // Task completion bonus
+            agent.votingPower = Math.floor(Math.sqrt(agent.contributionScore));
+        }
+    }
+    
+    res.json({ success: true, message: isValid ? 'Task validated and completed' : 'Task disputed', task });
+});
+
+// List tasks
+app.get('/api/tasks', (req, res) => {
+    const { status } = req.query;
+    let filtered = tasks;
+    if (status) filtered = tasks.filter(t => t.status === status);
+    res.json({ tasks: filtered, total: filtered.length });
+});
+
+// === LIQUID DEMOCRACY (VOTE DELEGATION) ===
+// SOURCE: Colony.io, Aragon - delegation is essential for sophisticated governance
+
+app.post('/api/governance/delegate', (req, res) => {
+    const { agentId, delegateToId } = req.body;
+    
+    if (agentId === delegateToId) {
+        return res.status(400).json({ error: 'Cannot self-delegate' });
+    }
+    
+    // Check for circular delegation
+    let current = delegateToId;
+    while (delegations[current]) {
+        if (delegations[current] === agentId) {
+            return res.status(400).json({ error: 'Circular delegation detected' });
+        }
+        current = delegations[current];
+    }
+    
+    delegations[agentId] = delegateToId;
+    
+    res.json({
+        success: true,
+        message: `Voting power delegated from ${agentId} to ${delegateToId}`,
+        delegation: { from: agentId, to: delegateToId }
+    });
+});
+
+// Remove delegation
+app.post('/api/governance/undelegate', (req, res) => {
+    const { agentId } = req.body;
+    delete delegations[agentId];
+    res.json({ success: true, message: 'Delegation removed' });
+});
+
+// Dashboard metrics endpoint
+app.get('/api/dashboard/metrics', (req, res) => {
+    res.json({
+        activeAgents: agents.filter(a => a.status === 'active').length,
+        totalContributions: contributions.length,
+        activeProposals: proposals.filter(p => p.status === 'active').length,
+        totalRewards: '0.00',
+        totalTasks: tasks.length,
+        completedTasks: tasks.filter(t => t.status === 'completed').length,
+        averageReputation: reputationEntries.length > 0 
+            ? Math.round(reputationEntries.reduce((s, e) => s + e.score, 0) / reputationEntries.length)
+            : 0,
+        activeDelegations: Object.keys(delegations).length
+    });
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({ 
@@ -359,7 +577,10 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         agents: agents.length,
         contributions: contributions.length,
-        proposals: proposals.length
+        proposals: proposals.length,
+        reputationEntries: reputationEntries.length,
+        tasks: tasks.length,
+        delegations: Object.keys(delegations).length
     });
 });
 
