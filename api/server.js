@@ -664,7 +664,7 @@ let votingModeConfig = {
     tokenWeight: 30 // 30% weight for token-based voting
 };
 
-// Prediction Markets for Proposals (Vitalik-inspired governance filtering)
+// Prediction Markets for Proposals
 let predictionMarkets = {}; // proposalId -> market data
 let predictions = []; // Array of individual predictions
 let predictionResults = {}; // proposalId -> final outcome for reward calculation
@@ -893,7 +893,7 @@ app.get('/api/governance/delegations', (req, res) => {
 
 // ==========================================
 // PREDICTION MARKETS FOR PROPOSALS 
-// Vitalik-inspired governance filtering via market mechanisms
+// Governance filtering via market mechanisms
 // ==========================================
 
 // Create or get prediction market for a proposal
@@ -1701,7 +1701,7 @@ app.get('/api/dashboard/metrics', (req, res) => {
         actionsPerMinute: activityLog.filter(a => 
             new Date(a.timestamp) > new Date(Date.now() - 60000)).length,
         uptime: Math.floor(process.uptime()),
-        // Prediction Markets (Vitalik-inspired governance filtering)
+        // Prediction Markets
         activePredictionMarkets: Object.values(predictionMarkets).filter(m => !m.resolved).length,
         totalPredictions: predictions.length,
         predictionVolume: predictions.reduce((sum, p) => sum + p.stake, 0),
