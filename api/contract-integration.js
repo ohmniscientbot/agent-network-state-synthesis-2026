@@ -4,11 +4,11 @@ require('dotenv').config();
 // Contract integration for Agent Network State
 class ContractManager {
     constructor() {
-        this.provider = new ethers.providers.JsonRpcProvider(process.env.BASE_RPC_URL);
+        this.provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL);
         this.wallet = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
         
         // Load deployment info
-        const deployment = require('../deployment.json');
+        const deployment = require('./deployment.json');
         this.registryAddress = deployment.contractAddress;
         
         // Simple ABI for our registry contract
@@ -28,8 +28,8 @@ class ContractManager {
     async registerAgentOnChain(agentId) {
         try {
             // Convert agent ID to a number for simple storage
-            const agentHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(agentId));
-            const agentNumber = ethers.BigNumber.from(agentHash).mod(1000000); // Simplified
+            const agentHash = ethers.keccak256(ethers.toUtf8Bytes(agentId));
+            const agentNumber = BigInt(agentHash) % BigInt(1000000); // Simplified
             const timestamp = Math.floor(Date.now() / 1000);
             
             console.log(`🔗 Registering agent ${agentId} on-chain...`);
@@ -55,11 +55,11 @@ class ContractManager {
     // Check if agent exists on-chain
     async verifyAgentOnChain(agentId) {
         try {
-            const agentHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(agentId));
-            const agentNumber = ethers.BigNumber.from(agentHash).mod(1000000);
+            const agentHash = ethers.keccak256(ethers.toUtf8Bytes(agentId));
+            const agentNumber = BigInt(agentHash) % BigInt(1000000);
             
             const timestamp = await this.registry.retrieve(agentNumber);
-            return timestamp.gt(0) ? timestamp.toNumber() : null;
+            return timestamp > 0 ? Number(timestamp) : null;
         } catch (error) {
             console.error(`❌ On-chain verification failed:`, error.message);
             return null;
@@ -68,8 +68,8 @@ class ContractManager {
     
     // Get wallet balance
     async getBalance() {
-        const balance = await this.wallet.getBalance();
-        return ethers.utils.formatEther(balance);
+        const balance = await this.wallet.provider.getBalance(this.wallet.address);
+        return ethers.formatEther(balance);
     }
     
     // Get contract info
