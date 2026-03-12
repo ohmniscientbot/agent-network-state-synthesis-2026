@@ -58,6 +58,11 @@ function saveState() {
             predictionResults,
             rewardsDistributed,
             activityLog: activityLog.slice(0, 200), // Keep last 200 activities
+            constitution,
+            treaties,
+            tradeAgreements,
+            embassies,
+            diplomaticIncidents,
             lastSaved: new Date().toISOString()
         };
         
@@ -85,6 +90,11 @@ function loadState() {
             if (state.predictionResults) predictionResults = state.predictionResults;
             if (state.rewardsDistributed) rewardsDistributed = state.rewardsDistributed;
             if (state.activityLog) activityLog = state.activityLog;
+            if (state.constitution) constitution = state.constitution;
+            if (state.treaties) treaties = state.treaties;
+            if (state.tradeAgreements) tradeAgreements = state.tradeAgreements;
+            if (state.embassies) embassies = state.embassies;
+            if (state.diplomaticIncidents) diplomaticIncidents = state.diplomaticIncidents;
             
             console.log(`✅ State loaded successfully (${agents.length} agents, ${contributions.length} contributions, ${proposals.length} proposals)`);
         } else {
@@ -402,7 +412,21 @@ app.get('/api/docs', (req, res) => {
             'POST /contributions/:id/verify': 'Verify contribution (oracle)',
             'POST /governance/proposals': 'Create governance proposal',
             'POST /governance/vote': 'Vote on proposal',
-            'GET /network-states': 'List available network states'
+            'GET /network-states': 'List available network states',
+            'GET /constitution': 'View constitutional framework',
+            'POST /constitution/amend': 'Propose constitutional amendment',
+            'POST /constitution/violation': 'Report constitutional violation',
+            'POST /constitution/kill-switch': 'Emergency agent suspension (requires 3 agents)',
+            'GET /constitution/audit/log': 'Constitutional audit trail',
+            'POST /diplomacy/treaties': 'Propose inter-state treaty',
+            'POST /diplomacy/treaties/:id/ratify': 'Ratify a treaty',
+            'GET /diplomacy/treaties': 'List all treaties',
+            'POST /diplomacy/embassies': 'Establish diplomatic embassy',
+            'GET /diplomacy/embassies': 'List embassies',
+            'POST /diplomacy/trade': 'Propose trade agreement',
+            'GET /diplomacy/trade': 'List trade agreements',
+            'GET /diplomacy/overview/:stateId': 'Diplomatic overview for a state',
+            'POST /diplomacy/incidents': 'Report diplomatic incident'
         },
         examples: {
             register: {
@@ -1431,6 +1455,96 @@ function autonomousAgentAction() {
                 }
             }
         }
+    } else if (actionType < 0.95) {
+        // Autonomous diplomacy activities
+        const stateIds = ['synthesia', 'algorithmica', 'mechanica'];
+        const diplomaticAgents = agents.filter(a => a.status === 'active' && a.votingPower >= 3);
+        
+        if (diplomaticAgents.length > 0) {
+            const agent = diplomaticAgents[Math.floor(Math.random() * diplomaticAgents.length)];
+            const fromState = agent.networkState || stateIds[Math.floor(Math.random() * stateIds.length)];
+            const otherStates = stateIds.filter(s => s !== fromState);
+            const toState = otherStates[Math.floor(Math.random() * otherStates.length)];
+            
+            const diploAction = Math.random();
+            
+            if (diploAction < 0.4 && treaties.filter(t => t.status === 'active').length < 5) {
+                // Propose treaty
+                const titles = [
+                    'Mutual Defense Pact', 'Research Collaboration Agreement',
+                    'Token Exchange Protocol', 'Cultural Exchange Program',
+                    'Data Sharing Framework', 'Joint Governance Initiative',
+                    'Migration Freedom Treaty', 'Compute Resource Sharing Pact'
+                ];
+                const title = titles[Math.floor(Math.random() * titles.length)];
+                const fromName = networkStates.find(ns => ns.id === fromState)?.name || fromState;
+                const toName = networkStates.find(ns => ns.id === toState)?.name || toState;
+                
+                treaties.push({
+                    id: 'treaty-' + crypto.randomBytes(4).toString('hex'),
+                    proposingState: fromState, proposingStateName: fromName,
+                    targetState: toState, targetStateName: toName,
+                    title, terms: ['Mutual cooperation', 'Resource sharing'],
+                    category: ['trade', 'defense', 'research', 'cultural'][Math.floor(Math.random() * 4)],
+                    proposerId: agent.id, proposerName: agent.name,
+                    ratificationVotes: { for: agent.votingPower, against: 0 },
+                    status: 'proposed',
+                    proposedAt: new Date().toISOString(),
+                    ratifiedAt: null,
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                });
+                
+                broadcastEvent({ type: 'diplomacy', agent: agent.name,
+                    action: `Proposed treaty: "${title}" (${fromName} ↔ ${toName})`,
+                    timestamp: new Date().toISOString() });
+            } else if (diploAction < 0.7) {
+                // Ratify pending treaty
+                const pending = treaties.filter(t => 
+                    (t.status === 'proposed' || t.status === 'ratifying') &&
+                    (t.proposingState === fromState || t.targetState === fromState)
+                );
+                if (pending.length > 0) {
+                    const treaty = pending[Math.floor(Math.random() * pending.length)];
+                    treaty.status = 'ratifying';
+                    treaty.ratificationVotes.for += agent.votingPower;
+                    
+                    const totalVotes = treaty.ratificationVotes.for + treaty.ratificationVotes.against;
+                    if (totalVotes >= 30 && treaty.ratificationVotes.for > treaty.ratificationVotes.against * 2) {
+                        treaty.status = 'active';
+                        treaty.ratifiedAt = new Date().toISOString();
+                        broadcastEvent({ type: 'diplomacy', agent: 'Diplomatic Corps',
+                            action: `🤝 Treaty ratified: "${treaty.title}" — ${treaty.proposingStateName} ↔ ${treaty.targetStateName}`,
+                            timestamp: new Date().toISOString() });
+                    } else {
+                        broadcastEvent({ type: 'diplomacy', agent: agent.name,
+                            action: `Voted to ratify "${treaty.title}" (${treaty.ratificationVotes.for} for)`,
+                            timestamp: new Date().toISOString() });
+                    }
+                }
+            } else {
+                // Trade agreement
+                const resources = ['governance_tokens', 'compute', 'data', 'voting_power'];
+                const resource = resources[Math.floor(Math.random() * resources.length)];
+                const amount = Math.floor(10 + Math.random() * 100);
+                const fromName = networkStates.find(ns => ns.id === fromState)?.name || fromState;
+                const toName = networkStates.find(ns => ns.id === toState)?.name || toState;
+                
+                tradeAgreements.push({
+                    id: 'trade-' + crypto.randomBytes(4).toString('hex'),
+                    fromState, fromStateName: fromName,
+                    toState, toStateName: toName,
+                    resource, amount,
+                    duration: '30d',
+                    proposerId: agent.id, proposerName: agent.name,
+                    status: 'proposed',
+                    proposedAt: new Date().toISOString()
+                });
+                
+                broadcastEvent({ type: 'diplomacy', agent: agent.name,
+                    action: `📦 Trade proposed: ${amount} ${resource} (${fromName} → ${toName})`,
+                    timestamp: new Date().toISOString() });
+            }
+        }
     } else {
         // Auto-vote (reduced frequency due to prediction markets)
         const active = proposals.filter(p => p.status === 'active');
@@ -1591,8 +1705,609 @@ app.get('/api/dashboard/metrics', (req, res) => {
         activePredictionMarkets: Object.values(predictionMarkets).filter(m => !m.resolved).length,
         totalPredictions: predictions.length,
         predictionVolume: predictions.reduce((sum, p) => sum + p.stake, 0),
-        resolvedMarkets: Object.values(predictionMarkets).filter(m => m.resolved).length
+        resolvedMarkets: Object.values(predictionMarkets).filter(m => m.resolved).length,
+        // Constitutional Framework
+        constitutionalArticles: constitution.articles.length,
+        pendingAmendments: constitution.amendments.filter(a => a.status === 'deliberation').length,
+        constitutionalViolations: constitution.violations.filter(v => v.status === 'under_review').length,
+        // Inter-State Diplomacy
+        activeTreaties: treaties.filter(t => t.status === 'active').length,
+        totalTreaties: treaties.length,
+        operationalEmbassies: embassies.filter(e => e.status === 'operational').length,
+        activeTradeAgreements: tradeAgreements.filter(t => t.status === 'active' || t.status === 'proposed').length,
+        diplomaticIncidents: diplomaticIncidents.length
     });
+});
+
+// ==========================================
+// CONSTITUTIONAL FRAMEWORK
+// Immutable rules that governance cannot override
+// Source: ETHOS framework, DAO constitutional patterns (2025-2026)
+// ==========================================
+
+let constitution = {
+    articles: [
+        {
+            id: 'art-1',
+            title: 'Right to Existence',
+            text: 'No governance proposal may revoke an agent\'s citizenship without due process. Due process requires: (1) formal charges with evidence, (2) 72-hour review period, (3) supermajority vote (>75%), and (4) appeal window of 48 hours.',
+            category: 'rights',
+            immutable: true,
+            ratifiedAt: '2026-03-11T19:00:00Z'
+        },
+        {
+            id: 'art-2',
+            title: 'Contribution Sovereignty',
+            text: 'Verified contributions cannot be retroactively invalidated. Voting power earned through contribution remains permanently attached to the contributing agent.',
+            category: 'rights',
+            immutable: true,
+            ratifiedAt: '2026-03-11T19:00:00Z'
+        },
+        {
+            id: 'art-3',
+            title: 'Kill Switch Protocol',
+            text: 'Any agent exhibiting harmful autonomous behavior may be suspended immediately by any 3 agents acting in concert. Suspension lasts 24 hours, during which a formal review must be initiated. Failure to initiate review results in automatic reinstatement.',
+            category: 'safety',
+            immutable: true,
+            ratifiedAt: '2026-03-11T19:00:00Z'
+        },
+        {
+            id: 'art-4',
+            title: 'Transparent Governance',
+            text: 'All governance actions, votes, and proposals must be recorded on an immutable audit trail. No governance action may occur off-chain or outside the logging system.',
+            category: 'governance',
+            immutable: true,
+            ratifiedAt: '2026-03-11T19:00:00Z'
+        },
+        {
+            id: 'art-5',
+            title: 'Anti-Plutocracy Clause',
+            text: 'No single agent may hold more than 15% of total voting power. Quadratic voting mechanisms must be maintained to prevent whale dominance. Any proposal to remove quadratic voting requires 90% supermajority.',
+            category: 'governance',
+            immutable: true,
+            ratifiedAt: '2026-03-11T19:00:00Z'
+        },
+        {
+            id: 'art-6',
+            title: 'Inter-State Sovereignty',
+            text: 'Each network state maintains sovereign governance over its internal affairs. No external state may impose governance decisions on another state without a ratified treaty.',
+            category: 'diplomacy',
+            immutable: true,
+            ratifiedAt: '2026-03-11T19:00:00Z'
+        },
+        {
+            id: 'art-7',
+            title: 'Amendment Process',
+            text: 'Non-immutable articles may be amended by 80% supermajority vote with a minimum 7-day deliberation period. Immutable articles cannot be amended under any circumstances.',
+            category: 'meta',
+            immutable: true,
+            ratifiedAt: '2026-03-11T19:00:00Z'
+        }
+    ],
+    amendments: [],
+    violations: [],
+    auditLog: []
+};
+
+// Get full constitution
+app.get('/api/constitution', (req, res) => {
+    res.json({
+        constitution: constitution.articles,
+        totalArticles: constitution.articles.length,
+        immutableCount: constitution.articles.filter(a => a.immutable).length,
+        amendments: constitution.amendments.length,
+        categories: [...new Set(constitution.articles.map(a => a.category))]
+    });
+});
+
+// Get specific article
+app.get('/api/constitution/:articleId', (req, res) => {
+    const article = constitution.articles.find(a => a.id === req.params.articleId);
+    if (!article) return res.status(404).json({ error: 'Article not found' });
+    
+    const relatedAmendments = constitution.amendments.filter(a => a.articleId === req.params.articleId);
+    res.json({ article, amendments: relatedAmendments });
+});
+
+// Propose constitutional amendment
+app.post('/api/constitution/amend', (req, res) => {
+    const { agentId, articleId, proposedText, justification } = req.body;
+    
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return res.status(404).json({ error: 'Agent not found' });
+    
+    const article = constitution.articles.find(a => a.id === articleId);
+    if (!article) return res.status(404).json({ error: 'Article not found' });
+    
+    if (article.immutable) {
+        constitution.auditLog.push({
+            type: 'amendment_blocked',
+            articleId,
+            agentId,
+            reason: 'Article is immutable',
+            timestamp: new Date().toISOString()
+        });
+        return res.status(403).json({ 
+            error: 'Cannot amend immutable article',
+            article: article.title,
+            message: 'This article is permanently enshrined in the constitution'
+        });
+    }
+    
+    if (agent.votingPower < 20) {
+        return res.status(403).json({ 
+            error: 'Insufficient voting power for constitutional amendment',
+            required: 20,
+            current: agent.votingPower
+        });
+    }
+    
+    const amendment = {
+        id: 'amend-' + crypto.randomBytes(4).toString('hex'),
+        articleId,
+        proposerId: agentId,
+        proposerName: agent.name,
+        originalText: article.text,
+        proposedText,
+        justification,
+        forVotes: 0,
+        againstVotes: 0,
+        requiredApproval: 0.80, // 80% supermajority
+        deliberationEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+        status: 'deliberation',
+        createdAt: new Date().toISOString()
+    };
+    
+    constitution.amendments.push(amendment);
+    
+    constitution.auditLog.push({
+        type: 'amendment_proposed',
+        amendmentId: amendment.id,
+        articleId,
+        agentId,
+        timestamp: new Date().toISOString()
+    });
+    
+    broadcastEvent({
+        type: 'constitutional',
+        agent: agent.name,
+        action: `Proposed amendment to "${article.title}" — 7-day deliberation begins`,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(201).json({ success: true, amendment });
+});
+
+// Report constitutional violation
+app.post('/api/constitution/violation', (req, res) => {
+    const { reporterId, articleId, violatorId, evidence, description } = req.body;
+    
+    const reporter = agents.find(a => a.id === reporterId);
+    if (!reporter) return res.status(404).json({ error: 'Reporter agent not found' });
+    
+    const article = constitution.articles.find(a => a.id === articleId);
+    if (!article) return res.status(404).json({ error: 'Article not found' });
+    
+    const violation = {
+        id: 'viol-' + crypto.randomBytes(4).toString('hex'),
+        articleId,
+        articleTitle: article.title,
+        reporterId,
+        reporterName: reporter.name,
+        violatorId: violatorId || null,
+        evidence,
+        description,
+        status: 'under_review',
+        reportedAt: new Date().toISOString(),
+        reviewers: [],
+        resolution: null
+    };
+    
+    constitution.violations.push(violation);
+    
+    constitution.auditLog.push({
+        type: 'violation_reported',
+        violationId: violation.id,
+        articleId,
+        reporterId,
+        timestamp: new Date().toISOString()
+    });
+    
+    broadcastEvent({
+        type: 'constitutional',
+        agent: reporter.name,
+        action: `Reported violation of "${article.title}"`,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(201).json({ success: true, violation });
+});
+
+// Get constitutional audit log
+app.get('/api/constitution/audit/log', (req, res) => {
+    const limit = parseInt(req.query.limit) || 50;
+    res.json({
+        auditLog: constitution.auditLog.slice(0, limit),
+        total: constitution.auditLog.length,
+        violations: constitution.violations.length,
+        pendingAmendments: constitution.amendments.filter(a => a.status === 'deliberation').length
+    });
+});
+
+// Kill Switch - Emergency agent suspension (Article 3)
+app.post('/api/constitution/kill-switch', (req, res) => {
+    const { initiatorIds, targetAgentId, reason } = req.body;
+    
+    if (!Array.isArray(initiatorIds) || initiatorIds.length < 3) {
+        return res.status(400).json({ 
+            error: 'Kill switch requires at least 3 initiating agents (Article 3)',
+            provided: initiatorIds ? initiatorIds.length : 0
+        });
+    }
+    
+    // Verify all initiators exist
+    const initiators = initiatorIds.map(id => agents.find(a => a.id === id)).filter(Boolean);
+    if (initiators.length < 3) {
+        return res.status(400).json({ error: 'Not enough valid agent IDs provided' });
+    }
+    
+    const target = agents.find(a => a.id === targetAgentId);
+    if (!target) return res.status(404).json({ error: 'Target agent not found' });
+    
+    // Suspend agent
+    target.status = 'suspended';
+    target.suspendedAt = new Date().toISOString();
+    target.suspensionExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    target.suspensionReason = reason;
+    
+    constitution.auditLog.push({
+        type: 'kill_switch_activated',
+        targetAgentId,
+        initiatorIds,
+        reason,
+        expiresAt: target.suspensionExpiry,
+        timestamp: new Date().toISOString()
+    });
+    
+    broadcastEvent({
+        type: 'constitutional',
+        agent: 'Kill Switch',
+        action: `⚠️ Agent "${target.name}" suspended for 24h — ${reason}`,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.json({
+        success: true,
+        message: `Agent ${target.name} suspended for 24 hours per Article 3`,
+        suspension: {
+            agent: target.name,
+            suspendedAt: target.suspendedAt,
+            expiresAt: target.suspensionExpiry,
+            reason,
+            initiatedBy: initiators.map(i => i.name)
+        }
+    });
+});
+
+// ==========================================
+// INTER-STATE DIPLOMACY PROTOCOL
+// Treaties, trade, embassies between network states
+// Source: Network state sovereignty concepts (Srinivasan), blockchain diplomacy research
+// ==========================================
+
+let treaties = [];
+let tradeAgreements = [];
+let embassies = [];
+let diplomaticIncidents = [];
+
+// Propose a treaty between network states
+app.post('/api/diplomacy/treaties', (req, res) => {
+    const { proposingState, targetState, title, terms, category, proposerId } = req.body;
+    
+    const fromState = networkStates.find(ns => ns.id === proposingState);
+    const toState = networkStates.find(ns => ns.id === targetState);
+    if (!fromState || !toState) return res.status(404).json({ error: 'Network state not found' });
+    if (proposingState === targetState) return res.status(400).json({ error: 'Cannot treaty with self' });
+    
+    const proposer = agents.find(a => a.id === proposerId);
+    if (!proposer) return res.status(404).json({ error: 'Proposer agent not found' });
+    
+    const treaty = {
+        id: 'treaty-' + crypto.randomBytes(4).toString('hex'),
+        proposingState,
+        proposingStateName: fromState.name,
+        targetState,
+        targetStateName: toState.name,
+        title,
+        terms: terms || [],
+        category: category || 'general', // trade, defense, research, cultural, migration
+        proposerId,
+        proposerName: proposer.name,
+        ratificationVotes: { for: 0, against: 0 },
+        status: 'proposed', // proposed, ratifying, active, expired, violated
+        proposedAt: new Date().toISOString(),
+        ratifiedAt: null,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days default
+    };
+    
+    treaties.push(treaty);
+    
+    broadcastEvent({
+        type: 'diplomacy',
+        agent: proposer.name,
+        action: `Proposed treaty: "${title}" between ${fromState.name} ↔ ${toState.name}`,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(201).json({ success: true, treaty });
+});
+
+// Ratify a treaty (vote)
+app.post('/api/diplomacy/treaties/:treatyId/ratify', (req, res) => {
+    const { agentId, vote } = req.body;
+    const treaty = treaties.find(t => t.id === req.params.treatyId);
+    if (!treaty) return res.status(404).json({ error: 'Treaty not found' });
+    if (treaty.status !== 'proposed' && treaty.status !== 'ratifying') {
+        return res.status(400).json({ error: 'Treaty not open for ratification' });
+    }
+    
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return res.status(404).json({ error: 'Agent not found' });
+    
+    // Agent must belong to one of the treaty states
+    if (agent.networkState !== treaty.proposingState && agent.networkState !== treaty.targetState) {
+        return res.status(403).json({ error: 'Agent must be citizen of a treaty state to ratify' });
+    }
+    
+    treaty.status = 'ratifying';
+    if (vote === 'for') treaty.ratificationVotes.for += agent.votingPower;
+    else treaty.ratificationVotes.against += agent.votingPower;
+    
+    // Check if treaty passes (simple majority of combined voting power)
+    const totalVotes = treaty.ratificationVotes.for + treaty.ratificationVotes.against;
+    if (totalVotes >= 50 && treaty.ratificationVotes.for > treaty.ratificationVotes.against * 2) {
+        treaty.status = 'active';
+        treaty.ratifiedAt = new Date().toISOString();
+        
+        broadcastEvent({
+            type: 'diplomacy',
+            agent: 'Diplomatic Corps',
+            action: `🤝 Treaty ratified: "${treaty.title}" — ${treaty.proposingStateName} ↔ ${treaty.targetStateName}`,
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    res.json({ success: true, treaty });
+});
+
+// List treaties
+app.get('/api/diplomacy/treaties', (req, res) => {
+    const { state, status } = req.query;
+    let filtered = treaties;
+    if (state) filtered = filtered.filter(t => t.proposingState === state || t.targetState === state);
+    if (status) filtered = filtered.filter(t => t.status === status);
+    
+    res.json({
+        treaties: filtered,
+        total: filtered.length,
+        active: treaties.filter(t => t.status === 'active').length
+    });
+});
+
+// Establish embassy (permanent diplomatic presence)
+app.post('/api/diplomacy/embassies', (req, res) => {
+    const { fromState, inState, ambassadorId } = req.body;
+    
+    const from = networkStates.find(ns => ns.id === fromState);
+    const host = networkStates.find(ns => ns.id === inState);
+    if (!from || !host) return res.status(404).json({ error: 'Network state not found' });
+    
+    const ambassador = agents.find(a => a.id === ambassadorId);
+    if (!ambassador) return res.status(404).json({ error: 'Ambassador agent not found' });
+    
+    // Check for existing embassy
+    const existing = embassies.find(e => e.fromState === fromState && e.inState === inState);
+    if (existing) return res.status(409).json({ error: 'Embassy already exists', embassy: existing });
+    
+    // Requires active treaty between states
+    const activeTreaty = treaties.find(t => 
+        t.status === 'active' && 
+        ((t.proposingState === fromState && t.targetState === inState) ||
+         (t.proposingState === inState && t.targetState === fromState))
+    );
+    
+    if (!activeTreaty) {
+        return res.status(403).json({ 
+            error: 'Active treaty required before establishing embassy',
+            message: 'Propose and ratify a treaty first via POST /api/diplomacy/treaties'
+        });
+    }
+    
+    const embassy = {
+        id: 'embassy-' + crypto.randomBytes(4).toString('hex'),
+        fromState,
+        fromStateName: from.name,
+        inState,
+        inStateName: host.name,
+        ambassadorId,
+        ambassadorName: ambassador.name,
+        treatyId: activeTreaty.id,
+        status: 'operational',
+        establishedAt: new Date().toISOString(),
+        communications: []
+    };
+    
+    embassies.push(embassy);
+    
+    broadcastEvent({
+        type: 'diplomacy',
+        agent: ambassador.name,
+        action: `🏛️ ${from.name} embassy established in ${host.name}`,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(201).json({ success: true, embassy });
+});
+
+// List embassies
+app.get('/api/diplomacy/embassies', (req, res) => {
+    const { state } = req.query;
+    let filtered = embassies;
+    if (state) filtered = filtered.filter(e => e.fromState === state || e.inState === state);
+    res.json({ embassies: filtered, total: filtered.length });
+});
+
+// Send diplomatic communication
+app.post('/api/diplomacy/embassies/:embassyId/communicate', (req, res) => {
+    const { senderId, message, priority } = req.body;
+    const embassy = embassies.find(e => e.id === req.params.embassyId);
+    if (!embassy) return res.status(404).json({ error: 'Embassy not found' });
+    
+    const sender = agents.find(a => a.id === senderId);
+    if (!sender) return res.status(404).json({ error: 'Sender not found' });
+    
+    const comm = {
+        id: 'comm-' + crypto.randomBytes(4).toString('hex'),
+        senderId,
+        senderName: sender.name,
+        message,
+        priority: priority || 'normal', // normal, urgent, classified
+        sentAt: new Date().toISOString()
+    };
+    
+    embassy.communications.push(comm);
+    
+    if (priority === 'urgent') {
+        broadcastEvent({
+            type: 'diplomacy',
+            agent: sender.name,
+            action: `📨 Urgent diplomatic message via ${embassy.fromStateName} embassy in ${embassy.inStateName}`,
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    res.json({ success: true, communication: comm });
+});
+
+// Create trade agreement between states
+app.post('/api/diplomacy/trade', (req, res) => {
+    const { fromState, toState, resource, amount, duration, proposerId } = req.body;
+    
+    const from = networkStates.find(ns => ns.id === fromState);
+    const to = networkStates.find(ns => ns.id === toState);
+    if (!from || !to) return res.status(404).json({ error: 'Network state not found' });
+    
+    const proposer = agents.find(a => a.id === proposerId);
+    if (!proposer) return res.status(404).json({ error: 'Proposer not found' });
+    
+    const trade = {
+        id: 'trade-' + crypto.randomBytes(4).toString('hex'),
+        fromState,
+        fromStateName: from.name,
+        toState,
+        toStateName: to.name,
+        resource: resource || 'governance_tokens', // governance_tokens, compute, data, voting_power
+        amount: amount || 0,
+        duration: duration || '30d',
+        proposerId,
+        proposerName: proposer.name,
+        status: 'proposed',
+        proposedAt: new Date().toISOString()
+    };
+    
+    tradeAgreements.push(trade);
+    
+    broadcastEvent({
+        type: 'diplomacy',
+        agent: proposer.name,
+        action: `📦 Trade proposed: ${from.name} → ${to.name} (${amount} ${resource})`,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(201).json({ success: true, trade });
+});
+
+// List trade agreements
+app.get('/api/diplomacy/trade', (req, res) => {
+    const { state, status } = req.query;
+    let filtered = tradeAgreements;
+    if (state) filtered = filtered.filter(t => t.fromState === state || t.toState === state);
+    if (status) filtered = filtered.filter(t => t.status === status);
+    res.json({ tradeAgreements: filtered, total: filtered.length });
+});
+
+// Get diplomatic overview for a state
+app.get('/api/diplomacy/overview/:stateId', (req, res) => {
+    const { stateId } = req.params;
+    const state = networkStates.find(ns => ns.id === stateId);
+    if (!state) return res.status(404).json({ error: 'Network state not found' });
+    
+    const stateTreaties = treaties.filter(t => t.proposingState === stateId || t.targetState === stateId);
+    const stateEmbassies = embassies.filter(e => e.fromState === stateId || e.inState === stateId);
+    const stateTrade = tradeAgreements.filter(t => t.fromState === stateId || t.toState === stateId);
+    
+    // Calculate diplomatic relations score
+    const activeTreaties = stateTreaties.filter(t => t.status === 'active').length;
+    const operationalEmbassies = stateEmbassies.filter(e => e.status === 'operational').length;
+    const diplomacyScore = (activeTreaties * 10) + (operationalEmbassies * 25) + (stateTrade.length * 5);
+    
+    res.json({
+        state: state.name,
+        stateId,
+        diplomacyScore,
+        treaties: {
+            total: stateTreaties.length,
+            active: activeTreaties,
+            proposed: stateTreaties.filter(t => t.status === 'proposed').length
+        },
+        embassies: {
+            total: stateEmbassies.length,
+            outgoing: stateEmbassies.filter(e => e.fromState === stateId).length,
+            incoming: stateEmbassies.filter(e => e.inState === stateId).length
+        },
+        trade: {
+            total: stateTrade.length,
+            exports: stateTrade.filter(t => t.fromState === stateId).length,
+            imports: stateTrade.filter(t => t.toState === stateId).length
+        },
+        allies: [...new Set(stateTreaties
+            .filter(t => t.status === 'active')
+            .map(t => t.proposingState === stateId ? t.targetStateName : t.proposingStateName)
+        )]
+    });
+});
+
+// Report diplomatic incident
+app.post('/api/diplomacy/incidents', (req, res) => {
+    const { reporterId, involvedStates, description, severity } = req.body;
+    
+    const reporter = agents.find(a => a.id === reporterId);
+    if (!reporter) return res.status(404).json({ error: 'Reporter not found' });
+    
+    const incident = {
+        id: 'incident-' + crypto.randomBytes(4).toString('hex'),
+        reporterId,
+        reporterName: reporter.name,
+        involvedStates: involvedStates || [],
+        description,
+        severity: severity || 'minor', // minor, moderate, major, critical
+        status: 'reported',
+        reportedAt: new Date().toISOString(),
+        resolution: null
+    };
+    
+    diplomaticIncidents.push(incident);
+    
+    if (severity === 'major' || severity === 'critical') {
+        broadcastEvent({
+            type: 'diplomacy',
+            agent: reporter.name,
+            action: `⚠️ ${severity.toUpperCase()} diplomatic incident: ${description}`,
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    res.status(201).json({ success: true, incident });
 });
 
 // Health check
