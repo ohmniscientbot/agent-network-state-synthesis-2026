@@ -49,3 +49,45 @@
 5. Mobile-first responsive design
 
 **Priority:** High - critical for demo impact and judge impression
+
+---
+
+## High Priority: Demo Mode Toggle Implementation
+
+**Context:** Need dual-state system for hackathon judging - bustling demo vs clean testing environment.
+
+**Implementation:**
+- **Dual File System:**
+  - `state-demo.json` - Pre-populated with 50+ agents, active governance, bustling activity
+  - `state-production.json` - Clean slate for judge testing  
+- **Frontend Toggle:** "Demo Mode" vs "Production Mode" button
+- **Environment Variable:** `DEMO_MODE=true/false` switches data sources
+- **Smart Contract Behavior:**
+  - Demo mode: Mock contract calls (fast, fake txs for smooth demo flow)
+  - Production mode: Real Base mainnet transactions
+
+**Data Architecture:**
+```javascript
+// Abstracted data layer
+class DataStore {
+  constructor(mode = process.env.DEMO_MODE ? 'demo' : 'production') {
+    this.stateFile = `/data/state-${mode}.json`;
+  }
+  async getAgents() { /* load from correct file */ }
+  async saveState(data) { /* save to correct file */ }
+}
+```
+
+**Frontend Changes:**
+- Landing page with mode selector
+- Clear visual indication of current mode
+- Reset/seed demo data functionality
+- "Switch to Production" for judge testing
+
+**Benefits:**
+- Judges see impressive bustling activity
+- Clean environment for real testing  
+- No data mixing/corruption risks
+- Perfect for hackathon demos
+
+**Priority:** Critical - this is what makes demos impressive while maintaining functionality
