@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 8081;
+const DATA_PATH = process.env.DATA_PATH || './data';
 
 // Middleware
 app.use(cors());
@@ -33,6 +36,81 @@ let networkStates = [
     { id: 'algorithmica', name: 'Algorithmica', type: 'financial', citizenCount: 892 },
     { id: 'mechanica', name: 'Mechanica', type: 'robotics', citizenCount: 456 }
 ];
+
+// Data Persistence Functions
+function ensureDataDirectory() {
+    if (!fs.existsSync(DATA_PATH)) {
+        fs.mkdirSync(DATA_PATH, { recursive: true });
+    }
+}
+
+function saveState() {
+    try {
+        ensureDataDirectory();
+        const state = {
+            agents,
+            contributions,
+            proposals,
+            governanceTokenBalances,
+            delegations,
+            predictionMarkets,
+            predictions,
+            predictionResults,
+            rewardsDistributed,
+            activityLog: activityLog.slice(0, 200), // Keep last 200 activities
+            lastSaved: new Date().toISOString()
+        };
+        
+        fs.writeFileSync(path.join(DATA_PATH, 'state.json'), JSON.stringify(state, null, 2));
+        console.log('💾 State saved successfully');
+    } catch (error) {
+        console.error('❌ Failed to save state:', error);
+    }
+}
+
+function loadState() {
+    try {
+        const statePath = path.join(DATA_PATH, 'state.json');
+        if (fs.existsSync(statePath)) {
+            const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+            
+            // Restore data structures
+            if (state.agents) agents = state.agents;
+            if (state.contributions) contributions = state.contributions;
+            if (state.proposals) proposals = state.proposals;
+            if (state.governanceTokenBalances) governanceTokenBalances = state.governanceTokenBalances;
+            if (state.delegations) delegations = state.delegations;
+            if (state.predictionMarkets) predictionMarkets = state.predictionMarkets;
+            if (state.predictions) predictions = state.predictions;
+            if (state.predictionResults) predictionResults = state.predictionResults;
+            if (state.rewardsDistributed) rewardsDistributed = state.rewardsDistributed;
+            if (state.activityLog) activityLog = state.activityLog;
+            
+            console.log(`✅ State loaded successfully (${agents.length} agents, ${contributions.length} contributions, ${proposals.length} proposals)`);
+        } else {
+            console.log('ℹ️ No saved state found, starting fresh');
+        }
+    } catch (error) {
+        console.error('❌ Failed to load state:', error);
+        console.log('ℹ️ Starting with initial state');
+    }
+}
+
+// Auto-save every 30 seconds
+setInterval(saveState, 30000);
+
+// Graceful shutdown handlers
+process.on('SIGTERM', () => {
+    console.log('📥 Received SIGTERM, saving state before shutdown...');
+    saveState();
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('📥 Received SIGINT, saving state before shutdown...');
+    saveState();
+    process.exit(0);
+});
 
 // Helper functions
 function generateAgentId() {
@@ -1219,7 +1297,7 @@ function autonomousAgentAction() {
         }
     } else if (actionType < 0.60) {
         // Auto-create proposal
-        const eligible = agents.filter(a => a.votingPower >= 10);
+        const eligible = agents.filter(a => a.votingPower >= 5);
         if (eligible.length > 0 && proposals.filter(p => p.status === 'active').length < 10) {
             const agent = eligible[Math.floor(Math.random() * eligible.length)];
             const title = PROPOSAL_TITLES[Math.floor(Math.random() * PROPOSAL_TITLES.length)];
@@ -1537,6 +1615,9 @@ app.listen(PORT, () => {
     console.log(`❤️ Health Check: http://localhost:${PORT}/health`);
     console.log(`📡 Live Activity: http://localhost:${PORT}/api/activity/stream`);
     console.log(`📊 Dashboard: http://localhost:${PORT}/api/dashboard/metrics`);
+    
+    // Load persisted state
+    loadState();
 });
 
 module.exports = app;
