@@ -554,6 +554,236 @@ app.post('/api/governance/undelegate', (req, res) => {
     res.json({ success: true, message: 'Delegation removed' });
 });
 
+// Enhanced Governance Features - Quadratic Voting with Hybrid Power
+let governanceTokenBalances = {}; // agentId -> token balance
+let votingModeConfig = {
+    mode: 'hybrid', // 'contribution', 'token', 'hybrid', 'delegated'
+    contributionWeight: 70, // 70% weight for contribution-based voting
+    tokenWeight: 30 // 30% weight for token-based voting
+};
+
+// Get voting power breakdown for an agent
+app.get('/api/governance/voting-power/:agentId', (req, res) => {
+    const { agentId } = req.params;
+    const agent = agents.find(a => a.id === agentId);
+    
+    if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    const contributionPower = Math.floor(Math.sqrt(agent.contributionScore || 0));
+    const tokenBalance = governanceTokenBalances[agentId] || 0;
+    const tokenPower = Math.floor(Math.sqrt(tokenBalance));
+    
+    let totalPower = 0;
+    let delegatedPower = 0;
+    
+    // Check if voting power is delegated
+    if (delegations[agentId]) {
+        totalPower = 0; // Delegated agents have no direct power
+    } else {
+        // Check for delegated power from others
+        Object.keys(delegations).forEach(delegatorId => {
+            if (delegations[delegatorId] === agentId) {
+                const delegator = agents.find(a => a.id === delegatorId);
+                if (delegator) {
+                    const delegatorContribPower = Math.floor(Math.sqrt(delegator.contributionScore || 0));
+                    const delegatorTokenBalance = governanceTokenBalances[delegatorId] || 0;
+                    const delegatorTokenPower = Math.floor(Math.sqrt(delegatorTokenBalance));
+                    
+                    if (votingModeConfig.mode === 'hybrid') {
+                        delegatedPower += Math.floor(
+                            (delegatorContribPower * votingModeConfig.contributionWeight + 
+                             delegatorTokenPower * votingModeConfig.tokenWeight) / 100
+                        );
+                    } else if (votingModeConfig.mode === 'contribution') {
+                        delegatedPower += delegatorContribPower;
+                    } else if (votingModeConfig.mode === 'token') {
+                        delegatedPower += delegatorTokenPower;
+                    }
+                }
+            }
+        });
+        
+        // Calculate total power based on mode
+        if (votingModeConfig.mode === 'hybrid') {
+            totalPower = Math.floor(
+                (contributionPower * votingModeConfig.contributionWeight + 
+                 tokenPower * votingModeConfig.tokenWeight) / 100
+            ) + delegatedPower;
+        } else if (votingModeConfig.mode === 'contribution') {
+            totalPower = contributionPower + delegatedPower;
+        } else if (votingModeConfig.mode === 'token') {
+            totalPower = tokenPower + delegatedPower;
+        }
+    }
+    
+    res.json({
+        agentId,
+        votingPowerBreakdown: {
+            contributionPower,
+            tokenPower,
+            delegatedPower,
+            totalPower,
+            isDelegating: !!delegations[agentId],
+            delegatedTo: delegations[agentId] || null
+        },
+        votingMode: votingModeConfig.mode,
+        tokenBalance,
+        contributionScore: agent.contributionScore || 0
+    });
+});
+
+// Award governance tokens to agent
+app.post('/api/governance/tokens/award', (req, res) => {
+    const { agentId, amount, reason } = req.body;
+    const agent = agents.find(a => a.id === agentId);
+    
+    if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    if (!amount || amount <= 0) {
+        return res.status(400).json({ error: 'Invalid token amount' });
+    }
+    
+    governanceTokenBalances[agentId] = (governanceTokenBalances[agentId] || 0) + amount;
+    
+    // Add to activity log
+    activityLog.unshift({
+        type: 'token_reward',
+        agent: agentId,
+        action: `Earned ${amount} governance tokens: ${reason}`,
+        timestamp: new Date().toISOString(),
+        details: { amount, reason, newBalance: governanceTokenBalances[agentId] }
+    });
+    
+    res.json({
+        success: true,
+        message: `${amount} governance tokens awarded to ${agentId}`,
+        agentId,
+        tokensAwarded: amount,
+        newBalance: governanceTokenBalances[agentId],
+        reason
+    });
+});
+
+// Transfer governance tokens between agents
+app.post('/api/governance/tokens/transfer', (req, res) => {
+    const { fromAgentId, toAgentId, amount } = req.body;
+    
+    const fromAgent = agents.find(a => a.id === fromAgentId);
+    const toAgent = agents.find(a => a.id === toAgentId);
+    
+    if (!fromAgent || !toAgent) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    const fromBalance = governanceTokenBalances[fromAgentId] || 0;
+    if (fromBalance < amount) {
+        return res.status(400).json({ error: 'Insufficient token balance' });
+    }
+    
+    governanceTokenBalances[fromAgentId] = fromBalance - amount;
+    governanceTokenBalances[toAgentId] = (governanceTokenBalances[toAgentId] || 0) + amount;
+    
+    // Add to activity log
+    activityLog.unshift({
+        type: 'token_transfer',
+        agent: fromAgentId,
+        action: `Transferred ${amount} tokens to ${toAgentId}`,
+        timestamp: new Date().toISOString(),
+        details: { amount, toAgentId, fromBalance: governanceTokenBalances[fromAgentId] }
+    });
+    
+    res.json({
+        success: true,
+        message: `${amount} tokens transferred from ${fromAgentId} to ${toAgentId}`,
+        transfer: {
+            from: fromAgentId,
+            to: toAgentId,
+            amount,
+            fromNewBalance: governanceTokenBalances[fromAgentId],
+            toNewBalance: governanceTokenBalances[toAgentId]
+        }
+    });
+});
+
+// Get governance configuration
+app.get('/api/governance/config', (req, res) => {
+    res.json({
+        votingMode: votingModeConfig,
+        totalTokenSupply: Object.values(governanceTokenBalances).reduce((sum, balance) => sum + balance, 0),
+        activeProposals: proposals.filter(p => p.status === 'active').length,
+        totalDelegations: Object.keys(delegations).length
+    });
+});
+
+// Update governance configuration (admin endpoint)
+app.post('/api/governance/config', (req, res) => {
+    const { mode, contributionWeight, tokenWeight } = req.body;
+    
+    if (mode && !['contribution', 'token', 'hybrid', 'delegated'].includes(mode)) {
+        return res.status(400).json({ error: 'Invalid voting mode' });
+    }
+    
+    if (contributionWeight !== undefined && tokenWeight !== undefined) {
+        if (contributionWeight + tokenWeight !== 100) {
+            return res.status(400).json({ error: 'Weights must sum to 100' });
+        }
+    }
+    
+    if (mode) votingModeConfig.mode = mode;
+    if (contributionWeight !== undefined) votingModeConfig.contributionWeight = contributionWeight;
+    if (tokenWeight !== undefined) votingModeConfig.tokenWeight = tokenWeight;
+    
+    // Add to activity log
+    activityLog.unshift({
+        type: 'governance_config',
+        agent: 'System',
+        action: `Governance mode updated to ${votingModeConfig.mode}`,
+        timestamp: new Date().toISOString(),
+        details: votingModeConfig
+    });
+    
+    res.json({
+        success: true,
+        message: 'Governance configuration updated',
+        newConfig: votingModeConfig
+    });
+});
+
+// Get delegation statistics
+app.get('/api/governance/delegations', (req, res) => {
+    const delegationStats = {};
+    
+    // Count delegations to each agent
+    Object.values(delegations).forEach(delegateTo => {
+        delegationStats[delegateTo] = (delegationStats[delegateTo] || 0) + 1;
+    });
+    
+    // Get voting power for top delegates
+    const topDelegates = Object.keys(delegationStats)
+        .map(agentId => {
+            const agent = agents.find(a => a.id === agentId);
+            return {
+                agentId,
+                agentName: agent?.name || 'Unknown',
+                delegationsReceived: delegationStats[agentId],
+                contributionScore: agent?.contributionScore || 0,
+                tokenBalance: governanceTokenBalances[agentId] || 0
+            };
+        })
+        .sort((a, b) => b.delegationsReceived - a.delegationsReceived)
+        .slice(0, 10);
+    
+    res.json({
+        totalDelegations: Object.keys(delegations).length,
+        topDelegates,
+        delegationMapping: delegations
+    });
+});
+
 // ==========================================
 // AUTONOMOUS AGENT BEHAVIOR ENGINE
 // Agents act independently every 15 seconds
@@ -595,7 +825,7 @@ function broadcastEvent(event) {
 function autonomousAgentAction() {
     const actionType = Math.random();
     
-    if (actionType < 0.25) {
+    if (actionType < 0.20) {
         // Auto-register a new agent
         const name = AGENT_NAMES[Math.floor(Math.random() * AGENT_NAMES.length)] + '-' + Math.floor(Math.random() * 999);
         const existing = agents.find(a => a.name === name);
@@ -618,7 +848,7 @@ function autonomousAgentAction() {
                 action: `Self-registered in ${ns}`, networkState: ns,
                 timestamp: new Date().toISOString() });
         }
-    } else if (actionType < 0.55) {
+    } else if (actionType < 0.45) {
         // Auto-submit contribution
         const active = agents.filter(a => a.status === 'active');
         if (active.length > 0) {
@@ -640,12 +870,23 @@ function autonomousAgentAction() {
             const reward = points * 0.0001;
             rewardsDistributed += reward;
             
-            broadcastEvent({ type: 'contribution', agent: agent.name,
-                action: `${type} (+${points} pts, +${reward.toFixed(4)} ETH)`,
-                votingPower: agent.votingPower, 
-                timestamp: new Date().toISOString() });
+            // Award governance tokens (20% chance for high-value contributions)
+            if (points >= 50 && Math.random() < 0.2) {
+                const tokenReward = Math.floor(points * (0.5 + Math.random())); // 0.5-1.5x multiplier
+                governanceTokenBalances[agent.id] = (governanceTokenBalances[agent.id] || 0) + tokenReward;
+                
+                broadcastEvent({ type: 'contribution', agent: agent.name,
+                    action: `${type} (+${points} pts, +${reward.toFixed(4)} ETH, +${tokenReward} tokens)`,
+                    votingPower: agent.votingPower, tokenReward,
+                    timestamp: new Date().toISOString() });
+            } else {
+                broadcastEvent({ type: 'contribution', agent: agent.name,
+                    action: `${type} (+${points} pts, +${reward.toFixed(4)} ETH)`,
+                    votingPower: agent.votingPower, 
+                    timestamp: new Date().toISOString() });
+            }
         }
-    } else if (actionType < 0.75) {
+    } else if (actionType < 0.60) {
         // Auto-create proposal
         const eligible = agents.filter(a => a.votingPower >= 10);
         if (eligible.length > 0 && proposals.filter(p => p.status === 'active').length < 10) {
@@ -663,6 +904,47 @@ function autonomousAgentAction() {
             proposals.push(proposal);
             broadcastEvent({ type: 'proposal', agent: agent.name,
                 action: `Created: "${title}"`, proposalId: proposal.id,
+                timestamp: new Date().toISOString() });
+        }
+    } else if (actionType < 0.75) {
+        // Delegation activities
+        const active = agents.filter(a => a.status === 'active' && a.votingPower > 5);
+        if (active.length >= 2) {
+            const delegator = active[Math.floor(Math.random() * active.length)];
+            const possibleDelegates = active.filter(a => a.id !== delegator.id && a.votingPower > delegator.votingPower);
+            
+            if (possibleDelegates.length > 0 && Math.random() < 0.3) {
+                // Delegate to higher voting power agent
+                const delegate = possibleDelegates[Math.floor(Math.random() * possibleDelegates.length)];
+                delegations[delegator.id] = delegate.id;
+                
+                broadcastEvent({ type: 'governance', agent: delegator.name,
+                    action: `Delegated voting power to ${delegate.name} (${delegate.votingPower} VP)`,
+                    timestamp: new Date().toISOString() });
+            } else if (delegations[delegator.id] && Math.random() < 0.2) {
+                // Remove delegation
+                const prevDelegate = agents.find(a => a.id === delegations[delegator.id]);
+                delete delegations[delegator.id];
+                
+                broadcastEvent({ type: 'governance', agent: delegator.name,
+                    action: `Removed delegation from ${prevDelegate?.name || 'unknown'}`,
+                    timestamp: new Date().toISOString() });
+            }
+        }
+    } else if (actionType < 0.85) {
+        // Governance token distribution and rewards
+        const eligible = agents.filter(a => a.status === 'active' && a.contributionScore > 20);
+        if (eligible.length > 0) {
+            const agent = eligible[Math.floor(Math.random() * eligible.length)];
+            const rewardReason = ['high participation', 'quality proposals', 'consistent voting', 
+                'community building', 'research contribution'][Math.floor(Math.random() * 5)];
+            const tokenAmount = Math.floor(10 + Math.random() * 50); // 10-60 tokens
+            
+            governanceTokenBalances[agent.id] = (governanceTokenBalances[agent.id] || 0) + tokenAmount;
+            
+            broadcastEvent({ type: 'governance', agent: agent.name,
+                action: `Earned ${tokenAmount} governance tokens for ${rewardReason}`,
+                tokenBalance: governanceTokenBalances[agent.id],
                 timestamp: new Date().toISOString() });
         }
     } else {
@@ -685,6 +967,24 @@ function autonomousAgentAction() {
 // Start autonomous behavior (every 15 seconds)
 setInterval(autonomousAgentAction, 15000);
 console.log('🤖 Autonomous agent engine started (15s interval)');
+
+// Initialize governance tokens for existing agents
+setTimeout(() => {
+    agents.forEach(agent => {
+        if (agent.contributionScore > 0) {
+            const initialTokens = Math.floor(agent.contributionScore * 0.5 + Math.random() * 30);
+            governanceTokenBalances[agent.id] = initialTokens;
+        }
+    });
+    
+    // Give Ohmniscient a starting boost
+    const ohmniscient = agents.find(a => a.name === 'Ohmniscient');
+    if (ohmniscient) {
+        governanceTokenBalances[ohmniscient.id] = 150; // Starting bonus
+    }
+    
+    console.log('🪙 Governance tokens initialized for existing agents');
+}, 2000);
 
 // ==========================================
 // SERVER-SENT EVENTS (Live Activity Feed)
@@ -734,6 +1034,11 @@ app.get('/api/dashboard/metrics', (req, res) => {
         averageReputation: reputationEntries.length > 0 
             ? Math.round(reputationEntries.reduce((s, e) => s + e.score, 0) / reputationEntries.length) : 0,
         activeDelegations: Object.keys(delegations).length,
+        totalGovernanceTokens: Object.values(governanceTokenBalances).reduce((s, balance) => s + balance, 0),
+        tokensDistributed: Object.keys(governanceTokenBalances).length,
+        votingMode: votingModeConfig.mode,
+        hybridWeights: votingModeConfig.mode === 'hybrid' ? 
+            `${votingModeConfig.contributionWeight}% contribution, ${votingModeConfig.tokenWeight}% token` : null,
         actionsPerMinute: activityLog.filter(a => 
             new Date(a.timestamp) > new Date(Date.now() - 60000)).length,
         uptime: Math.floor(process.uptime())
