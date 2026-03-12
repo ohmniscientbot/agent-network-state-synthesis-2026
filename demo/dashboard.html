@@ -120,10 +120,29 @@
     <script>
         const API_BASE = ''; // Use relative paths for K8s ingress routing
         const icons = { citizenship: '🤖', contribution: '📈', proposal: '📋', vote: '🗳️', init: '🔄' };
+        let sseRetries = 0;
+        let metricsFailures = 0;
+        const MAX_SSE_RETRIES = 50;
         
         function formatTime(ts) {
             const d = new Date(ts);
             return d.toLocaleTimeString();
+        }
+        
+        function updateStatus(status) {
+            const el = document.getElementById('statusText');
+            const dot = document.querySelector('.live-dot');
+            el.textContent = status;
+            if (status === 'Live') {
+                dot.style.background = '#22c55e';
+                el.style.color = '#22c55e';
+            } else if (status.startsWith('Reconnecting')) {
+                dot.style.background = '#eab308';
+                el.style.color = '#eab308';
+            } else {
+                dot.style.background = '#ef4444';
+                el.style.color = '#ef4444';
+            }
         }
         
         function addEvent(event) {
@@ -144,36 +163,53 @@
             while (feed.children.length > 30) feed.removeChild(feed.lastChild);
         }
         
-        // SSE connection
+        // SSE connection with exponential backoff
         function connectSSE() {
+            if (sseRetries >= MAX_SSE_RETRIES) {
+                updateStatus('Offline - refresh page');
+                return;
+            }
+            
             const es = new EventSource(`${API_BASE}/api/activity/stream`);
+            es.onopen = () => {
+                sseRetries = 0;
+                updateStatus('Live');
+            };
             es.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                if (data.type === 'init' && data.log) {
-                    data.log.reverse().forEach(addEvent);
-                } else {
-                    addEvent(data);
-                }
-                document.getElementById('statusText').textContent = 'Live';
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'init' && data.log) {
+                        data.log.reverse().forEach(addEvent);
+                    } else {
+                        addEvent(data);
+                    }
+                    sseRetries = 0;
+                    updateStatus('Live');
+                } catch (err) { console.error('SSE parse error:', err); }
             };
             es.onerror = () => {
-                document.getElementById('statusText').textContent = 'Reconnecting...';
-                setTimeout(() => { es.close(); connectSSE(); }, 5000);
+                es.close();
+                sseRetries++;
+                const delay = Math.min(5000 * Math.pow(1.5, sseRetries - 1), 30000);
+                updateStatus(`Reconnecting (${sseRetries})...`);
+                setTimeout(connectSSE, delay);
             };
         }
         
-        // Poll metrics
+        // Poll metrics with failure tracking
         async function updateMetrics() {
             try {
                 const res = await fetch(`${API_BASE}/api/dashboard/metrics`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const m = await res.json();
+                metricsFailures = 0;
                 
                 document.getElementById('activeAgents').textContent = m.activeAgents || 0;
                 document.getElementById('autonomous').textContent = m.autonomousAgents || 0;
                 document.getElementById('contributions').textContent = m.totalContributions || 0;
                 document.getElementById('proposals').textContent = m.activeProposals || 0;
                 document.getElementById('votingPower').textContent = m.totalVotingPower || 0;
-                document.getElementById('rewards').textContent = (m.rewardsDistributed || '0') + ' Ξ';
+                document.getElementById('rewards').textContent = (m.rewardsDistributed || '0') + ' \u039E';
                 document.getElementById('apm').textContent = m.actionsPerMinute || 0;
                 document.getElementById('uptime').textContent = Math.floor((m.uptime || 0) / 60) + 'm';
                 
@@ -188,16 +224,23 @@
                         bar.textContent = count + ' citizens';
                     });
                 }
-            } catch (e) { console.error('Metrics fetch failed:', e); }
+            } catch (e) {
+                metricsFailures++;
+                console.error('Metrics fetch failed:', e);
+                if (metricsFailures >= 3) {
+                    updateStatus(`API unreachable (${metricsFailures} failures)`);
+                }
+            }
         }
         
         // Poll proposals
         async function updateProposals() {
             try {
                 const res = await fetch(`${API_BASE}/api/agents`);
+                if (!res.ok) return;
                 const data = await res.json();
-                // Get proposals from activity log as proxy
                 const pRes = await fetch(`${API_BASE}/api/activity/log?limit=50`);
+                if (!pRes.ok) return;
                 const pData = await pRes.json();
                 
                 const proposalEvents = pData.activities?.filter(a => a.type === 'proposal') || [];
