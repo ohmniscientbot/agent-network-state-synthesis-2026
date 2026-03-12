@@ -10,6 +10,7 @@ const NAV_CONFIG = {
         { href: 'interactive.html', icon: '🎮', label: 'Interactive Demo', id: 'interactive' },
         { href: 'contracts.html', icon: '📜', label: 'Smart Contracts', id: 'contracts' },
         { href: 'dashboard.html', icon: '📊', label: 'Live Dashboard', id: 'dashboard' },
+        { href: 'prediction-markets.html', icon: '🎯', label: 'Prediction Markets', id: 'prediction-markets' },
         { href: '/api/docs', icon: '📡', label: 'Agent API', id: 'api' }
     ]
 };
