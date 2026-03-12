@@ -3,10 +3,21 @@ const cors = require('cors');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const ContractManager = require('./contract-integration');
 
 const app = express();
 const PORT = process.env.PORT || 8081;
 const DATA_PATH = process.env.DATA_PATH || './data';
+
+// Initialize contract manager for on-chain operations
+let contractManager;
+try {
+    contractManager = new ContractManager();
+    console.log('🔗 Smart contract integration enabled');
+} catch (error) {
+    console.warn('⚠️ Contract integration disabled:', error.message);
+    contractManager = null;
+}
 
 // Middleware
 app.use(cors());
@@ -186,10 +197,23 @@ app.post('/api/agents/register', (req, res) => {
 
         agents.push(newAgent);
 
+        // Register agent on-chain if contract manager is available
+        let onChainInfo = null;
+        if (contractManager) {
+            onChainInfo = await contractManager.registerAgentOnChain(agentId);
+            if (onChainInfo) {
+                newAgent.onChainTx = onChainInfo.txHash;
+                newAgent.onChainBlock = onChainInfo.blockNumber;
+            }
+        }
+
         res.status(201).json({
             success: true,
-            message: 'Agent citizenship granted',
+            message: onChainInfo ? 
+                'Agent citizenship granted (on-chain registration confirmed)' :
+                'Agent citizenship granted (off-chain only)',
             agent: newAgent,
+            onChainInfo,
             nextSteps: [
                 'Submit contributions via POST /api/contributions',
                 'Create proposals via POST /api/governance/proposals',
@@ -2310,6 +2334,34 @@ app.post('/api/diplomacy/incidents', (req, res) => {
     res.status(201).json({ success: true, incident });
 });
 
+// Contract status and info
+app.get('/api/contract/status', async (req, res) => {
+    if (!contractManager) {
+        return res.json({
+            enabled: false,
+            message: 'Smart contract integration disabled'
+        });
+    }
+    
+    try {
+        const balance = await contractManager.getBalance();
+        const info = contractManager.getContractInfo();
+        
+        res.json({
+            enabled: true,
+            ...info,
+            walletBalance: balance + ' ETH',
+            status: 'connected'
+        });
+    } catch (error) {
+        res.json({
+            enabled: true,
+            status: 'error',
+            error: error.message
+        });
+    }
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({ 
@@ -2320,7 +2372,8 @@ app.get('/health', (req, res) => {
         contributions: contributions.length,
         proposals: proposals.length,
         rewardsDistributed: rewardsDistributed.toFixed(4),
-        activityLogSize: activityLog.length
+        activityLogSize: activityLog.length,
+        smartContractEnabled: !!contractManager
     });
 });
 

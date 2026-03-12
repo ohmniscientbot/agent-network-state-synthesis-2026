@@ -1,0 +1,10 @@
+{
+  "network": {
+    "chainId": 8453,
+    "name": "unknown"
+  },
+  "contractAddress": "0x97d6f203703454FCc92b5Ac698bcb93d14809881",
+  "txHash": "0x6ecc3350516d2703723b46e1818141131adb833a3ecc66818367fecc5acbe0ed",
+  "deployedAt": "2026-03-12T23:03:30.455Z",
+  "deployer": "0x7a5b629325f051Fd5e871FFDD97C5f0431817588"
+}
