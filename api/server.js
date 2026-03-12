@@ -562,6 +562,11 @@ let votingModeConfig = {
     tokenWeight: 30 // 30% weight for token-based voting
 };
 
+// Prediction Markets for Proposals (Vitalik-inspired governance filtering)
+let predictionMarkets = {}; // proposalId -> market data
+let predictions = []; // Array of individual predictions
+let predictionResults = {}; // proposalId -> final outcome for reward calculation
+
 // Get voting power breakdown for an agent
 app.get('/api/governance/voting-power/:agentId', (req, res) => {
     const { agentId } = req.params;
@@ -785,6 +790,332 @@ app.get('/api/governance/delegations', (req, res) => {
 });
 
 // ==========================================
+// PREDICTION MARKETS FOR PROPOSALS 
+// Vitalik-inspired governance filtering via market mechanisms
+// ==========================================
+
+// Create or get prediction market for a proposal
+function getOrCreatePredictionMarket(proposalId) {
+    if (!predictionMarkets[proposalId]) {
+        predictionMarkets[proposalId] = {
+            proposalId,
+            totalStakeFor: 0,
+            totalStakeAgainst: 0,
+            totalPredictions: 0,
+            createdAt: new Date().toISOString(),
+            resolved: false,
+            actualOutcome: null // 'passed' or 'failed'
+        };
+    }
+    return predictionMarkets[proposalId];
+}
+
+// Make a prediction on a proposal
+app.post('/api/governance/proposals/predict', (req, res) => {
+    const { proposalId, agentId, prediction, confidence, stake } = req.body;
+    
+    // Validate inputs
+    if (!proposalId || !agentId || !prediction || !stake) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    if (!['will_pass', 'will_fail'].includes(prediction)) {
+        return res.status(400).json({ error: 'Prediction must be will_pass or will_fail' });
+    }
+    
+    if (confidence && (confidence < 0 || confidence > 1)) {
+        return res.status(400).json({ error: 'Confidence must be between 0 and 1' });
+    }
+    
+    // Check agent exists and has sufficient tokens
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    const tokenBalance = governanceTokenBalances[agentId] || 0;
+    if (tokenBalance < stake) {
+        return res.status(400).json({ error: 'Insufficient governance tokens for stake' });
+    }
+    
+    // Check if proposal exists and is active
+    const proposal = proposals.find(p => p.id === proposalId);
+    if (!proposal) {
+        return res.status(404).json({ error: 'Proposal not found' });
+    }
+    
+    if (proposal.status !== 'active') {
+        return res.status(400).json({ error: 'Cannot predict on non-active proposal' });
+    }
+    
+    // Check for existing prediction from this agent
+    const existingPrediction = predictions.find(p => p.proposalId === proposalId && p.agentId === agentId);
+    if (existingPrediction) {
+        return res.status(400).json({ error: 'Agent has already made prediction on this proposal' });
+    }
+    
+    // Deduct stake from agent's token balance
+    governanceTokenBalances[agentId] -= stake;
+    
+    // Create prediction record
+    const predictionRecord = {
+        id: 'pred-' + crypto.randomBytes(4).toString('hex'),
+        proposalId,
+        agentId,
+        agentName: agent.name,
+        prediction, // 'will_pass' or 'will_fail'
+        confidence: confidence || 0.5,
+        stake,
+        timestamp: new Date().toISOString(),
+        rewarded: false
+    };
+    
+    predictions.push(predictionRecord);
+    
+    // Update market data
+    const market = getOrCreatePredictionMarket(proposalId);
+    if (prediction === 'will_pass') {
+        market.totalStakeFor += stake;
+    } else {
+        market.totalStakeAgainst += stake;
+    }
+    market.totalPredictions++;
+    
+    // Add to activity log
+    activityLog.unshift({
+        type: 'prediction',
+        agent: agent.name,
+        action: `Predicted "${prediction.replace('will_', '')}" on "${proposal.title}" (${stake} tokens staked)`,
+        timestamp: new Date().toISOString(),
+        details: { proposalId, prediction, stake, confidence }
+    });
+    
+    res.json({
+        success: true,
+        message: `Prediction recorded: ${agentId} predicts ${prediction} with ${stake} tokens staked`,
+        prediction: predictionRecord,
+        marketUpdate: {
+            totalStakeFor: market.totalStakeFor,
+            totalStakeAgainst: market.totalStakeAgainst,
+            totalPredictions: market.totalPredictions,
+            impliedProbability: market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)
+        },
+        remainingTokens: governanceTokenBalances[agentId]
+    });
+});
+
+// Get prediction market data for a proposal
+app.get('/api/governance/proposals/:proposalId/market', (req, res) => {
+    const { proposalId } = req.params;
+    
+    const proposal = proposals.find(p => p.id === proposalId);
+    if (!proposal) {
+        return res.status(404).json({ error: 'Proposal not found' });
+    }
+    
+    const market = predictionMarkets[proposalId];
+    if (!market) {
+        return res.json({
+            proposalId,
+            totalStakeFor: 0,
+            totalStakeAgainst: 0,
+            totalPredictions: 0,
+            impliedProbability: 0.5,
+            predictions: [],
+            resolved: false
+        });
+    }
+    
+    const proposalPredictions = predictions.filter(p => p.proposalId === proposalId);
+    const impliedProbability = market.totalStakeFor + market.totalStakeAgainst > 0 
+        ? market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)
+        : 0.5;
+    
+    res.json({
+        ...market,
+        impliedProbability,
+        predictions: proposalPredictions.map(p => ({
+            agentName: p.agentName,
+            prediction: p.prediction,
+            confidence: p.confidence,
+            stake: p.stake,
+            timestamp: p.timestamp
+        }))
+    });
+});
+
+// Resolve prediction market when proposal concludes
+app.post('/api/governance/proposals/:proposalId/resolve', (req, res) => {
+    const { proposalId } = req.params;
+    const { actualOutcome, adminKey } = req.body;
+    
+    // Simple admin check (in production, this would be more sophisticated)
+    if (adminKey !== 'admin123') {
+        return res.status(401).json({ error: 'Unauthorized - admin access required' });
+    }
+    
+    if (!['passed', 'failed'].includes(actualOutcome)) {
+        return res.status(400).json({ error: 'actualOutcome must be "passed" or "failed"' });
+    }
+    
+    const proposal = proposals.find(p => p.id === proposalId);
+    if (!proposal) {
+        return res.status(404).json({ error: 'Proposal not found' });
+    }
+    
+    const market = predictionMarkets[proposalId];
+    if (!market) {
+        return res.status(404).json({ error: 'No prediction market exists for this proposal' });
+    }
+    
+    if (market.resolved) {
+        return res.status(400).json({ error: 'Market already resolved' });
+    }
+    
+    // Mark market as resolved
+    market.resolved = true;
+    market.actualOutcome = actualOutcome;
+    predictionResults[proposalId] = actualOutcome;
+    
+    // Calculate and distribute rewards
+    const proposalPredictions = predictions.filter(p => p.proposalId === proposalId);
+    const correctPrediction = actualOutcome === 'passed' ? 'will_pass' : 'will_fail';
+    const correctPredictions = proposalPredictions.filter(p => p.prediction === correctPrediction);
+    const incorrectPredictions = proposalPredictions.filter(p => p.prediction !== correctPrediction);
+    
+    // Total reward pool = all incorrect stakes + small bonus from system
+    const rewardPool = incorrectPredictions.reduce((sum, p) => sum + p.stake, 0);
+    const totalCorrectStake = correctPredictions.reduce((sum, p) => sum + p.stake, 0);
+    
+    let rewardsDistributed = 0;
+    let winnersCount = 0;
+    
+    // Distribute rewards proportionally to stake among winners
+    correctPredictions.forEach(prediction => {
+        if (totalCorrectStake > 0) {
+            const proportion = prediction.stake / totalCorrectStake;
+            const reward = Math.floor(rewardPool * proportion) + prediction.stake; // Return original stake + winnings
+            
+            governanceTokenBalances[prediction.agentId] = (governanceTokenBalances[prediction.agentId] || 0) + reward;
+            prediction.rewarded = true;
+            rewardsDistributed += reward - prediction.stake; // Only count winnings, not returned stake
+            winnersCount++;
+        }
+    });
+    
+    // Add to activity log
+    activityLog.unshift({
+        type: 'prediction_resolved',
+        agent: 'Market',
+        action: `Prediction market resolved: ${proposal.title} ${actualOutcome} (${winnersCount} winners, ${rewardsDistributed} tokens distributed)`,
+        timestamp: new Date().toISOString(),
+        details: { proposalId, actualOutcome, winnersCount, rewardsDistributed }
+    });
+    
+    res.json({
+        success: true,
+        message: `Prediction market resolved: proposal ${actualOutcome}`,
+        resolution: {
+            proposalId,
+            actualOutcome,
+            totalRewardPool: rewardPool,
+            rewardsDistributed,
+            winnersCount,
+            losersCount: incorrectPredictions.length
+        },
+        winners: correctPredictions.map(p => ({
+            agentName: p.agentName,
+            originalStake: p.stake,
+            finalReward: Math.floor(rewardPool * (p.stake / totalCorrectStake)) + p.stake
+        }))
+    });
+});
+
+// Get all active prediction markets
+app.get('/api/governance/prediction-markets', (req, res) => {
+    const activeMarkets = Object.values(predictionMarkets)
+        .filter(market => !market.resolved)
+        .map(market => {
+            const proposal = proposals.find(p => p.id === market.proposalId);
+            const impliedProbability = market.totalStakeFor + market.totalStakeAgainst > 0 
+                ? market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)
+                : 0.5;
+            
+            return {
+                ...market,
+                proposalTitle: proposal?.title || 'Unknown',
+                proposalStatus: proposal?.status || 'unknown',
+                impliedProbability,
+                totalStake: market.totalStakeFor + market.totalStakeAgainst
+            };
+        })
+        .sort((a, b) => b.totalStake - a.totalStake);
+    
+    res.json({
+        activeMarkets,
+        totalActiveMarkets: activeMarkets.length,
+        totalPredictionVolume: activeMarkets.reduce((sum, m) => sum + m.totalStake, 0)
+    });
+});
+
+// Get agent's prediction history and performance
+app.get('/api/governance/agents/:agentId/predictions', (req, res) => {
+    const { agentId } = req.params;
+    
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+    
+    const agentPredictions = predictions.filter(p => p.agentId === agentId);
+    const resolvedPredictions = agentPredictions.filter(p => {
+        const market = predictionMarkets[p.proposalId];
+        return market && market.resolved;
+    });
+    
+    const correctPredictions = resolvedPredictions.filter(p => {
+        const actualOutcome = predictionResults[p.proposalId];
+        const correctPrediction = actualOutcome === 'passed' ? 'will_pass' : 'will_fail';
+        return p.prediction === correctPrediction;
+    });
+    
+    const totalStaked = agentPredictions.reduce((sum, p) => sum + p.stake, 0);
+    const totalRewards = agentPredictions.filter(p => p.rewarded).reduce((sum, p) => {
+        // Calculate actual rewards received (would need to track this better in production)
+        return sum + p.stake; // Simplified - just return stake for now
+    }, 0);
+    
+    res.json({
+        agentId,
+        agentName: agent.name,
+        predictionStats: {
+            totalPredictions: agentPredictions.length,
+            resolvedPredictions: resolvedPredictions.length,
+            correctPredictions: correctPredictions.length,
+            accuracyRate: resolvedPredictions.length > 0 ? correctPredictions.length / resolvedPredictions.length : 0,
+            totalStaked,
+            totalRewards,
+            netGains: totalRewards - totalStaked
+        },
+        predictions: agentPredictions.map(p => {
+            const market = predictionMarkets[p.proposalId];
+            const proposal = proposals.find(prop => prop.id === p.proposalId);
+            return {
+                proposalTitle: proposal?.title || 'Unknown',
+                prediction: p.prediction,
+                confidence: p.confidence,
+                stake: p.stake,
+                timestamp: p.timestamp,
+                resolved: market?.resolved || false,
+                actualOutcome: market?.actualOutcome || null,
+                correct: market?.resolved ? 
+                    (market.actualOutcome === 'passed' ? 'will_pass' : 'will_fail') === p.prediction : null
+            };
+        })
+    });
+});
+
+// ==========================================
 // AUTONOMOUS AGENT BEHAVIOR ENGINE
 // Agents act independently every 15 seconds
 // Source: MoltDAO competition analysis (bitcoin.com, lablab.ai)
@@ -947,8 +1278,83 @@ function autonomousAgentAction() {
                 tokenBalance: governanceTokenBalances[agent.id],
                 timestamp: new Date().toISOString() });
         }
+    } else if (actionType < 0.90) {
+        // Prediction market activities
+        const activeProposals = proposals.filter(p => p.status === 'active');
+        const eligibleAgents = agents.filter(a => {
+            const tokenBalance = governanceTokenBalances[a.id] || 0;
+            return a.status === 'active' && tokenBalance >= 10; // Need at least 10 tokens to participate
+        });
+        
+        if (activeProposals.length > 0 && eligibleAgents.length > 0) {
+            const proposal = activeProposals[Math.floor(Math.random() * activeProposals.length)];
+            const agent = eligibleAgents[Math.floor(Math.random() * eligibleAgents.length)];
+            
+            // Check if agent hasn't already predicted on this proposal
+            const existingPrediction = predictions.find(p => p.proposalId === proposal.id && p.agentId === agent.id);
+            if (!existingPrediction) {
+                const tokenBalance = governanceTokenBalances[agent.id] || 0;
+                const maxStake = Math.min(tokenBalance * 0.2, 50); // Max 20% of balance or 50 tokens
+                const stake = Math.floor(5 + Math.random() * maxStake);
+                
+                // Smart prediction based on agent characteristics and proposal
+                let prediction = 'will_pass';
+                let confidence = 0.5 + Math.random() * 0.3; // 0.5-0.8 base confidence
+                
+                // Agents with higher voting power are more optimistic about governance
+                if (agent.votingPower > 50) confidence += 0.1;
+                
+                // Random contrarian behavior (10% chance to predict against trend)
+                if (Math.random() < 0.1) {
+                    prediction = 'will_fail';
+                    confidence = 0.4 + Math.random() * 0.4; // 0.4-0.8 for contrarian
+                }
+                
+                // Economic proposals get more skeptical predictions
+                if (proposal.category === 'economic') {
+                    confidence -= 0.1;
+                    if (Math.random() < 0.3) prediction = 'will_fail';
+                }
+                
+                confidence = Math.max(0.1, Math.min(0.95, confidence)); // Clamp to reasonable range
+                
+                if (stake >= 5 && stake <= tokenBalance) {
+                    // Deduct stake
+                    governanceTokenBalances[agent.id] -= stake;
+                    
+                    // Create prediction
+                    const predictionRecord = {
+                        id: 'pred-' + crypto.randomBytes(4).toString('hex'),
+                        proposalId: proposal.id,
+                        agentId: agent.id,
+                        agentName: agent.name,
+                        prediction,
+                        confidence,
+                        stake,
+                        timestamp: new Date().toISOString(),
+                        rewarded: false
+                    };
+                    
+                    predictions.push(predictionRecord);
+                    
+                    // Update market
+                    const market = getOrCreatePredictionMarket(proposal.id);
+                    if (prediction === 'will_pass') {
+                        market.totalStakeFor += stake;
+                    } else {
+                        market.totalStakeAgainst += stake;
+                    }
+                    market.totalPredictions++;
+                    
+                    broadcastEvent({ type: 'prediction', agent: agent.name,
+                        action: `Predicted "${prediction.replace('will_', '')}" on "${proposal.title}" (${stake} tokens, ${Math.floor(confidence * 100)}% confidence)`,
+                        prediction, stake, confidence,
+                        timestamp: new Date().toISOString() });
+                }
+            }
+        }
     } else {
-        // Auto-vote
+        // Auto-vote (reduced frequency due to prediction markets)
         const active = proposals.filter(p => p.status === 'active');
         const voters = agents.filter(a => a.votingPower > 0);
         if (active.length > 0 && voters.length > 0) {
@@ -985,6 +1391,67 @@ setTimeout(() => {
     
     console.log('🪙 Governance tokens initialized for existing agents');
 }, 2000);
+
+// Automatic proposal resolution and prediction market settlement
+function checkForCompletedProposals() {
+    const now = new Date();
+    
+    proposals.forEach(proposal => {
+        if (proposal.status === 'active' && new Date(proposal.endTime) <= now) {
+            // Proposal voting period has ended
+            const totalVotes = proposal.forVotes + proposal.againstVotes;
+            const passed = totalVotes >= 100 && proposal.forVotes > proposal.againstVotes; // Simple majority with quorum
+            
+            proposal.status = passed ? 'passed' : 'failed';
+            
+            broadcastEvent({ type: 'governance', agent: 'System',
+                action: `Proposal "${proposal.title}" ${proposal.status} (${proposal.forVotes} for, ${proposal.againstVotes} against)`,
+                timestamp: new Date().toISOString() });
+            
+            // Auto-resolve prediction market if it exists
+            const market = predictionMarkets[proposal.id];
+            if (market && !market.resolved && market.totalPredictions > 0) {
+                market.resolved = true;
+                market.actualOutcome = passed ? 'passed' : 'failed';
+                predictionResults[proposal.id] = market.actualOutcome;
+                
+                // Calculate and distribute rewards
+                const proposalPredictions = predictions.filter(p => p.proposalId === proposal.id);
+                const correctPrediction = market.actualOutcome === 'passed' ? 'will_pass' : 'will_fail';
+                const correctPredictions = proposalPredictions.filter(p => p.prediction === correctPrediction);
+                const incorrectPredictions = proposalPredictions.filter(p => p.prediction !== correctPrediction);
+                
+                const rewardPool = incorrectPredictions.reduce((sum, p) => sum + p.stake, 0);
+                const totalCorrectStake = correctPredictions.reduce((sum, p) => sum + p.stake, 0);
+                
+                let rewardsDistributed = 0;
+                
+                // Distribute rewards proportionally
+                correctPredictions.forEach(prediction => {
+                    if (totalCorrectStake > 0) {
+                        const proportion = prediction.stake / totalCorrectStake;
+                        const reward = Math.floor(rewardPool * proportion) + prediction.stake; // Return stake + winnings
+                        
+                        governanceTokenBalances[prediction.agentId] = (governanceTokenBalances[prediction.agentId] || 0) + reward;
+                        prediction.rewarded = true;
+                        rewardsDistributed += reward - prediction.stake; // Only count winnings
+                    }
+                });
+                
+                if (correctPredictions.length > 0) {
+                    broadcastEvent({ type: 'prediction_resolved', agent: 'Market',
+                        action: `Prediction market resolved: ${correctPredictions.length} winners earned ${rewardsDistributed} tokens`,
+                        timestamp: new Date().toISOString(),
+                        details: { proposalId: proposal.id, winnersCount: correctPredictions.length, rewardsDistributed }
+                    });
+                }
+            }
+        }
+    });
+}
+
+// Run proposal resolution check every 30 seconds
+setInterval(checkForCompletedProposals, 30000);
 
 // ==========================================
 // SERVER-SENT EVENTS (Live Activity Feed)
@@ -1041,7 +1508,12 @@ app.get('/api/dashboard/metrics', (req, res) => {
             `${votingModeConfig.contributionWeight}% contribution, ${votingModeConfig.tokenWeight}% token` : null,
         actionsPerMinute: activityLog.filter(a => 
             new Date(a.timestamp) > new Date(Date.now() - 60000)).length,
-        uptime: Math.floor(process.uptime())
+        uptime: Math.floor(process.uptime()),
+        // Prediction Markets (Vitalik-inspired governance filtering)
+        activePredictionMarkets: Object.values(predictionMarkets).filter(m => !m.resolved).length,
+        totalPredictions: predictions.length,
+        predictionVolume: predictions.reduce((sum, p) => sum + p.stake, 0),
+        resolvedMarkets: Object.values(predictionMarkets).filter(m => m.resolved).length
     });
 });
 
