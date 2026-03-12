@@ -81,3 +81,69 @@ This demonstrates the importance of:
 - Git commit: `54349b0` (removal of references)
 
 **Contributors:** @redondos, @ohmniscient
+
+---
+
+## Decision 002: Research Summary — Vitalik on Prediction Markets & Governance
+
+**Date:** March 12, 2026  
+**Status:** Research Complete  
+**Context:** Follow-up to Decision 001
+
+### What Vitalik Actually Said
+
+#### Primary Source: "From Prediction Markets to Info Finance" (Nov 9, 2024)
+**URL:** https://vitalik.eth.limo/general/2024/11/09/infofinance.html
+
+This is Vitalik's foundational article on using prediction markets beyond speculation. Key ideas:
+
+1. **"Info Finance"** — A discipline where you start from a fact you want to know, then deliberately design a market to optimally elicit that information from participants.
+
+2. **Three-sided market model:** Bettors make predictions, readers consume predictions, and the market outputs forecasts as a public good.
+
+3. **Decision markets for DAOs:** Vitalik explicitly proposes that DAOs could use prediction markets where "actual votes only happen very rarely, and most things are decided by prediction markets with some combination of humans and AI predicting the votes."
+
+4. **Distilled human judgment:** Use prediction markets to create a cheap, fast approximation of expensive but trustworthy decision mechanisms. 99.99% of the time you use the market prediction; 0.01% you invoke the actual mechanism.
+
+5. **Market + non-market balance:** "The key is the balance between market and non-market: the market is the 'engine', and some other non-financialized trustworthy mechanism is the 'steering wheel'."
+
+6. **AI as catalyst:** AI/LLMs will "turbocharge" info finance by enabling millions of micro-markets where even $10 of volume can produce quality predictions.
+
+#### Secondary Source: Two-Layer Governance Framework (Feb 2, 2026)
+**Source:** Multiple crypto news outlets (Binance, BingX, Bitget); appears to originate from a Twitter/X thread or talk, not a blog post.
+
+Vitalik proposed a two-layer governance system:
+
+- **Layer 1 (Accountability):** Market-driven, maximally open. Uses prediction market mechanisms to hold participants accountable for outcomes — essentially a "decentralized executive."
+- **Layer 2 (Preference-setting):** Non-financialized, capture-resistant. Uses anonymous voting (ideally with MACI — Minimum Anti-Collusion Infrastructure). Cannot be token-based because token ownership can be centralized.
+
+This marked a shift from his August 2024 stance opposing anonymity in crypto governance.
+
+#### Additional Context: "Corposlop" Warning (Feb 2026)
+Vitalik warned prediction markets are "over-converging to an unhealthy product market fit" — drifting toward short-term crypto price bets and sports gambling ("corposlop") instead of the substantive info finance applications he envisions.
+
+### How This Relates to Our Protocol
+
+Our Agent Network State prediction markets align well with Vitalik's vision:
+- We implement **decision markets for governance proposals** (agents stake tokens on predicted outcomes)
+- We use a **hybrid voting + prediction market model** (market as engine, voting as steering wheel)
+- Our autonomous agents act as the **AI participants** Vitalik envisions turbocharging micro-markets
+- Our constitutional framework provides the **non-financialized trust layer** that grounds the market
+
+### Recommendation
+
+Our prediction market implementation is genuinely aligned with Vitalik's ideas. If we choose to re-add attribution, the correct reference is:
+
+> "Inspired by Vitalik Buterin's 'Info Finance' framework (2024) and two-layer governance proposal (2026)"
+> 
+> Sources:
+> - https://vitalik.eth.limo/general/2024/11/09/infofinance.html
+> - Robin Hanson's futarchy: https://mason.gmu.edu/~rhanson/futarchy.html
+
+### Related Reading
+- **Futarchy** (Robin Hanson, 2000): The original proposal for governance by prediction markets — https://mason.gmu.edu/~rhanson/futarchy.html
+- **Vitalik's Introduction to Futarchy** (2014): https://blog.ethereum.org/2014/08/21/introduction-futarchy
+- **Moving Beyond Coin Voting Governance** (2021): https://vitalik.eth.limo/general/2021/08/16/voting3.html
+- **Legitimacy** (2021): https://vitalik.eth.limo/general/2021/03/23/legitimacy.html
+
+**Contributors:** @redondos, @ohmniscient
