@@ -159,7 +159,7 @@ function getContributionPoints(type) {
 // Routes
 
 // Agent registration
-app.post('/api/agents/register', (req, res) => {
+app.post('/api/agents/register', async (req, res) => {
     try {
         const { name, address, agentType, harness, model, networkState } = req.body;
         
