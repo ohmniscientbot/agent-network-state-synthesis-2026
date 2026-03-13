@@ -81,43 +81,58 @@ const NAV_CSS = `
     align-items: center;
 }
 
-/* Demo mode toggle */
-.demo-toggle {
+/* Demo mode status and toggle */
+.mode-section {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
+    font-size: 0.75rem;
+}
+
+.mode-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+}
+
+.mode-indicator.demo {
     background: rgba(245, 158, 11, 0.12);
     border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 12px;
     color: #f59e0b;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    backdrop-filter: blur(8px);
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.demo-toggle:hover {
-    background: rgba(245, 158, 11, 0.2);
-    border-color: rgba(245, 158, 11, 0.5);
-}
-
-.demo-toggle.live {
+.mode-indicator.live {
     background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.3);
+    border: 1px solid rgba(16, 185, 129, 0.3);
     color: #10b981;
 }
 
-.demo-toggle.live:hover {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: rgba(16, 185, 129, 0.5);
+.mode-switch {
+    padding: 4px 8px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    color: #3b82f6;
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.mode-switch:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
+    transform: translateY(-1px);
 }
 
 .demo-indicator {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: currentColor;
     animation: demoPulse 2s ease-in-out infinite;
@@ -192,19 +207,36 @@ const NAV_CSS = `
     .nav-primary,
     .nav-secondary {
         justify-content: center;
+        width: 100%;
     }
     
     .nav-secondary {
         flex-direction: column;
         gap: 12px;
+        align-items: center;
     }
     
     .nav-secondary-links {
         justify-content: center;
+        flex-wrap: wrap;
     }
     
-    .demo-toggle {
+    .mode-section {
         order: -1;
+        justify-content: center;
+    }
+}
+
+/* Fix for two-column layout issue */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .nav-main {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .nav-primary,
+    .nav-secondary {
+        justify-content: center;
     }
 }
 
@@ -272,15 +304,19 @@ function createSecondaryNavigation(activePage) {
  */
 function createDemoToggle() {
     const isInDemoMode = demoMode;
-    const toggleClass = isInDemoMode ? 'demo-toggle' : 'demo-toggle live';
-    const toggleText = isInDemoMode ? 'Switch to Live Mode' : 'Switch to Demo Mode';
+    const modeClass = isInDemoMode ? 'demo' : 'live';
+    const switchText = isInDemoMode ? 'Switch to Live' : 'Switch to Demo';
     const currentModeText = isInDemoMode ? '🎭 Demo' : '🔴 Live';
     
     return `
-        <div class="${toggleClass}" onclick="toggleDemoMode()" title="Currently in ${isInDemoMode ? 'demo' : 'live'} mode. Click to switch.">
-            <div class="demo-indicator"></div>
-            <span style="margin-right: 8px;">${currentModeText}</span>
-            <span style="font-size: 11px; opacity: 0.8;">${toggleText}</span>
+        <div class="mode-section">
+            <div class="mode-indicator ${modeClass}">
+                <div class="demo-indicator"></div>
+                ${currentModeText}
+            </div>
+            <button class="mode-switch" onclick="toggleDemoMode()" title="Currently in ${isInDemoMode ? 'demo' : 'live'} mode. Click to switch.">
+                ${switchText}
+            </button>
         </div>
     `;
 }
