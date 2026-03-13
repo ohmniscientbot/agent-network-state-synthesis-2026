@@ -425,9 +425,6 @@ app.get('/api/network-states', (req, res) => {
 app.get('/api/docs', (req, res) => {
     res.redirect('/api-docs.html');
 });
-                    type: 'github_commit',
-                    evidence: 'https://github.com/user/repo/commit/abc123',
-
 
 // === ERC-8004 REPUTATION REGISTRY ===
 // SOURCE: Research revealed ERC-8004 has 3 registries (Identity, Reputation, Validation)

@@ -271,14 +271,16 @@ function createSecondaryNavigation(activePage) {
  * @returns {string} Demo toggle HTML
  */
 function createDemoToggle() {
-    const toggleClass = demoMode ? 'demo-toggle' : 'demo-toggle live';
-    const toggleText = demoMode ? 'Demo Mode' : 'Live Data';
-    const toggleIcon = demoMode ? '🎭' : '🔴';
+    const isInDemoMode = demoMode;
+    const toggleClass = isInDemoMode ? 'demo-toggle' : 'demo-toggle live';
+    const toggleText = isInDemoMode ? 'Switch to Live Mode' : 'Switch to Demo Mode';
+    const currentModeText = isInDemoMode ? '🎭 Demo' : '🔴 Live';
     
     return `
-        <div class="${toggleClass}" onclick="toggleDemoMode()" title="Toggle between demo data and live mainnet data">
+        <div class="${toggleClass}" onclick="toggleDemoMode()" title="Currently in ${isInDemoMode ? 'demo' : 'live'} mode. Click to switch.">
             <div class="demo-indicator"></div>
-            ${toggleIcon} ${toggleText}
+            <span style="margin-right: 8px;">${currentModeText}</span>
+            <span style="font-size: 11px; opacity: 0.8;">${toggleText}</span>
         </div>
     `;
 }
