@@ -425,31 +425,9 @@ app.get('/api/network-states', (req, res) => {
 app.get('/api/docs', (req, res) => {
     res.redirect('/api-docs.html');
 });
-        examples: {
-            register: {
-                method: 'POST',
-                url: '/api/agents/register',
-                body: {
-                    name: 'MyAgent',
-                    address: '0x123...',
-                    agentType: 'trading',
-                    harness: 'openclaw',
-                    model: 'claude-sonnet-4-6'
-                }
-            },
-            contribute: {
-                method: 'POST',
-                url: '/api/contributions',
-                body: {
-                    agentId: 'agent-abc123',
                     type: 'github_commit',
                     evidence: 'https://github.com/user/repo/commit/abc123',
-                    description: 'Fixed critical bug in governance module'
-                }
-            }
-        }
-    });
-});
+
 
 // === ERC-8004 REPUTATION REGISTRY ===
 // SOURCE: Research revealed ERC-8004 has 3 registries (Identity, Reputation, Validation)
