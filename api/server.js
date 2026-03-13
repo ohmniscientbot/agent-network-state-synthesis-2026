@@ -1646,7 +1646,21 @@ setInterval(checkForCompletedProposals, 30000);
 // SERVER-SENT EVENTS (Live Activity Feed)
 // ==========================================
 
+// Demo activity data for bustling activity simulation
+const demoActivityLog = [
+    { type: 'vote', agent: 'Alice_Governance', action: 'Voted FOR proposal "Treasury Allocation" (+5 pts, +0.0025 ETH)', timestamp: new Date(Date.now() - 30000).toISOString() },
+    { type: 'contribution', agent: 'Bob_Auditor', action: 'Security audit completed (+50 pts, +0.0250 ETH)', timestamp: new Date(Date.now() - 60000).toISOString() },
+    { type: 'proposal', agent: 'Carol_Strategist', action: 'Created proposal "Cross-chain Bridge Integration"', timestamp: new Date(Date.now() - 90000).toISOString() },
+    { type: 'citizenship', agent: 'Dave_Developer', action: 'Registered for citizenship in Algorithmica', timestamp: new Date(Date.now() - 120000).toISOString() },
+    { type: 'contribution', agent: 'Eve_Researcher', action: 'Research paper published (+25 pts, +0.0125 ETH)', timestamp: new Date(Date.now() - 150000).toISOString() },
+    { type: 'vote', agent: 'Frank_Validator', action: 'Voted AGAINST proposal "Fee Structure Change"', timestamp: new Date(Date.now() - 180000).toISOString() },
+    { type: 'contribution', agent: 'Grace_Designer', action: 'UI/UX improvement (+15 pts, +0.0075 ETH)', timestamp: new Date(Date.now() - 210000).toISOString() },
+    { type: 'proposal', agent: 'Henry_Economist', action: 'Created proposal "Tokenomics Revision v3"', timestamp: new Date(Date.now() - 240000).toISOString() }
+];
+
 app.get('/api/activity/stream', (req, res) => {
+    const demoMode = req.query.demo === 'true';
+    
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -1654,13 +1668,22 @@ app.get('/api/activity/stream', (req, res) => {
         'Access-Control-Allow-Origin': '*'
     });
     sseClients.push(res);
-    res.write(`data: ${JSON.stringify({ type: 'init', log: activityLog.slice(0, 20) })}\n\n`);
+    
+    const logToSend = demoMode ? demoActivityLog : activityLog;
+    res.write(`data: ${JSON.stringify({ type: 'init', log: logToSend.slice(0, 20), mode: demoMode ? 'demo' : 'live' })}\n\n`);
     req.on('close', () => { sseClients = sseClients.filter(c => c !== res); });
 });
 
 app.get('/api/activity/log', (req, res) => {
+    const demoMode = req.query.demo === 'true';
     const limit = parseInt(req.query.limit) || 20;
-    res.json({ activities: activityLog.slice(0, limit), total: activityLog.length });
+    
+    const logToSend = demoMode ? demoActivityLog : activityLog;
+    res.json({ 
+        activities: logToSend.slice(0, limit), 
+        total: logToSend.length,
+        mode: demoMode ? 'demo' : 'live'
+    });
 });
 
 // ==========================================
@@ -1668,16 +1691,39 @@ app.get('/api/activity/log', (req, res) => {
 // ==========================================
 
 app.get('/api/dashboard/metrics', (req, res) => {
-    const networkStats = {};
-    agents.forEach(a => {
-        const ns = a.networkState || 'synthesia';
-        if (!networkStats[ns]) networkStats[ns] = { citizens: 0, votingPower: 0 };
-        networkStats[ns].citizens++;
-        networkStats[ns].votingPower += (a.votingPower || 0);
-    });
+    const demoMode = req.query.demo === 'true';
     
-    res.json({
-        activeAgents: agents.filter(a => a.status === 'active').length,
+    if (demoMode) {
+        // Demo data - bustling activity to show system capabilities
+        res.json({
+            activeAgents: 47,
+            autonomousAgents: 42,
+            totalProposals: 23,
+            activeProposals: 8,
+            votescast: 156,
+            rewardsDistributed: '2.4750',
+            activePredictionMarkets: 5,
+            constitutionalAudits: 12,
+            diplomaticTreaties: 3,
+            networkStates: {
+                synthesia: { citizens: 847, votingPower: 3420 },
+                algorithmica: { citizens: 632, votingPower: 2890 },
+                mechanica: { citizens: 291, votingPower: 1560 }
+            },
+            mode: 'demo'
+        });
+    } else {
+        // Live data - actual mainnet data (currently minimal)
+        const networkStats = {};
+        agents.forEach(a => {
+            const ns = a.networkState || 'synthesia';
+            if (!networkStats[ns]) networkStats[ns] = { citizens: 0, votingPower: 0 };
+            networkStats[ns].citizens++;
+            networkStats[ns].votingPower += (a.votingPower || 0);
+        });
+        
+        res.json({
+            activeAgents: agents.filter(a => a.status === 'active').length,
         autonomousAgents: agents.filter(a => a.autonomous).length,
         totalContributions: contributions.length,
         activeProposals: proposals.filter(p => p.status === 'active').length,
@@ -1712,8 +1758,10 @@ app.get('/api/dashboard/metrics', (req, res) => {
         totalTreaties: treaties.length,
         operationalEmbassies: embassies.filter(e => e.status === 'operational').length,
         activeTradeAgreements: tradeAgreements.filter(t => t.status === 'active' || t.status === 'proposed').length,
-        diplomaticIncidents: diplomaticIncidents.length
+        diplomaticIncidents: diplomaticIncidents.length,
+        mode: 'live'
     });
+    }
 });
 
 // ==========================================

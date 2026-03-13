@@ -166,10 +166,16 @@
             <div class="live"><div class="live-dot"></div> <span id="statusText">Connecting...</span></div>
         </div>
         
-        <div class="status-neural warning" style="padding: var(--space-md); margin-bottom: var(--space-lg); text-align: center; border-radius: var(--radius-md);">
+        <div id="dataWarning" class="status-neural warning" style="padding: var(--space-md); margin-bottom: var(--space-lg); text-align: center; border-radius: var(--radius-md); display: none;">
             <span style="font-weight: 600;">⚠️ Demo Data:</span> 
             <span>Agent activity is simulated to demonstrate system capabilities. The API infrastructure is real and functional.</span>
             <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026/blob/main/DEMO_VS_REALITY.md" target="_blank" style="color: var(--neural-orange); text-decoration: underline; margin-left: 10px;">Learn more</a>
+        </div>
+        
+        <div id="liveWarning" class="status-neural info" style="padding: var(--space-md); margin-bottom: var(--space-lg); text-align: center; border-radius: var(--radius-md); display: none;">
+            <span style="font-weight: 600;">📡 Live Data:</span> 
+            <span>Showing real mainnet data. Agent registration and activity is currently minimal as the platform is in early deployment.</span>
+            <a href="/api-docs.html" style="color: var(--neural-blue); text-decoration: underline; margin-left: 10px;">View API Docs</a>
         </div>
         <div id="navigation-container"></div>
         
@@ -219,6 +225,25 @@
         let metricsFailures = 0;
         const MAX_SSE_RETRIES = 50;
         
+        // Get demo mode from localStorage
+        const demoMode = localStorage.getItem('demo-mode') === 'true';
+        const demoParam = demoMode ? '?demo=true' : '';
+        
+        console.log('Dashboard mode:', demoMode ? 'DEMO' : 'LIVE');
+        
+        // Show appropriate warning based on mode
+        document.addEventListener('DOMContentLoaded', function() {
+            if (demoMode) {
+                document.getElementById('dataWarning').style.display = 'block';
+                document.title = '🎭 Demo Dashboard - Agent Network State';
+                document.querySelector('.title').innerHTML = '🎭 Demo Agent Dashboard';
+            } else {
+                document.getElementById('liveWarning').style.display = 'block';
+                document.title = '🔴 Live Dashboard - Agent Network State';
+                document.querySelector('.title').innerHTML = '🔴 Live Agent Dashboard';
+            }
+        });
+        
         function formatTime(ts) {
             const d = new Date(ts);
             return d.toLocaleTimeString();
@@ -265,7 +290,7 @@
                 return;
             }
             
-            const es = new EventSource(`${API_BASE}/api/activity/stream`);
+            const es = new EventSource(`${API_BASE}/api/activity/stream${demoParam}`);
             es.onopen = () => {
                 sseRetries = 0;
                 updateStatus('Live');
@@ -294,7 +319,7 @@
         // Poll metrics with failure tracking
         async function updateMetrics() {
             try {
-                const res = await fetch(`${API_BASE}/api/dashboard/metrics`);
+                const res = await fetch(`${API_BASE}/api/dashboard/metrics${demoParam}`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const m = await res.json();
                 metricsFailures = 0;

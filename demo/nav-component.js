@@ -16,7 +16,7 @@ const PRIMARY_NAV_CONFIG = {
 // Secondary navigation - Developer/technical resources (like docs.uniswap.org)
 const SECONDARY_NAV_CONFIG = {
     links: [
-        { href: 'interactive.html', icon: '🎮', label: 'Try Demo', id: 'interactive' },
+        { href: 'interactive.html', icon: '🎮', label: 'Manual Registration', id: 'interactive', demoOnly: true },
         { href: 'api-docs.html', icon: '📡', label: 'API Docs', id: 'api' },
         { href: 'contracts.html', icon: '📜', label: 'Contracts', id: 'contracts' },
         { href: 'https://github.com/ohmniscientbot/agent-network-state-synthesis-2026', icon: '💻', label: 'GitHub', id: 'github', external: true }
@@ -254,12 +254,14 @@ function createPrimaryNavigation(activePage) {
  * @returns {string} Secondary navigation HTML
  */
 function createSecondaryNavigation(activePage) {
-    const links = SECONDARY_NAV_CONFIG.links.map(link => {
-        const activeClass = link.id === activePage ? 'active' : '';
-        const externalClass = link.external ? 'external' : '';
-        const target = link.external ? 'target="_blank"' : '';
-        return `<a href="${link.href}" class="nav-link ${activeClass} ${externalClass}" ${target}>${link.icon} ${link.label}</a>`;
-    }).join('');
+    const links = SECONDARY_NAV_CONFIG.links
+        .filter(link => !link.demoOnly || demoMode) // Only show demo-only links in demo mode
+        .map(link => {
+            const activeClass = link.id === activePage ? 'active' : '';
+            const externalClass = link.external ? 'external' : '';
+            const target = link.external ? 'target="_blank"' : '';
+            return `<a href="${link.href}" class="nav-link ${activeClass} ${externalClass}" ${target}>${link.icon} ${link.label}</a>`;
+        }).join('');
     
     return `<div class="nav-secondary-links">${links}</div>`;
 }
