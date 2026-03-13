@@ -15,32 +15,36 @@ const NAV_CONFIG = {
     ]
 };
 
-// CSS for navigation (injected once)
+// CSS for navigation - Professional DeFi styling
 const NAV_CSS = `
 .nav-bar { 
-    background: rgba(30, 41, 59, 0.7); 
-    border: 1px solid #334155; 
+    background: #ffffff; 
+    border: 1px solid #e2e8f0; 
     border-radius: 12px; 
-    padding: 12px 20px; 
-    margin-bottom: 25px; 
+    padding: 12px 16px; 
+    margin-bottom: 24px; 
     display: flex; 
-    gap: 15px; 
+    gap: 8px; 
     flex-wrap: wrap; 
-    justify-content: center; 
+    justify-content: center;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 .nav-link { 
-    color: #8b5cf6; 
+    color: #64748b; 
     text-decoration: none; 
     padding: 8px 16px; 
     border-radius: 8px; 
-    transition: background 0.3s;
+    transition: all 0.2s ease;
     white-space: nowrap;
+    font-weight: 500;
+    font-size: 14px;
 }
 .nav-link:hover { 
-    background: rgba(139, 92, 246, 0.2); 
+    background: #f1f5f9;
+    color: #1e293b;
 }
 .nav-link.active { 
-    background: #8b5cf6; 
+    background: #2563eb; 
     color: white; 
 }
 `;
