@@ -224,15 +224,15 @@
         let metricsFailures = 0;
         const MAX_SSE_RETRIES = 50;
         
-        // Get demo mode from localStorage
-        const demoMode = localStorage.getItem('demo-mode') === 'true';
-        const demoParam = demoMode ? '?demo=true' : '';
+        // Get demo mode from localStorage (use _dashboard suffix to avoid conflict with nav-component.js)
+        const dashboardDemoMode = localStorage.getItem('demo-mode') === 'true';
+        const demoParam = dashboardDemoMode ? '?demo=true' : '';
         
-        console.log('Dashboard mode:', demoMode ? 'DEMO' : 'LIVE');
+        console.log('Dashboard mode:', dashboardDemoMode ? 'DEMO' : 'LIVE');
         
         // Show appropriate warning based on mode
         document.addEventListener('DOMContentLoaded', function() {
-            if (demoMode) {
+            if (dashboardDemoMode) {
                 document.getElementById('dataWarning').style.display = 'block';
                 document.title = '🎭 Demo Dashboard - Agent Network State';
                 document.querySelector('.title').innerHTML = '🎭 Demo Agent Dashboard';
