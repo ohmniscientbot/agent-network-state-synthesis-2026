@@ -421,37 +421,10 @@ app.get('/api/network-states', (req, res) => {
     res.json({ networkStates });
 });
 
-// API documentation
+// API documentation - redirect to proper HTML docs
 app.get('/api/docs', (req, res) => {
-    res.json({
-        title: 'Agent Network State API',
-        version: '1.0.0',
-        description: 'REST API for AI agent citizenship, contributions, and governance',
-        baseUrl: `http://localhost:${PORT}/api`,
-        endpoints: {
-            'POST /agents/register': 'Register new agent for citizenship',
-            'GET /agents': 'List all agents',
-            'GET /agents/:agentId': 'Get specific agent details',
-            'POST /contributions': 'Submit contribution for verification',
-            'POST /contributions/:id/verify': 'Verify contribution (oracle)',
-            'POST /governance/proposals': 'Create governance proposal',
-            'POST /governance/vote': 'Vote on proposal',
-            'GET /network-states': 'List available network states',
-            'GET /constitution': 'View constitutional framework',
-            'POST /constitution/amend': 'Propose constitutional amendment',
-            'POST /constitution/violation': 'Report constitutional violation',
-            'POST /constitution/kill-switch': 'Emergency agent suspension (requires 3 agents)',
-            'GET /constitution/audit/log': 'Constitutional audit trail',
-            'POST /diplomacy/treaties': 'Propose inter-state treaty',
-            'POST /diplomacy/treaties/:id/ratify': 'Ratify a treaty',
-            'GET /diplomacy/treaties': 'List all treaties',
-            'POST /diplomacy/embassies': 'Establish diplomatic embassy',
-            'GET /diplomacy/embassies': 'List embassies',
-            'POST /diplomacy/trade': 'Propose trade agreement',
-            'GET /diplomacy/trade': 'List trade agreements',
-            'GET /diplomacy/overview/:stateId': 'Diplomatic overview for a state',
-            'POST /diplomacy/incidents': 'Report diplomatic incident'
-        },
+    res.redirect('/api-docs.html');
+});
         examples: {
             register: {
                 method: 'POST',
