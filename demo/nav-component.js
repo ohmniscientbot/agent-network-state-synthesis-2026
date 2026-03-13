@@ -15,37 +15,75 @@ const NAV_CONFIG = {
     ]
 };
 
-// CSS for navigation - Professional DeFi styling
+// CSS for organic navigation styling
 const NAV_CSS = `
 .nav-bar { 
     background: #ffffff; 
-    border: 1px solid #e2e8f0; 
-    border-radius: 12px; 
-    padding: 12px 16px; 
-    margin-bottom: 24px; 
+    border: 1px solid #e8eaf0; 
+    border-radius: 16px; 
+    padding: 12px 20px; 
+    margin-bottom: 32px; 
     display: flex; 
     gap: 8px; 
     flex-wrap: wrap; 
     justify-content: center;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05), 0 1px 2px rgba(16, 24, 40, 0.03);
+    position: relative;
+    overflow: hidden;
+}
+.nav-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.03), transparent);
+    transition: left 0.8s ease;
+}
+.nav-bar:hover::before {
+    left: 100%;
 }
 .nav-link { 
-    color: #64748b; 
+    color: #525866; 
     text-decoration: none; 
     padding: 8px 16px; 
-    border-radius: 8px; 
-    transition: all 0.2s ease;
+    border-radius: 12px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     font-weight: 500;
     font-size: 14px;
+    position: relative;
+    z-index: 1;
+}
+.nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 1px;
+    transition: width 0.3s ease;
 }
 .nav-link:hover { 
-    background: #f1f5f9;
-    color: #1e293b;
+    background: rgba(59, 130, 246, 0.08);
+    color: #1a1d24;
+    transform: translateY(-1px);
+}
+.nav-link:hover::before {
+    width: 80%;
 }
 .nav-link.active { 
-    background: #2563eb; 
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
     color: white; 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+.nav-link.active::before {
+    display: none;
 }
 `;
 
