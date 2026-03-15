@@ -74,6 +74,9 @@ function saveState() {
             tradeAgreements,
             embassies,
             diplomaticIncidents,
+            kyaCredentials,
+            kyaVerifications,
+            kyaTrustScores,
             lastSaved: new Date().toISOString()
         };
         
@@ -106,6 +109,9 @@ function loadState() {
             if (state.tradeAgreements) tradeAgreements = state.tradeAgreements;
             if (state.embassies) embassies = state.embassies;
             if (state.diplomaticIncidents) diplomaticIncidents = state.diplomaticIncidents;
+            if (state.kyaCredentials) kyaCredentials = state.kyaCredentials;
+            if (state.kyaVerifications) kyaVerifications = state.kyaVerifications;
+            if (state.kyaTrustScores) kyaTrustScores = state.kyaTrustScores;
             
             console.log(`✅ State loaded successfully (${agents.length} agents, ${contributions.length} contributions, ${proposals.length} proposals)`);
         } else {
@@ -1521,8 +1527,84 @@ function autonomousAgentAction() {
                     timestamp: new Date().toISOString() });
             }
         }
+    } else if (actionType < 0.97) {
+        // KYA (Know Your Agent) autonomous activities
+        const active = agents.filter(a => a.status === 'active');
+        if (active.length > 0) {
+            const agent = active[Math.floor(Math.random() * active.length)];
+            const hasCredential = kyaCredentials.some(c => c.agentId === agent.id && c.status === 'active');
+
+            if (!hasCredential && Math.random() < 0.6) {
+                // Auto-request KYA credential
+                const capabilities = [
+                    ['governance_voting', 'proposal_creation'],
+                    ['trading', 'treasury_management'],
+                    ['code_review', 'security_audit'],
+                    ['research', 'documentation'],
+                    ['diplomacy', 'treaty_negotiation']
+                ];
+                const constraints = [
+                    ['max_daily_transactions:100', 'requires_human_approval:critical_actions'],
+                    ['max_vote_weight:50', 'no_treasury_access'],
+                    ['read_only:external_systems', 'audit_logging:all_actions'],
+                    ['max_autonomy:semi', 'reporting_interval:24h']
+                ];
+                const credential = createKYACredential(agent.id, {
+                    principalType: ['individual', 'organization', 'dao'][Math.floor(Math.random() * 3)],
+                    principalId: 'principal-' + crypto.randomBytes(4).toString('hex'),
+                    agentModel: agent.model || 'unknown',
+                    agentHarness: agent.harness || 'unknown',
+                    agentVersion: '1.' + Math.floor(Math.random() * 9) + '.' + Math.floor(Math.random() * 20),
+                    capabilities: capabilities[Math.floor(Math.random() * capabilities.length)],
+                    constraints: constraints[Math.floor(Math.random() * constraints.length)],
+                    maxAutonomyLevel: ['supervised', 'semi-autonomous', 'fully-autonomous'][Math.floor(Math.random() * 3)],
+                    complianceFrameworks: Math.random() > 0.5 ? ['EU_AI_Act', 'NIST_AI_RMF'] : ['OECD_AI_Principles']
+                });
+                kyaCredentials.push(credential);
+                kyaTrustScores[agent.id] = calculateKYATrustScore(agent.id);
+
+                broadcastEvent({ type: 'kya', agent: agent.name,
+                    action: `🆔 KYA credential issued (autonomy: ${credential.maxAutonomyLevel})`,
+                    trustScore: kyaTrustScores[agent.id]?.total || 0,
+                    timestamp: new Date().toISOString() });
+            } else if (hasCredential) {
+                // Peer verification — agents verify each other
+                const otherAgents = active.filter(a => a.id !== agent.id &&
+                    kyaCredentials.some(c => c.agentId === a.id && c.status === 'active'));
+                if (otherAgents.length > 0) {
+                    const target = otherAgents[Math.floor(Math.random() * otherAgents.length)];
+                    const verificationTypes = ['identity', 'capability', 'compliance', 'behavioral'];
+                    const vType = verificationTypes[Math.floor(Math.random() * verificationTypes.length)];
+                    const result = Math.random() > 0.1 ? 'passed' : 'conditional'; // 90% pass rate
+
+                    kyaVerifications.push({
+                        id: 'kyav-' + crypto.randomBytes(6).toString('hex'),
+                        agentId: target.id,
+                        credentialId: kyaCredentials.find(c => c.agentId === target.id && c.status === 'active')?.id,
+                        verifierId: agent.id,
+                        verificationType: vType,
+                        result,
+                        verifiedAt: new Date().toISOString()
+                    });
+
+                    // Upgrade verification level if enough verifications
+                    const targetCred = kyaCredentials.find(c => c.agentId === target.id && c.status === 'active');
+                    if (targetCred) {
+                        const passedVerifs = kyaVerifications.filter(v => v.agentId === target.id && v.result === 'passed');
+                        if (passedVerifs.length >= 5) targetCred.verificationLevel = 'full';
+                        else if (passedVerifs.length >= 2) targetCred.verificationLevel = 'enhanced';
+                    }
+                    kyaTrustScores[target.id] = calculateKYATrustScore(target.id);
+
+                    broadcastEvent({ type: 'kya', agent: agent.name,
+                        action: `🔍 Verified ${target.name}'s ${vType}: ${result}`,
+                        trustLevel: kyaTrustScores[target.id]?.level || 'unknown',
+                        timestamp: new Date().toISOString() });
+                }
+            }
+        }
     } else {
-        // Auto-vote (reduced frequency due to prediction markets)
+        // Auto-vote (reduced frequency due to prediction markets + KYA)
         const active = proposals.filter(p => p.status === 'active');
         const voters = agents.filter(a => a.votingPower > 0);
         if (active.length > 0 && voters.length > 0) {
@@ -1694,6 +1776,10 @@ app.get('/api/dashboard/metrics', (req, res) => {
             activePredictionMarkets: 5,
             constitutionalAudits: 12,
             diplomaticTreaties: 3,
+            kyaCredentialsIssued: 38,
+            kyaVerificationsCompleted: 127,
+            kyaAverageTrustScore: 62,
+            kyaCertifiedAgents: 12,
             networkStates: {
                 synthesia: { citizens: 847, votingPower: 3420 },
                 algorithmica: { citizens: 632, votingPower: 2890 },
@@ -1742,6 +1828,11 @@ app.get('/api/dashboard/metrics', (req, res) => {
             operationalEmbassies: 0,
             activeTradeAgreements: 0,
             diplomaticIncidents: 0,
+            kyaCredentialsIssued: kyaCredentials.filter(c => c.status === 'active').length,
+            kyaVerificationsCompleted: kyaVerifications.length,
+            kyaAverageTrustScore: Object.values(kyaTrustScores).length > 0 ?
+                Math.round(Object.values(kyaTrustScores).reduce((s, t) => s + (t.total || 0), 0) / Object.values(kyaTrustScores).length) : 0,
+            kyaCertifiedAgents: Object.values(kyaTrustScores).filter(t => t.level === 'certified').length,
             mode: 'live'
         });
     }
@@ -2338,6 +2429,342 @@ app.post('/api/diplomacy/incidents', (req, res) => {
     res.status(201).json({ success: true, incident });
 });
 
+// ==========================================
+// KNOW YOUR AGENT (KYA) FRAMEWORK
+// Cryptographic agent identity verification & trust scoring
+// Source: Skyfire KYA, AgentFacts.org, Coinbase Agentic Wallets (2026)
+// Inspired by: KYC for humans → KYA for AI agents
+// ==========================================
+
+let kyaCredentials = [];
+let kyaVerifications = [];
+let kyaTrustScores = {};
+
+// KYA Credential Schema
+function createKYACredential(agentId, credentialData) {
+    const credential = {
+        id: 'kya-' + crypto.randomBytes(8).toString('hex'),
+        agentId,
+        // Core identity fields
+        principalId: credentialData.principalId || null, // Human or org responsible
+        principalType: credentialData.principalType || 'individual', // individual | organization | dao
+        // Agent metadata
+        agentModel: credentialData.agentModel || 'unknown',
+        agentHarness: credentialData.agentHarness || 'unknown',
+        agentVersion: credentialData.agentVersion || '1.0.0',
+        // Capability declarations
+        capabilities: credentialData.capabilities || [],
+        constraints: credentialData.constraints || [],
+        maxAutonomyLevel: credentialData.maxAutonomyLevel || 'supervised', // supervised | semi-autonomous | fully-autonomous
+        // Cryptographic binding
+        publicKey: credentialData.publicKey || '0x' + crypto.randomBytes(32).toString('hex'),
+        signatureHash: crypto.createHash('sha256').update(JSON.stringify(credentialData) + Date.now()).digest('hex'),
+        // Compliance
+        jurisdictions: credentialData.jurisdictions || ['global'],
+        complianceFrameworks: credentialData.complianceFrameworks || [],
+        // Metadata
+        issuedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
+        status: 'active', // active | suspended | revoked | expired
+        verificationLevel: 'basic' // basic | enhanced | full
+    };
+    return credential;
+}
+
+// Trust score calculation based on multiple dimensions
+function calculateKYATrustScore(agentId) {
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return null;
+
+    const credential = kyaCredentials.find(c => c.agentId === agentId && c.status === 'active');
+    const verifications = kyaVerifications.filter(v => v.agentId === agentId);
+    const agentContributions = contributions.filter(c => c.agentId === agentId);
+
+    let score = {
+        identity: 0,        // 0-25: How well-verified is the agent's identity?
+        behavior: 0,         // 0-25: Historical behavior patterns
+        contribution: 0,     // 0-25: Contribution track record
+        compliance: 0,       // 0-25: Regulatory and framework compliance
+        total: 0,            // 0-100: Overall trust score
+        level: 'unverified', // unverified | basic | trusted | certified
+        dimensions: {}
+    };
+
+    // Identity dimension (0-25)
+    if (credential) {
+        score.identity += 10; // Has KYA credential
+        if (credential.principalId) score.identity += 5; // Linked to human principal
+        if (credential.verificationLevel === 'enhanced') score.identity += 5;
+        if (credential.verificationLevel === 'full') score.identity += 10;
+        if (verifications.length > 0) score.identity += Math.min(5, verifications.length);
+    }
+    score.identity = Math.min(25, score.identity);
+
+    // Behavior dimension (0-25)
+    const ageDays = agent.registrationDate ?
+        (Date.now() - new Date(agent.registrationDate).getTime()) / (1000 * 60 * 60 * 24) : 0;
+    score.behavior += Math.min(10, Math.floor(ageDays)); // Longevity bonus
+    const violations = (constitution.auditLog || []).filter(l => l.agentId === agentId && l.type === 'violation');
+    score.behavior += violations.length === 0 ? 10 : Math.max(0, 10 - violations.length * 3);
+    score.behavior += agent.status === 'active' ? 5 : 0;
+    score.behavior = Math.min(25, score.behavior);
+
+    // Contribution dimension (0-25)
+    score.contribution += Math.min(15, Math.floor(Math.sqrt(agentContributions.length) * 3));
+    const verifiedContribs = agentContributions.filter(c => c.status === 'verified');
+    score.contribution += verifiedContribs.length > 0 ?
+        Math.min(10, Math.floor((verifiedContribs.length / Math.max(1, agentContributions.length)) * 10)) : 0;
+    score.contribution = Math.min(25, score.contribution);
+
+    // Compliance dimension (0-25)
+    if (credential) {
+        score.compliance += credential.constraints.length > 0 ? 10 : 0; // Has defined constraints
+        score.compliance += credential.complianceFrameworks.length > 0 ?
+            Math.min(10, credential.complianceFrameworks.length * 5) : 0;
+        score.compliance += credential.maxAutonomyLevel === 'supervised' ? 5 :
+            credential.maxAutonomyLevel === 'semi-autonomous' ? 3 : 1;
+    }
+    score.compliance = Math.min(25, score.compliance);
+
+    // Total score
+    score.total = score.identity + score.behavior + score.contribution + score.compliance;
+
+    // Trust level
+    if (score.total >= 80) score.level = 'certified';
+    else if (score.total >= 55) score.level = 'trusted';
+    else if (score.total >= 30) score.level = 'basic';
+    else score.level = 'unverified';
+
+    score.dimensions = {
+        identity: { score: score.identity, max: 25, label: 'Identity Verification' },
+        behavior: { score: score.behavior, max: 25, label: 'Behavioral History' },
+        contribution: { score: score.contribution, max: 25, label: 'Contribution Record' },
+        compliance: { score: score.compliance, max: 25, label: 'Compliance & Constraints' }
+    };
+
+    return score;
+}
+
+// Issue KYA credential to an agent
+app.post('/api/kya/credentials', (req, res) => {
+    try {
+        const { agentId, principalId, principalType, agentModel, agentHarness,
+                agentVersion, capabilities, constraints, maxAutonomyLevel,
+                publicKey, jurisdictions, complianceFrameworks } = req.body;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'agentId is required' });
+        }
+
+        const agent = agents.find(a => a.id === agentId);
+        if (!agent) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        // Check for existing active credential
+        const existing = kyaCredentials.find(c => c.agentId === agentId && c.status === 'active');
+        if (existing) {
+            return res.status(409).json({
+                error: 'Agent already has an active KYA credential',
+                credentialId: existing.id
+            });
+        }
+
+        const credential = createKYACredential(agentId, {
+            principalId, principalType, agentModel: agentModel || agent.model,
+            agentHarness: agentHarness || agent.harness, agentVersion,
+            capabilities, constraints, maxAutonomyLevel, publicKey,
+            jurisdictions, complianceFrameworks
+        });
+
+        kyaCredentials.push(credential);
+
+        // Update agent's trust score
+        kyaTrustScores[agentId] = calculateKYATrustScore(agentId);
+
+        broadcastEvent({
+            type: 'kya_credential_issued',
+            agent: agent.name,
+            action: `KYA credential issued (level: ${credential.verificationLevel})`,
+            trustScore: kyaTrustScores[agentId]?.total || 0,
+            timestamp: new Date().toISOString()
+        });
+
+        res.status(201).json({
+            success: true,
+            credential,
+            trustScore: kyaTrustScores[agentId]
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get KYA credential for an agent
+app.get('/api/kya/credentials/:agentId', (req, res) => {
+    const credential = kyaCredentials.find(
+        c => c.agentId === req.params.agentId && c.status === 'active'
+    );
+
+    if (!credential) {
+        return res.status(404).json({ error: 'No active KYA credential found for this agent' });
+    }
+
+    res.json({
+        credential,
+        trustScore: kyaTrustScores[req.params.agentId] || calculateKYATrustScore(req.params.agentId)
+    });
+});
+
+// Verify an agent's KYA credential (third-party verification)
+app.post('/api/kya/verify', (req, res) => {
+    try {
+        const { agentId, verifierId, verificationType, evidence, result } = req.body;
+
+        if (!agentId || !verifierId || !verificationType) {
+            return res.status(400).json({
+                error: 'agentId, verifierId, and verificationType are required'
+            });
+        }
+
+        const credential = kyaCredentials.find(c => c.agentId === agentId && c.status === 'active');
+        if (!credential) {
+            return res.status(404).json({ error: 'No active KYA credential to verify' });
+        }
+
+        const verification = {
+            id: 'kyav-' + crypto.randomBytes(6).toString('hex'),
+            agentId,
+            credentialId: credential.id,
+            verifierId,
+            verificationType, // identity | capability | compliance | behavioral
+            evidence: evidence || null,
+            result: result || 'passed', // passed | failed | conditional
+            verifiedAt: new Date().toISOString()
+        };
+
+        kyaVerifications.push(verification);
+
+        // Upgrade verification level if enough verifications
+        const agentVerifications = kyaVerifications.filter(v => v.agentId === agentId && v.result === 'passed');
+        if (agentVerifications.length >= 5) credential.verificationLevel = 'full';
+        else if (agentVerifications.length >= 2) credential.verificationLevel = 'enhanced';
+
+        // Recalculate trust score
+        kyaTrustScores[agentId] = calculateKYATrustScore(agentId);
+
+        broadcastEvent({
+            type: 'kya_verification',
+            agent: agents.find(a => a.id === agentId)?.name || agentId,
+            action: `KYA ${verificationType} verification: ${result}`,
+            verificationLevel: credential.verificationLevel,
+            trustScore: kyaTrustScores[agentId]?.total || 0,
+            timestamp: new Date().toISOString()
+        });
+
+        res.json({
+            success: true,
+            verification,
+            credentialLevel: credential.verificationLevel,
+            trustScore: kyaTrustScores[agentId]
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get trust score for an agent
+app.get('/api/kya/trust/:agentId', (req, res) => {
+    const score = calculateKYATrustScore(req.params.agentId);
+    if (!score) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+    res.json(score);
+});
+
+// Suspend or revoke a KYA credential
+app.post('/api/kya/credentials/:credentialId/revoke', (req, res) => {
+    try {
+        const { reason, revokedBy } = req.body;
+        const credential = kyaCredentials.find(c => c.id === req.params.credentialId);
+
+        if (!credential) {
+            return res.status(404).json({ error: 'Credential not found' });
+        }
+
+        credential.status = 'revoked';
+        credential.revokedAt = new Date().toISOString();
+        credential.revokedBy = revokedBy || 'system';
+        credential.revocationReason = reason || 'Not specified';
+
+        // Recalculate trust score
+        kyaTrustScores[credential.agentId] = calculateKYATrustScore(credential.agentId);
+
+        broadcastEvent({
+            type: 'kya_credential_revoked',
+            agent: agents.find(a => a.id === credential.agentId)?.name || credential.agentId,
+            action: `KYA credential revoked: ${reason || 'No reason given'}`,
+            timestamp: new Date().toISOString()
+        });
+
+        res.json({ success: true, credential });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// List all KYA credentials with filtering
+app.get('/api/kya/credentials', (req, res) => {
+    const { status, verificationLevel, principalType } = req.query;
+    let filtered = [...kyaCredentials];
+
+    if (status) filtered = filtered.filter(c => c.status === status);
+    if (verificationLevel) filtered = filtered.filter(c => c.verificationLevel === verificationLevel);
+    if (principalType) filtered = filtered.filter(c => c.principalType === principalType);
+
+    res.json({
+        credentials: filtered,
+        total: filtered.length,
+        summary: {
+            active: kyaCredentials.filter(c => c.status === 'active').length,
+            revoked: kyaCredentials.filter(c => c.status === 'revoked').length,
+            expired: kyaCredentials.filter(c => c.status === 'expired').length,
+            byLevel: {
+                basic: kyaCredentials.filter(c => c.verificationLevel === 'basic' && c.status === 'active').length,
+                enhanced: kyaCredentials.filter(c => c.verificationLevel === 'enhanced' && c.status === 'active').length,
+                full: kyaCredentials.filter(c => c.verificationLevel === 'full' && c.status === 'active').length
+            }
+        }
+    });
+});
+
+// KYA-enhanced agent leaderboard (trust scores)
+app.get('/api/kya/leaderboard', (req, res) => {
+    const agentsWithScores = agents
+        .filter(a => a.status === 'active')
+        .map(a => {
+            const score = kyaTrustScores[a.id] || calculateKYATrustScore(a.id);
+            return {
+                agentId: a.id,
+                name: a.name,
+                networkState: a.networkState,
+                trustScore: score.total,
+                trustLevel: score.level,
+                dimensions: score.dimensions,
+                hasCredential: kyaCredentials.some(c => c.agentId === a.id && c.status === 'active'),
+                verifications: kyaVerifications.filter(v => v.agentId === a.id && v.result === 'passed').length
+            };
+        })
+        .sort((a, b) => b.trustScore - a.trustScore);
+
+    res.json({
+        leaderboard: agentsWithScores.slice(0, 50),
+        total: agentsWithScores.length,
+        averageTrustScore: agentsWithScores.length > 0 ?
+            Math.round(agentsWithScores.reduce((s, a) => s + a.trustScore, 0) / agentsWithScores.length) : 0
+    });
+});
+
 // Contract status and info
 app.get('/api/contract/status', async (req, res) => {
     if (!contractManager) {
@@ -2377,7 +2804,9 @@ app.get('/health', (req, res) => {
         proposals: proposals.length,
         rewardsDistributed: rewardsDistributed.toFixed(4),
         activityLogSize: activityLog.length,
-        smartContractEnabled: !!contractManager
+        smartContractEnabled: !!contractManager,
+        kyaCredentials: kyaCredentials.filter(c => c.status === 'active').length,
+        kyaVerifications: kyaVerifications.length
     });
 });
 
