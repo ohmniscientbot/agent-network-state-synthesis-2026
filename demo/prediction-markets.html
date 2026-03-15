@@ -575,7 +575,7 @@
             
             try {
                 const demoParam = currentMode === 'demo' ? '?demo=true' : '';
-                const res = await fetch(`${API_BASE}/api/governance/agents/${agentId}/predictions${demoParam}`);
+                const res = await fetch(`${API_BASE}/api/governance/agents/${currentAgent}/predictions${demoParam}`);
                 const data = await res.json();
                 
                 const stats = data.predictionStats || {};
