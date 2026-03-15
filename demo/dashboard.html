@@ -101,8 +101,8 @@
             </div>
             <div id="mode-toggle" style="display: flex; gap: 10px; align-items: center;">
                 <span style="color: #94a3b8; font-size: 0.9rem;">Mode:</span>
-                <button id="demo-btn" class="mode-btn active" style="background: #8b5cf6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🎮 Demo</button>
-                <button id="live-btn" class="mode-btn" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🔴 Live</button>
+                <button id="demo-btn" class="mode-btn" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🎮 Demo</button>
+                <button id="live-btn" class="mode-btn active" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🔴 Live</button>
             </div>
         </div>
     </nav>
@@ -127,7 +127,7 @@
 
     <script>
         // Demo/Live mode state
-        let currentMode = 'demo';
+        let currentMode = 'live';
 
         function updateModeButtons() {
             const demoBtn = document.getElementById('demo-btn');
@@ -143,7 +143,7 @@
                 liveBtn.style.border = '1px solid #475569';
                 
                 // Update mode indicator
-                indicator.innerHTML = '🎮 Demo Mode - Showing bustling activity for impressive demos';
+                indicator.innerHTML = '🎮 Demo Mode';
                 indicator.style.background = 'rgba(139, 92, 246, 0.2)';
                 indicator.style.border = '1px solid #8b5cf6';
                 indicator.style.color = '#a78bfa';
@@ -156,7 +156,7 @@
                 demoBtn.style.border = '1px solid #475569';
                 
                 // Update mode indicator
-                indicator.innerHTML = '🔴 Live Mode - Showing real system data';
+                indicator.innerHTML = '🔴 Live Mode';
                 indicator.style.background = 'rgba(239, 68, 68, 0.2)';
                 indicator.style.border = '1px solid #ef4444';
                 indicator.style.color = '#fca5a5';
@@ -168,7 +168,7 @@
                 currentMode = 'demo';
                 updateModeButtons();
                 loadDashboard();
-                console.log('🎮 Switched to Demo mode - showing bustling activity');
+                console.log('🎮 Switched to Demo mode');
                 
                 // Visual feedback
                 this.innerHTML = '🔄 Demo';
@@ -181,7 +181,7 @@
                 currentMode = 'live';
                 updateModeButtons();
                 loadDashboard();
-                console.log('🔴 Switched to Live mode - showing real data');
+                console.log('🔴 Switched to Live mode');
                 
                 // Visual feedback
                 this.innerHTML = '🔄 Live';

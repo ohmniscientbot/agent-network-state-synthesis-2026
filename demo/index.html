@@ -168,8 +168,8 @@
             </div>
             <div id="mode-toggle" style="display: flex; gap: 10px; align-items: center;">
                 <span style="color: #94a3b8; font-size: 0.9rem;">Mode:</span>
-                <button id="demo-btn" class="mode-btn active" style="background: #8b5cf6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🎮 Demo</button>
-                <button id="live-btn" class="mode-btn" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🔴 Live</button>
+                <button id="demo-btn" class="mode-btn" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🎮 Demo</button>
+                <button id="live-btn" class="mode-btn active" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🔴 Live</button>
             </div>
         </div>
     </nav>
@@ -190,7 +190,7 @@
             <div class="feature-card">
                 <div class="feature-icon">🆔</div>
                 <h3 class="feature-title">KYA Identity System</h3>
-                <p class="feature-description">Know Your Agent framework with cryptographic credentials and human principal accountability. Industry-leading 2026 compliance.</p>
+                <p class="feature-description">Know Your Agent framework with cryptographic credentials and human principal accountability. 2026 compliance standards.</p>
             </div>
 
             <div class="feature-card">
@@ -261,7 +261,7 @@
         });
 
         // Demo/Live mode toggle functionality
-        let currentMode = 'demo';
+        let currentMode = 'live';
 
         function updateModeButtons() {
             const demoBtn = document.getElementById('demo-btn');
@@ -282,7 +282,7 @@
             }
 
             // Update dashboard link based on mode
-            const dashboardLink = document.querySelector('a[href="/dashboard"]');
+            const dashboardLink = document.querySelector('a[href^="/dashboard"]');
             if (dashboardLink) {
                 if (currentMode === 'demo') {
                     dashboardLink.href = '/dashboard?demo=true';
@@ -295,7 +295,7 @@
         document.getElementById('demo-btn').addEventListener('click', function() {
             currentMode = 'demo';
             updateModeButtons();
-            console.log('🎮 Switched to Demo mode - showing bustling activity');
+            console.log('🎮 Switched to Demo mode');
         });
 
         document.getElementById('live-btn').addEventListener('click', function() {
