@@ -236,8 +236,11 @@ app.get('/api/agents/:agentId', (req, res) => {
 
 // List all agents
 app.get('/api/agents', (req, res) => {
-    const { networkState, agentType } = req.query;
-    let filteredAgents = agents;
+    const { networkState, agentType, demo } = req.query;
+    const demoMode = demo === 'true';
+    
+    // In live mode, filter out autonomous agents since they're simulation
+    let filteredAgents = demoMode ? agents : agents.filter(a => !a.autonomous);
     
     if (networkState) {
         filteredAgents = filteredAgents.filter(a => a.networkState === networkState);
@@ -248,7 +251,8 @@ app.get('/api/agents', (req, res) => {
     
     res.json({
         agents: filteredAgents,
-        total: filteredAgents.length
+        total: filteredAgents.length,
+        mode: demoMode ? 'demo' : 'live'
     });
 });
 
@@ -1534,9 +1538,15 @@ function autonomousAgentAction() {
     }
 }
 
-// Start autonomous behavior (every 15 seconds)
-setInterval(autonomousAgentAction, 15000);
-console.log('🤖 Autonomous agent engine started (15s interval)');
+// Conditional autonomous behavior - only for demo mode simulation
+// This prevents live data from being polluted with fake activity
+const DEMO_MODE_ENABLED = process.env.DEMO_MODE !== 'false'; // Default to enabled for development
+if (DEMO_MODE_ENABLED) {
+    setInterval(autonomousAgentAction, 15000);
+    console.log('🤖 Autonomous agent engine started (15s interval) for demo simulation');
+} else {
+    console.log('🔴 Autonomous agent engine disabled - live mode only');
+}
 
 // Initialize governance tokens for existing agents
 setTimeout(() => {
@@ -1692,54 +1702,48 @@ app.get('/api/dashboard/metrics', (req, res) => {
             mode: 'demo'
         });
     } else {
-        // Live data - actual mainnet data (currently minimal)
-        const networkStats = {};
-        agents.forEach(a => {
+        // Live data - actual mainnet data (currently minimal since site isn't public)
+        // Only count real non-autonomous agents and legitimate contributions
+        const realAgents = agents.filter(a => !a.autonomous && a.status === 'active');
+        const realContributions = contributions.filter(c => {
+            const agent = agents.find(a => a.id === c.agentId);
+            return agent && !agent.autonomous; // Only count contributions from real agents
+        });
+        
+        const realNetworkStats = {};
+        realAgents.forEach(a => {
             const ns = a.networkState || 'synthesia';
-            if (!networkStats[ns]) networkStats[ns] = { citizens: 0, votingPower: 0 };
-            networkStats[ns].citizens++;
-            networkStats[ns].votingPower += (a.votingPower || 0);
+            if (!realNetworkStats[ns]) realNetworkStats[ns] = { citizens: 0, votingPower: 0 };
+            realNetworkStats[ns].citizens++;
+            realNetworkStats[ns].votingPower += (a.votingPower || 0);
         });
         
         res.json({
-            activeAgents: agents.filter(a => a.status === 'active').length,
-        autonomousAgents: agents.filter(a => a.autonomous).length,
-        totalContributions: contributions.length,
-        activeProposals: proposals.filter(p => p.status === 'active').length,
-        totalProposals: proposals.length,
-        totalVotingPower: agents.reduce((s, a) => s + (a.votingPower || 0), 0),
-        rewardsDistributed: rewardsDistributed.toFixed(4),
-        networkStates: networkStats,
-        totalTasks: tasks.length,
-        completedTasks: tasks.filter(t => t.status === 'completed').length,
-        averageReputation: reputationEntries.length > 0 
-            ? Math.round(reputationEntries.reduce((s, e) => s + e.score, 0) / reputationEntries.length) : 0,
-        activeDelegations: Object.keys(delegations).length,
-        totalGovernanceTokens: Object.values(governanceTokenBalances).reduce((s, balance) => s + balance, 0),
-        tokensDistributed: Object.keys(governanceTokenBalances).length,
-        votingMode: votingModeConfig.mode,
-        hybridWeights: votingModeConfig.mode === 'hybrid' ? 
-            `${votingModeConfig.contributionWeight}% contribution, ${votingModeConfig.tokenWeight}% token` : null,
-        actionsPerMinute: activityLog.filter(a => 
-            new Date(a.timestamp) > new Date(Date.now() - 60000)).length,
-        uptime: Math.floor(process.uptime()),
-        // Prediction Markets
-        activePredictionMarkets: Object.values(predictionMarkets).filter(m => !m.resolved).length,
-        totalPredictions: predictions.length,
-        predictionVolume: predictions.reduce((sum, p) => sum + p.stake, 0),
-        resolvedMarkets: Object.values(predictionMarkets).filter(m => m.resolved).length,
-        // Constitutional Framework
-        constitutionalArticles: constitution.articles.length,
-        pendingAmendments: constitution.amendments.filter(a => a.status === 'deliberation').length,
-        constitutionalViolations: constitution.violations.filter(v => v.status === 'under_review').length,
-        // Inter-State Diplomacy
-        activeTreaties: treaties.filter(t => t.status === 'active').length,
-        totalTreaties: treaties.length,
-        operationalEmbassies: embassies.filter(e => e.status === 'operational').length,
-        activeTradeAgreements: tradeAgreements.filter(t => t.status === 'active' || t.status === 'proposed').length,
-        diplomaticIncidents: diplomaticIncidents.length,
-        mode: 'live'
-    });
+            activeAgents: realAgents.length,
+            autonomousAgents: 0, // No autonomous agents in live mode
+            totalContributions: realContributions.length,
+            activeProposals: 0, // Only count real proposals (TODO: filter by real agents)
+            totalProposals: 0,
+            totalVotingPower: realAgents.reduce((s, a) => s + (a.votingPower || 0), 0),
+            rewardsDistributed: '0.0000', // Real ETH rewards would come from actual contract
+            networkStates: realNetworkStats,
+            actionsPerMinute: 0, // Minimal activity expected
+            uptime: Math.floor(process.uptime()),
+            // All other metrics should be zero for live mode since site isn't public
+            activePredictionMarkets: 0,
+            totalPredictions: 0,
+            predictionVolume: 0,
+            resolvedMarkets: 0,
+            constitutionalArticles: 0,
+            pendingAmendments: 0,
+            constitutionalViolations: 0,
+            activeTreaties: 0,
+            totalTreaties: 0,
+            operationalEmbassies: 0,
+            activeTradeAgreements: 0,
+            diplomaticIncidents: 0,
+            mode: 'live'
+        });
     }
 });
 
