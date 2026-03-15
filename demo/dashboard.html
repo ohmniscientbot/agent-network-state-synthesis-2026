@@ -110,6 +110,9 @@
         <div class="header">
             <h1 class="title">🏛️ Synthocracy Dashboard</h1>
             <p>Real-time AI Agent Governance Metrics</p>
+            <div id="mode-indicator" style="margin-top: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; font-weight: 600;">
+                <!-- Mode indicator will be updated by JavaScript -->
+            </div>
         </div>
 
         <div id="loading" class="loading">
@@ -128,6 +131,7 @@
         function updateModeButtons() {
             const demoBtn = document.getElementById('demo-btn');
             const liveBtn = document.getElementById('live-btn');
+            const indicator = document.getElementById('mode-indicator');
             
             if (currentMode === 'demo') {
                 demoBtn.style.background = '#8b5cf6';
@@ -136,6 +140,12 @@
                 liveBtn.style.background = 'transparent';
                 liveBtn.style.color = '#94a3b8';
                 liveBtn.style.border = '1px solid #475569';
+                
+                // Update mode indicator
+                indicator.innerHTML = '🎮 Demo Mode - Showing bustling activity for impressive demos';
+                indicator.style.background = 'rgba(139, 92, 246, 0.2)';
+                indicator.style.border = '1px solid #8b5cf6';
+                indicator.style.color = '#a78bfa';
             } else {
                 liveBtn.style.background = '#ef4444';
                 liveBtn.style.color = 'white';
@@ -143,33 +153,63 @@
                 demoBtn.style.background = 'transparent';
                 demoBtn.style.color = '#94a3b8';
                 demoBtn.style.border = '1px solid #475569';
+                
+                // Update mode indicator
+                indicator.innerHTML = '🔴 Live Mode - Showing real system data';
+                indicator.style.background = 'rgba(239, 68, 68, 0.2)';
+                indicator.style.border = '1px solid #ef4444';
+                indicator.style.color = '#fca5a5';
             }
         }
 
         document.getElementById('demo-btn').addEventListener('click', function() {
-            currentMode = 'demo';
-            updateModeButtons();
-            loadDashboard();
-            console.log('🎮 Switched to Demo mode - showing bustling activity');
+            if (currentMode !== 'demo') {
+                currentMode = 'demo';
+                updateModeButtons();
+                loadDashboard();
+                console.log('🎮 Switched to Demo mode - showing bustling activity');
+                
+                // Visual feedback
+                this.innerHTML = '🔄 Demo';
+                setTimeout(() => this.innerHTML = '🎮 Demo', 1000);
+            }
         });
 
         document.getElementById('live-btn').addEventListener('click', function() {
-            currentMode = 'live';
-            updateModeButtons();
-            loadDashboard();
-            console.log('🔴 Switched to Live mode - showing real data');
+            if (currentMode !== 'live') {
+                currentMode = 'live';
+                updateModeButtons();
+                loadDashboard();
+                console.log('🔴 Switched to Live mode - showing real data');
+                
+                // Visual feedback
+                this.innerHTML = '🔄 Live';
+                setTimeout(() => this.innerHTML = '🔴 Live', 1000);
+            }
         });
 
         async function loadDashboard() {
             try {
                 const demoParam = currentMode === 'demo' ? '?demo=true' : '';
+                
+                // Show loading state
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('loading').innerHTML = `<p>🔄 Loading ${currentMode} data...</p>`;
+                document.getElementById('metrics').style.display = 'none';
+                
+                console.log(`🔄 Fetching: /api/dashboard/metrics${demoParam}`);
                 const response = await fetch(`/api/dashboard/metrics${demoParam}`);
                 const data = await response.json();
+                
+                console.log(`📊 Received data (${currentMode} mode):`, data);
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('metrics').style.display = 'grid';
                 
                 const metricsContainer = document.getElementById('metrics');
+                
+                // Clear existing metrics first!
+                metricsContainer.innerHTML = '';
                 
                 // Define metrics to display
                 const metrics = [
@@ -205,6 +245,15 @@
                         metricsContainer.appendChild(card);
                     });
                 }
+                
+                // Add last updated timestamp
+                const timestampCard = document.createElement('div');
+                timestampCard.className = 'metric-card';
+                timestampCard.innerHTML = `
+                    <div class="metric-value">⏰ ${new Date().toLocaleTimeString()}</div>
+                    <div class="metric-label">Last Updated (${currentMode} mode)</div>
+                `;
+                metricsContainer.appendChild(timestampCard);
                 
             } catch (error) {
                 document.getElementById('loading').innerHTML = `
