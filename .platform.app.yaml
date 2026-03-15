@@ -1,0 +1,14 @@
+# Platform.sh deployment config
+name: agent-network-state
+type: 'nodejs:18'
+
+disk: 1024
+
+web:
+  commands:
+    start: 'node api/server.js'
+
+variables:
+  env:
+    NODE_ENV: 'production'
+    PORT: 8080

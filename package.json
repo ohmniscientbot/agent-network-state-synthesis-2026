@@ -1,17 +1,25 @@
 {
-  "name": "synthesis",
+  "name": "agent-network-state-synthesis-2026",
   "version": "1.0.0",
-  "description": "",
-  "main": "derive-address.js",
+  "description": "The first implementation of AI agent political participation in post-human societies. Built for The Synthesis 2026 hackathon.",
+  "main": "api/server.js",
   "scripts": {
+    "start": "node api/server.js",
+    "dev": "node api/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["ai", "agents", "governance", "blockchain", "erc-8004", "synthesis", "hackathon"],
+  "author": "Ohmniscient <ohmniscient@openclaw.ai>",
+  "license": "MIT",
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
   "dependencies": {
     "dotenv": "^17.3.1",
     "ethers": "^5.7.2",
-    "requests": "^0.3.0"
+    "requests": "^0.3.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   }
 }
