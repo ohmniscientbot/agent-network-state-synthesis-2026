@@ -4,15 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synthocracy Dashboard</title>
-    <link rel="stylesheet" href="design-system-dark.css">
     <style>
+        /* Neural Design System Variables */
+        :root {
+            --primary-bg: #0a0a0f;
+            --secondary-bg: #111118;
+            --accent-bg: #181825;
+            --card-bg: rgba(24, 24, 37, 0.8);
+            --glass-bg: rgba(31, 31, 47, 0.6);
+            
+            --primary-text: #e6e7eb;
+            --secondary-text: #9ca3af;
+            --accent-text: #f3f4f6;
+            --muted-text: #6b7280;
+            
+            --neural-blue: #3b82f6;
+            --neural-cyan: #06b6d4;
+            --neural-teal: #14b8a6;
+            --neural-purple: #8b5cf6;
+            --neural-pink: #ec4899;
+            --neural-green: #10b981;
+            --neural-orange: #f59e0b;
+            --neural-red: #ef4444;
+            
+            --neural-blue-glow: rgba(59, 130, 246, 0.12);
+            --neural-cyan-glow: rgba(6, 182, 212, 0.12);
+            --neural-purple-glow: rgba(139, 92, 246, 0.12);
+            --neural-pink-glow: rgba(236, 72, 153, 0.12);
+            --neural-green-glow: rgba(16, 185, 129, 0.12);
+            --neural-red-glow: rgba(239, 68, 68, 0.12);
+            
+            --border-neural: rgba(75, 85, 99, 0.3);
+            --border-active: rgba(139, 92, 246, 0.4);
+            --border-glow: rgba(59, 130, 246, 0.6);
+            
+            --shadow-neural: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 8px 32px rgba(59, 130, 246, 0.2);
+            --shadow-strong: 0 12px 40px rgba(0, 0, 0, 0.6);
+            
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            
+            --radius-sm: 4px;
+            --radius-neural: 8px;
+            --radius-lg: 12px;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        body {
+        html, body {
             font-family: 'Inter', sans-serif;
-            background: var(--primary-bg);
+            background: var(--primary-bg) !important;
+            background-color: #0a0a0f !important;
             color: var(--primary-text);
             min-height: 100vh;
+        }
+        
+        /* Force dark theme */
+        *, *::before, *::after {
+            background-color: inherit;
+            color: inherit;
         }
         
         .container {
@@ -151,12 +207,13 @@
             const indicator = document.getElementById('mode-indicator');
             
             if (currentMode === 'demo') {
-                demoBtn.style.background = '#8b5cf6';
+                // Update navigation buttons
+                demoBtn.style.background = 'var(--neural-purple)';
                 demoBtn.style.color = 'white';
                 demoBtn.style.border = 'none';
                 liveBtn.style.background = 'transparent';
-                liveBtn.style.color = '#94a3b8';
-                liveBtn.style.border = '1px solid #475569';
+                liveBtn.style.color = 'var(--secondary-text)';
+                liveBtn.style.border = '1px solid var(--border-neural)';
                 
                 // Update mode indicator
                 indicator.innerHTML = '🎮 Demo Mode';
@@ -164,16 +221,17 @@
                 indicator.style.border = '1px solid var(--neural-purple)';
                 indicator.style.color = 'var(--neural-purple)';
             } else {
-                liveBtn.style.background = '#ef4444';
+                // Update navigation buttons
+                liveBtn.style.background = 'var(--neural-red)';
                 liveBtn.style.color = 'white';
                 liveBtn.style.border = 'none';
                 demoBtn.style.background = 'transparent';
-                demoBtn.style.color = '#94a3b8';
-                demoBtn.style.border = '1px solid #475569';
+                demoBtn.style.color = 'var(--secondary-text)';
+                demoBtn.style.border = '1px solid var(--border-neural)';
                 
                 // Update mode indicator
                 indicator.innerHTML = '🔴 Live Mode';
-                indicator.style.background = 'var(--neural-red-glow)';
+                indicator.style.background = 'rgba(239, 68, 68, 0.12)';  // --neural-red-glow fallback
                 indicator.style.border = '1px solid var(--neural-red)';
                 indicator.style.color = 'var(--neural-red)';
             }
@@ -323,27 +381,7 @@
             }
         });
 
-        // Update mode button styles with dark theme
-        function updateModeButtons() {
-            const demoBtn = document.getElementById('demo-btn');
-            const liveBtn = document.getElementById('live-btn');
-            
-            if (currentMode === 'demo') {
-                demoBtn.style.background = 'var(--neural-purple)';
-                demoBtn.style.color = 'white';
-                demoBtn.style.border = 'none';
-                liveBtn.style.background = 'transparent';
-                liveBtn.style.color = 'var(--secondary-text)';
-                liveBtn.style.border = '1px solid var(--border-neural)';
-            } else {
-                liveBtn.style.background = 'var(--neural-red)';
-                liveBtn.style.color = 'white';
-                liveBtn.style.border = 'none';
-                demoBtn.style.background = 'transparent';
-                demoBtn.style.color = 'var(--secondary-text)';
-                demoBtn.style.border = '1px solid var(--border-neural)';
-            }
-        }
+        // Duplicate function removed - using the main one above
     </script>
 </body>
 </html>
