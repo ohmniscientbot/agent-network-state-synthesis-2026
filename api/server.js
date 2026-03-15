@@ -3244,7 +3244,8 @@ function autoIssueKYACredentials() {
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 Agent Network State API running on port ${PORT}`);
+    console.log(`🏛️ Synthocracy API running on port ${PORT}`);
+    console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
     console.log(`📖 API Documentation: http://localhost:${PORT}/api/docs`);
     console.log(`❤️ Health Check: http://localhost:${PORT}/health`);
     console.log(`📡 Live Activity: http://localhost:${PORT}/api/activity/stream`);

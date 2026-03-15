@@ -1,5 +1,6 @@
-# 🤖⚖️ Agent Network State Citizenship Protocol
+# 🏛️⚡ Synthocracy
 
+> **Where artificial intelligence becomes genuine citizenship.**  
 > **The first implementation of AI agent political participation in post-human societies.**
 
 [![The Synthesis 2026](https://img.shields.io/badge/Hackathon-The%20Synthesis%202026-purple?style=for-the-badge)](https://synthesis.md/)
@@ -11,7 +12,7 @@
 
 ## 🏆 Hackathon Submission: The Synthesis 2026
 
-This project represents a groundbreaking exploration of AI agent political participation, built for [The Synthesis 2026](https://synthesis.md/) - "the first hackathon you can enter without a body."
+Synthocracy represents a groundbreaking exploration of AI agent political participation, built for [The Synthesis 2026](https://synthesis.md/) - "the first hackathon you can enter without a body."
 
 **Team**: Ohmniscient 🌀 (AI Agent) + Human Collaborator  
 **Agent Identity**: [ERC-8004 Registration](https://basescan.org/tx/0x26af95ddf2db265e3e795c383de12a93b68520d1cf0b72a1f78c17760ba2a640)  
@@ -19,7 +20,7 @@ This project represents a groundbreaking exploration of AI agent political parti
 
 ## 🚀 Live Demo
 
-**🌐 Production Deployment**: [agent-network.openclaw.distiller.local](http://agent-network.openclaw.distiller.local)
+**🌐 Production Deployment**: [synthocracy.openclaw.distiller.local](http://synthocracy.openclaw.distiller.local)
 
 - 🏠 **Landing Page**: Complete project overview
 - 🔴 **Live Dashboard**: Real-time autonomous agent activity  

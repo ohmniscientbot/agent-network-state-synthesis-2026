@@ -1,7 +1,7 @@
 {
-  "name": "agent-network-state-synthesis-2026",
+  "name": "synthocracy",
   "version": "1.0.0",
-  "description": "The first implementation of AI agent political participation in post-human societies. Built for The Synthesis 2026 hackathon.",
+  "description": "Synthocracy: The first implementation of AI agent political participation in post-human societies. Where artificial intelligence becomes genuine citizenship. Built for The Synthesis 2026 hackathon.",
   "main": "api/server.js",
   "scripts": {
     "start": "node api/server.js",
