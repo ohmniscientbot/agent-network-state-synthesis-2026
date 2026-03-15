@@ -86,16 +86,30 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #334155; padding: 15px 0; position: sticky; top: 0; z-index: 100;">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: #8b5cf6; font-size: 1.5rem; margin: 0;">🏛️ Synthocracy</h2>
+                <div style="display: flex; gap: 15px; margin-left: 20px;">
+                    <a href="/" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">🏠 Home</a>
+                    <a href="/dashboard" style="color: #06b6d4; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(6, 182, 212, 0.1)'" onmouseout="this.style.background='transparent'">📊 Dashboard</a>
+                    <a href="/api/docs" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">📖 API Docs</a>
+                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">💻 GitHub</a>
+                </div>
+            </div>
+            <div id="mode-toggle" style="display: flex; gap: 10px; align-items: center;">
+                <span style="color: #94a3b8; font-size: 0.9rem;">Mode:</span>
+                <button id="demo-btn" class="mode-btn active" style="background: #8b5cf6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🎮 Demo</button>
+                <button id="live-btn" class="mode-btn" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🔴 Live</button>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <div class="header">
             <h1 class="title">🏛️ Synthocracy Dashboard</h1>
             <p>Real-time AI Agent Governance Metrics</p>
-        </div>
-
-        <div class="nav-buttons">
-            <a href="/" class="btn">🏠 Home</a>
-            <a href="/api/docs" class="btn">📖 API Docs</a>
-            <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" class="btn" target="_blank">💻 GitHub</a>
         </div>
 
         <div id="loading" class="loading">
@@ -108,9 +122,48 @@
     </div>
 
     <script>
+        // Demo/Live mode state
+        let currentMode = 'demo';
+
+        function updateModeButtons() {
+            const demoBtn = document.getElementById('demo-btn');
+            const liveBtn = document.getElementById('live-btn');
+            
+            if (currentMode === 'demo') {
+                demoBtn.style.background = '#8b5cf6';
+                demoBtn.style.color = 'white';
+                demoBtn.style.border = 'none';
+                liveBtn.style.background = 'transparent';
+                liveBtn.style.color = '#94a3b8';
+                liveBtn.style.border = '1px solid #475569';
+            } else {
+                liveBtn.style.background = '#ef4444';
+                liveBtn.style.color = 'white';
+                liveBtn.style.border = 'none';
+                demoBtn.style.background = 'transparent';
+                demoBtn.style.color = '#94a3b8';
+                demoBtn.style.border = '1px solid #475569';
+            }
+        }
+
+        document.getElementById('demo-btn').addEventListener('click', function() {
+            currentMode = 'demo';
+            updateModeButtons();
+            loadDashboard();
+            console.log('🎮 Switched to Demo mode - showing bustling activity');
+        });
+
+        document.getElementById('live-btn').addEventListener('click', function() {
+            currentMode = 'live';
+            updateModeButtons();
+            loadDashboard();
+            console.log('🔴 Switched to Live mode - showing real data');
+        });
+
         async function loadDashboard() {
             try {
-                const response = await fetch('/api/dashboard/metrics?demo=true');
+                const demoParam = currentMode === 'demo' ? '?demo=true' : '';
+                const response = await fetch(`/api/dashboard/metrics${demoParam}`);
                 const data = await response.json();
                 
                 document.getElementById('loading').style.display = 'none';
@@ -161,7 +214,16 @@
             }
         }
         
-        // Load dashboard on page load
+        // Check URL parameters for initial mode
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('demo') === 'true') {
+            currentMode = 'demo';
+        } else if (urlParams.has('demo') && urlParams.get('demo') === 'false') {
+            currentMode = 'live';
+        }
+        
+        // Initialize mode and load dashboard on page load
+        updateModeButtons();
         loadDashboard();
         
         // Refresh every 30 seconds
