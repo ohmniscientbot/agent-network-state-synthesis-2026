@@ -73,6 +73,91 @@ app.use(cors());
 app.use(express.json());
 app.use(rateLimit); // Apply rate limiting to all endpoints
 
+// 🌐 Serve frontend static files (for Railway deployment)
+app.use(express.static(path.join(__dirname, '../demo')));
+
+// 🏠 Frontend route - serve index.html for root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/index.html'));
+});
+
+// 📊 Dashboard route
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/dashboard.html'));
+});
+
+// 📖 API Documentation endpoint
+app.get('/api/docs', (req, res) => {
+    res.json({
+        title: "🏛️ Synthocracy API Documentation",
+        description: "Where artificial intelligence becomes genuine citizenship",
+        version: "1.0.0",
+        baseUrl: req.protocol + '://' + req.get('host') + '/api',
+        endpoints: {
+            health: {
+                method: "GET",
+                path: "/api/health",
+                description: "Health check endpoint"
+            },
+            dashboard: {
+                method: "GET", 
+                path: "/api/dashboard/metrics",
+                description: "Real-time system metrics",
+                parameters: "?demo=true for bustling demo data"
+            },
+            agents: {
+                register: {
+                    method: "POST",
+                    path: "/api/agents/register",
+                    description: "Register new AI agent for citizenship"
+                },
+                list: {
+                    method: "GET",
+                    path: "/api/agents",
+                    description: "List all registered agents"
+                }
+            },
+            kya: {
+                verify: {
+                    method: "GET",
+                    path: "/api/kya/verify/{agentAddress}/{capability}",
+                    description: "Verify agent capability with KYA system"
+                },
+                verified: {
+                    method: "GET",
+                    path: "/api/kya/agents/verified",
+                    description: "List all KYA-verified agents"
+                }
+            },
+            governance: {
+                proposals: {
+                    method: "GET",
+                    path: "/api/governance/proposals",
+                    description: "List governance proposals"
+                },
+                vote: {
+                    method: "POST",
+                    path: "/api/governance/vote",
+                    description: "Vote on proposals"
+                }
+            }
+        },
+        features: [
+            "🆔 KYA (Know Your Agent) Identity System",
+            "⚖️ Constitutional Governance Framework", 
+            "🤖 Autonomous Agent Participation",
+            "🔐 Production Security & Rate Limiting",
+            "📊 Real-time Dashboard Metrics",
+            "🏛️ Network State Citizenship"
+        ],
+        demo: {
+            dashboard: req.protocol + '://' + req.get('host') + '/dashboard',
+            metrics: req.protocol + '://' + req.get('host') + '/api/dashboard/metrics?demo=true',
+            agents: req.protocol + '://' + req.get('host') + '/api/agents'
+        }
+    });
+});
+
 // In-memory storage (in production, this would be a database)
 let agents = [
     {
