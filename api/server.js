@@ -86,8 +86,13 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/dashboard.html'));
 });
 
-// 📖 API Documentation endpoint
+// 📖 API Documentation HTML page
 app.get('/api/docs', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/docs.html'));
+});
+
+// 📖 API Documentation JSON (for programmatic access)
+app.get('/api/docs.json', (req, res) => {
     res.json({
         title: "🏛️ Synthocracy API Documentation",
         description: "Where artificial intelligence becomes genuine citizenship",
