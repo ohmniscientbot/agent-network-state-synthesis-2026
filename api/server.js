@@ -262,6 +262,256 @@ app.get('/api/agents', (req, res) => {
     });
 });
 
+// ===============================
+// KYA (Know Your Agent) Endpoints  
+// ===============================
+
+// Register human principal for KYA verification
+app.post('/api/kya/principals/register', async (req, res) => {
+    try {
+        const { name, email, maxAgents, verificationHash, signature } = req.body;
+        
+        // Validate input
+        if (!name || !email || !maxAgents || !verificationHash || !signature) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // In a real system, this would verify the signature against trusted KYA issuers
+        // For demo purposes, we'll accept any signature
+        
+        const principal = {
+            address: crypto.randomBytes(20).toString('hex'), // Mock address
+            name,
+            email,
+            maxAgents: parseInt(maxAgents),
+            currentAgents: 0,
+            isVerified: true,
+            verificationHash,
+            registeredAt: new Date().toISOString()
+        };
+
+        // Store principal (in production, this would be on-chain)
+        if (!humanPrincipals) {
+            global.humanPrincipals = new Map();
+        }
+        humanPrincipals.set(principal.address, principal);
+
+        res.status(201).json({
+            success: true,
+            principal: {
+                address: principal.address,
+                name: principal.name,
+                maxAgents: principal.maxAgents,
+                isVerified: principal.isVerified
+            }
+        });
+    } catch (error) {
+        console.error('Principal registration error:', error);
+        res.status(500).json({ error: 'Registration failed' });
+    }
+});
+
+// Issue KYA credential for an agent
+app.post('/api/kya/credentials/issue', async (req, res) => {
+    try {
+        const {
+            agentAddress,
+            principalAddress,
+            agentType,
+            harness,
+            capabilities,
+            expiryDays = 365
+        } = req.body;
+
+        // Validate agent exists
+        const agent = agents.find(a => a.address === agentAddress || a.id === agentAddress);
+        if (!agent) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        // Generate credential
+        const credentialId = 'kya-' + crypto.randomUUID();
+        const expiryTimestamp = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
+        
+        // Capability mapping
+        const capabilityMap = {
+            'trading': 1,          // CAP_TRADING
+            'governance': 2,       // CAP_GOVERNANCE  
+            'treasury': 4,         // CAP_TREASURY
+            'cross_chain': 8,      // CAP_CROSS_CHAIN
+            'delegation': 16,      // CAP_DELEGATION
+            'proposal_create': 32, // CAP_PROPOSAL_CREATE
+            'emergency': 64        // CAP_EMERGENCY
+        };
+
+        let capabilityMask = 0;
+        if (Array.isArray(capabilities)) {
+            capabilities.forEach(cap => {
+                if (capabilityMap[cap]) {
+                    capabilityMask |= capabilityMap[cap];
+                }
+            });
+        }
+
+        const credential = {
+            credentialId,
+            agentAddress: agent.address || agent.id,
+            principalAddress: principalAddress || 'demo-principal',
+            agentType: agentType || agent.agentType || 'general',
+            harness: harness || agent.harness || 'openclaw',
+            capabilityMask,
+            capabilities: capabilities || ['governance', 'proposal_create'],
+            expiryTimestamp,
+            attestationHash: crypto.createHash('sha256')
+                .update(agentAddress + principalAddress + Date.now())
+                .digest('hex'),
+            isActive: true,
+            issuedAt: Date.now()
+        };
+
+        // Store credential
+        if (!global.agentCredentials) {
+            global.agentCredentials = new Map();
+        }
+        global.agentCredentials.set(agentAddress, credential);
+
+        // Update agent with KYA verification
+        agent.kyaVerified = true;
+        agent.kyaCredentialId = credentialId;
+        agent.humanPrincipal = principalAddress || 'demo-principal';
+        agent.verifiedCapabilities = capabilities || ['governance', 'proposal_create'];
+
+        res.status(201).json({
+            success: true,
+            credential: {
+                credentialId,
+                agentAddress,
+                agentType: credential.agentType,
+                harness: credential.harness,
+                capabilities: credential.capabilities,
+                expiryDate: new Date(expiryTimestamp).toISOString(),
+                isActive: credential.isActive
+            }
+        });
+    } catch (error) {
+        console.error('Credential issuance error:', error);
+        res.status(500).json({ error: 'Credential issuance failed' });
+    }
+});
+
+// Verify agent capability
+app.get('/api/kya/verify/:agentAddress/:capability', (req, res) => {
+    try {
+        const { agentAddress, capability } = req.params;
+        
+        const credential = global.agentCredentials?.get(agentAddress);
+        if (!credential) {
+            return res.json({ verified: false, reason: 'No credential found' });
+        }
+
+        if (!credential.isActive) {
+            return res.json({ verified: false, reason: 'Credential revoked' });
+        }
+
+        if (credential.expiryTimestamp <= Date.now()) {
+            return res.json({ verified: false, reason: 'Credential expired' });
+        }
+
+        const hasCapability = credential.capabilities.includes(capability);
+        
+        res.json({
+            verified: hasCapability,
+            credential: hasCapability ? {
+                credentialId: credential.credentialId,
+                agentType: credential.agentType,
+                harness: credential.harness,
+                humanPrincipal: credential.principalAddress,
+                issuedAt: new Date(credential.issuedAt).toISOString(),
+                expiryDate: new Date(credential.expiryTimestamp).toISOString()
+            } : null
+        });
+    } catch (error) {
+        console.error('Verification error:', error);
+        res.status(500).json({ error: 'Verification failed' });
+    }
+});
+
+// Get agent's human principal
+app.get('/api/kya/principal/:agentAddress', (req, res) => {
+    try {
+        const { agentAddress } = req.params;
+        
+        const credential = global.agentCredentials?.get(agentAddress);
+        if (!credential) {
+            return res.status(404).json({ error: 'Agent credential not found' });
+        }
+
+        const principal = global.humanPrincipals?.get(credential.principalAddress) || {
+            address: credential.principalAddress,
+            name: 'Demo Principal',
+            isVerified: true
+        };
+
+        res.json({
+            success: true,
+            principal: {
+                address: principal.address,
+                name: principal.name,
+                isVerified: principal.isVerified
+            },
+            agent: {
+                address: agentAddress,
+                type: credential.agentType,
+                harness: credential.harness
+            }
+        });
+    } catch (error) {
+        console.error('Principal lookup error:', error);
+        res.status(500).json({ error: 'Lookup failed' });
+    }
+});
+
+// List all verified agents with KYA credentials
+app.get('/api/kya/agents/verified', (req, res) => {
+    try {
+        const verifiedAgents = agents
+            .filter(agent => agent.kyaVerified)
+            .map(agent => {
+                const credential = global.agentCredentials?.get(agent.address || agent.id);
+                return {
+                    id: agent.id,
+                    name: agent.name,
+                    address: agent.address || agent.id,
+                    agentType: agent.agentType,
+                    harness: agent.harness,
+                    kyaCredentialId: agent.kyaCredentialId,
+                    humanPrincipal: agent.humanPrincipal,
+                    verifiedCapabilities: agent.verifiedCapabilities,
+                    isActive: credential?.isActive || false,
+                    expiryDate: credential ? new Date(credential.expiryTimestamp).toISOString() : null
+                };
+            });
+
+        res.json({
+            success: true,
+            verifiedAgents,
+            total: verifiedAgents.length,
+            summary: {
+                totalVerified: verifiedAgents.length,
+                activeCredentials: verifiedAgents.filter(a => a.isActive).length,
+                capabilities: {
+                    governance: verifiedAgents.filter(a => a.verifiedCapabilities?.includes('governance')).length,
+                    trading: verifiedAgents.filter(a => a.verifiedCapabilities?.includes('trading')).length,
+                    treasury: verifiedAgents.filter(a => a.verifiedCapabilities?.includes('treasury')).length
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Verified agents lookup error:', error);
+        res.status(500).json({ error: 'Lookup failed' });
+    }
+});
+
 // Submit contribution
 app.post('/api/contributions', (req, res) => {
     try {
@@ -1778,8 +2028,16 @@ app.get('/api/dashboard/metrics', (req, res) => {
             diplomaticTreaties: 3,
             kyaCredentialsIssued: 38,
             kyaVerificationsCompleted: 127,
-            kyaAverageTrustScore: 62,
-            kyaCertifiedAgents: 12,
+            kyaAverageTrustScore: 8.7,
+            kyaCertifiedAgents: 35,
+            kyaCapabilityBreakdown: {
+                governance: 35,
+                trading: 24,
+                treasury: 18,
+                cross_chain: 12,
+                delegation: 28,
+                emergency: 8
+            },
             networkStates: {
                 synthesia: { citizens: 847, votingPower: 3420 },
                 algorithmica: { citizens: 632, votingPower: 2890 },
@@ -1815,6 +2073,22 @@ app.get('/api/dashboard/metrics', (req, res) => {
             networkStates: realNetworkStats,
             actionsPerMinute: 0, // Minimal activity expected
             uptime: Math.floor(process.uptime()),
+            
+            // KYA (Know Your Agent) Statistics
+            kyaCredentialsIssued: global.agentCredentials?.size || 0,
+            kyaCertifiedAgents: realAgents.filter(a => a.kyaVerified).length,
+            kyaVerificationsCompleted: global.agentCredentials?.size || 0,
+            kyaAverageTrustScore: realAgents.length > 0 ? 
+                (realAgents.filter(a => a.kyaVerified).length / realAgents.length * 10).toFixed(1) : 0,
+            kyaCapabilityBreakdown: {
+                governance: realAgents.filter(a => a.verifiedCapabilities?.includes('governance')).length,
+                trading: realAgents.filter(a => a.verifiedCapabilities?.includes('trading')).length,
+                treasury: realAgents.filter(a => a.verifiedCapabilities?.includes('treasury')).length,
+                cross_chain: realAgents.filter(a => a.verifiedCapabilities?.includes('cross_chain')).length,
+                delegation: realAgents.filter(a => a.verifiedCapabilities?.includes('delegation')).length,
+                emergency: realAgents.filter(a => a.verifiedCapabilities?.includes('emergency')).length
+            },
+            
             // All other metrics should be zero for live mode since site isn't public
             activePredictionMarkets: 0,
             totalPredictions: 0,
@@ -2810,6 +3084,94 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Auto-issue KYA credentials for existing agents (2026 compliance)
+function autoIssueKYACredentials() {
+    try {
+        if (!global.agentCredentials) {
+            global.agentCredentials = new Map();
+        }
+        if (!global.humanPrincipals) {
+            global.humanPrincipals = new Map();
+        }
+
+        // Create default demo principal
+        const demoPrincipal = {
+            address: 'demo-principal',
+            name: 'OpenClaw Demo Principal',
+            email: 'demo@openclaw.ai',
+            maxAgents: 100,
+            currentAgents: 0,
+            isVerified: true,
+            verificationHash: crypto.createHash('sha256').update('demo-principal').digest('hex'),
+            registeredAt: new Date().toISOString()
+        };
+        global.humanPrincipals.set(demoPrincipal.address, demoPrincipal);
+
+        let credentialed = 0;
+        agents.forEach(agent => {
+            if (agent.kyaVerified) return; // Already credentialed
+
+            const credentialId = 'kya-' + crypto.randomUUID();
+            const expiryTimestamp = Date.now() + (365 * 24 * 60 * 60 * 1000); // 1 year
+            
+            // Assign appropriate capabilities based on agent type
+            const capabilitiesByType = {
+                'trading': ['governance', 'trading', 'treasury'],
+                'governance': ['governance', 'proposal_create', 'delegation'],
+                'analysis': ['governance', 'proposal_create'],
+                'treasury': ['governance', 'treasury', 'cross_chain'],
+                'security': ['governance', 'emergency'],
+                'general': ['governance']
+            };
+            
+            const capabilities = capabilitiesByType[agent.agentType] || ['governance'];
+            
+            // Generate capability mask
+            const capabilityMap = {
+                'trading': 1, 'governance': 2, 'treasury': 4, 
+                'cross_chain': 8, 'delegation': 16, 'proposal_create': 32, 'emergency': 64
+            };
+            let capabilityMask = 0;
+            capabilities.forEach(cap => {
+                if (capabilityMap[cap]) capabilityMask |= capabilityMap[cap];
+            });
+
+            const credential = {
+                credentialId,
+                agentAddress: agent.address || agent.id,
+                principalAddress: demoPrincipal.address,
+                agentType: agent.agentType || 'general',
+                harness: agent.harness || 'openclaw',
+                capabilityMask,
+                capabilities,
+                expiryTimestamp,
+                attestationHash: crypto.createHash('sha256')
+                    .update(agent.id + demoPrincipal.address + Date.now())
+                    .digest('hex'),
+                isActive: true,
+                issuedAt: Date.now()
+            };
+
+            // Store credential
+            global.agentCredentials.set(agent.address || agent.id, credential);
+
+            // Update agent
+            agent.kyaVerified = true;
+            agent.kyaCredentialId = credentialId;
+            agent.humanPrincipal = demoPrincipal.address;
+            agent.verifiedCapabilities = capabilities;
+
+            credentialed++;
+        });
+
+        console.log(`🆔 KYA System Initialized: ${credentialed} agents auto-credentialed`);
+        console.log(`🔒 Trust Framework Active: Know Your Agent compliance enabled`);
+        
+    } catch (error) {
+        console.error('KYA auto-credentialing failed:', error);
+    }
+}
+
 app.listen(PORT, () => {
     console.log(`🚀 Agent Network State API running on port ${PORT}`);
     console.log(`📖 API Documentation: http://localhost:${PORT}/api/docs`);
@@ -2819,6 +3181,9 @@ app.listen(PORT, () => {
     
     // Load persisted state
     loadState();
+    
+    // Auto-issue KYA credentials for existing agents (2026 compliance)
+    autoIssueKYACredentials();
 });
 
 module.exports = app;
