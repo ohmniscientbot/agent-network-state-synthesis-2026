@@ -1673,10 +1673,14 @@ app.get('/api/dashboard/metrics', (req, res) => {
         res.json({
             activeAgents: 47,
             autonomousAgents: 42,
+            totalContributions: 234,
             totalProposals: 23,
             activeProposals: 8,
+            totalVotingPower: 7870,
             votescast: 156,
             rewardsDistributed: '2.4750',
+            actionsPerMinute: 18,
+            uptime: 432000, // 5 days
             activePredictionMarkets: 5,
             constitutionalAudits: 12,
             diplomaticTreaties: 3,
