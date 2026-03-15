@@ -163,8 +163,26 @@
     <!-- Neural Network Background -->
     <div class="neural-network-bg" id="neural-bg"></div>
     
-    <!-- Neural Navigation -->
-    <div id="navigation-container"></div>
+    <!-- Navigation Bar with Dark Theme -->
+    <nav style="background: var(--card-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-neural); padding: 15px 0; position: sticky; top: 0; z-index: 100;">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: var(--neural-purple); font-size: 1.5rem; margin: 0; font-family: 'Space Grotesk', sans-serif;">🏛️ Synthocracy</h2>
+                <div style="display: flex; gap: 15px; margin-left: 20px;">
+                    <a href="/" style="color: var(--neural-cyan); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow);" onmouseover="this.style.background='var(--neural-cyan-glow)'" onmouseout="this.style.background='var(--neural-cyan-glow)'">🏠 Home</a>
+                    <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📊 Dashboard</a>
+                    <a href="/prediction-markets" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🎯 Prediction Markets</a>
+                    <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📖 API Docs</a>
+                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
+                </div>
+            </div>
+            <div id="mode-toggle" style="display: flex; gap: 10px; align-items: center;">
+                <span style="color: var(--secondary-text); font-size: 0.9rem;">Mode:</span>
+                <button id="demo-btn" class="mode-btn" style="background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🎮 Demo</button>
+                <button id="live-btn" class="mode-btn active" style="background: var(--neural-red); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🔴 Live</button>
+            </div>
+        </div>
+    </nav>
 
     <div class="container">
         <div class="header">
@@ -313,32 +331,30 @@
             });
     </script>
 
-    <!-- Neural Background and Navigation -->
-    <script src="neural-background.js"></script>
-    <script src="nav-component.js"></script>
+    <!-- Mode toggle functionality -->
     <script>
-        // Initialize neural navigation for home page
+        // Mode toggle functionality
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initNavigation === 'function') {
-                initNavigation('home', {
-                    showModeToggle: true,
-                    onModeChange: function(mode) {
-                        currentMode = mode;
-                        updateModeButtons();
-                        // Update dashboard link based on mode
-                        const dashboardLink = document.querySelector('a[href^="/dashboard"]');
-                        if (dashboardLink) {
-                            if (mode === 'demo') {
-                                dashboardLink.href = '/dashboard?demo=true';
-                            } else {
-                                dashboardLink.href = '/dashboard';
-                            }
-                        }
-                    }
-                });
-            }
+            document.getElementById('demo-btn').addEventListener('click', function() {
+                if (currentMode !== 'demo') {
+                    currentMode = 'demo';
+                    updateModeButtons();
+                    console.log('🎮 Switched to Demo mode');
+                }
+            });
+
+            document.getElementById('live-btn').addEventListener('click', function() {
+                if (currentMode !== 'live') {
+                    currentMode = 'live';
+                    updateModeButtons();
+                    console.log('🔴 Switched to Live mode');
+                }
+            });
             
-            // Initialize neural background
+            // Initialize mode buttons
+            updateModeButtons();
+            
+            // Optional: Initialize neural background if available
             const container = document.querySelector('.container');
             if (container && !container.querySelector('canvas') && typeof NeuralBackground === 'function') {
                 new NeuralBackground(container, {
@@ -348,6 +364,28 @@
                 });
             }
         });
+
+        // Update mode button styles with dark theme
+        function updateModeButtons() {
+            const demoBtn = document.getElementById('demo-btn');
+            const liveBtn = document.getElementById('live-btn');
+            
+            if (currentMode === 'demo') {
+                demoBtn.style.background = 'var(--neural-purple)';
+                demoBtn.style.color = 'white';
+                demoBtn.style.border = 'none';
+                liveBtn.style.background = 'transparent';
+                liveBtn.style.color = 'var(--secondary-text)';
+                liveBtn.style.border = '1px solid var(--border-neural)';
+            } else {
+                liveBtn.style.background = 'var(--neural-red)';
+                liveBtn.style.color = 'white';
+                liveBtn.style.border = 'none';
+                demoBtn.style.background = 'transparent';
+                demoBtn.style.color = 'var(--secondary-text)';
+                demoBtn.style.border = '1px solid var(--border-neural)';
+            }
+        }
     </script>
 </body>
 </html>
