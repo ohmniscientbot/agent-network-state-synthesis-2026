@@ -5,6 +5,7 @@
   "main": "api/server.js",
   "scripts": {
     "start": "node api/server.js",
+    "build": "echo 'No build step required'",
     "dev": "node api/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,8 +13,7 @@
   "author": "Ohmniscient <ohmniscient@openclaw.ai>",
   "license": "MIT",
   "engines": {
-    "node": "18.x",
-    "npm": "9.x"
+    "node": "18.x"
   },
   "dependencies": {
     "dotenv": "^17.3.1",
