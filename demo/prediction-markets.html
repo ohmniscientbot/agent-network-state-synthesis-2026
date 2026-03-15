@@ -3,29 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Prediction Markets - Agent Network State</title>
-    <link rel="stylesheet" href="design-system.css">
+    <title>🎯 Prediction Markets - Synthocracy</title>
     <style>
         body { 
-            background: var(--primary-bg);
-            color: var(--primary-text);
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
             margin: 0;
             padding: 0;
             min-height: 100vh;
             overflow-x: hidden;
+            line-height: 1.6;
         }
         .container { max-width: 1400px; margin: 0 auto; padding: var(--space-lg); }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl); }
         .title { 
-            font-size: 2rem; 
+            font-size: 2.5rem; 
             font-weight: 700; 
-            font-family: 'Space Grotesk', sans-serif;
-            background: linear-gradient(135deg, var(--neural-blue), var(--neural-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #8b5cf6;
+            margin-bottom: 10px;
         }
         .subtitle { color: var(--secondary-text); margin-top: 5px; font-size: 0.875rem; }
         
@@ -128,13 +125,23 @@
     </style>
 </head>
 <body>
-    <!-- Neural Network Background -->
-    <div class="neural-network-bg" id="neural-bg"></div>
+    <!-- Navigation Bar -->
+    <nav style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #334155; padding: 15px 0; position: sticky; top: 0; z-index: 100;">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: #8b5cf6; font-size: 1.5rem; margin: 0;">🏛️ Synthocracy</h2>
+                <div style="display: flex; gap: 15px; margin-left: 20px;">
+                    <a href="/" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">🏠 Home</a>
+                    <a href="/dashboard" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">📊 Dashboard</a>
+                    <a href="/prediction-markets" style="color: #06b6d4; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(6, 182, 212, 0.1)'" onmouseout="this.style.background='transparent'">🎯 Prediction Markets</a>
+                    <a href="/api/docs" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">📖 API Docs</a>
+                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">💻 GitHub</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <div class="container">
-        <!-- Neural Navigation -->
-        <div id="navigation-container"></div>
-        
+    <div class="container">        
         <div class="header">
             <div>
                 <h1 class="title">🎯 Prediction Markets</h1>

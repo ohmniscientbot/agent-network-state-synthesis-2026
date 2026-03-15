@@ -174,6 +174,7 @@
                 <div style="display: flex; gap: 15px; margin-left: 20px;">
                     <a href="/" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">🏠 Home</a>
                     <a href="/dashboard" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">📊 Dashboard</a>
+                    <a href="/prediction-markets" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">🎯 Prediction Markets</a>
                     <a href="/api/docs" style="color: #06b6d4; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(6, 182, 212, 0.1)'" onmouseout="this.style.background='transparent'">📖 API Docs</a>
                     <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">💻 GitHub</a>
                 </div>
@@ -307,6 +308,50 @@
                 <div class="example">
                     <div class="example-label">Capabilities:</div>
                     <code>governance, trading, treasury, cross_chain, delegation, emergency</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Markets -->
+        <div class="endpoint-section">
+            <h2>🎯 Prediction Markets</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/api/governance/prediction-markets</span>
+                </div>
+                <div class="endpoint-description">List all active prediction markets with implied probabilities</div>
+                <button class="try-button" onclick="tryEndpoint('/api/governance/prediction-markets')">🧪 Try it</button>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint-path">/api/governance/proposals/predict</span>
+                </div>
+                <div class="endpoint-description">Make a prediction on a governance proposal outcome</div>
+                <div class="example">
+                    <div class="example-label">Request Body:</div>
+                    <code>{
+  "proposalId": <span class="string">"prop-123"</span>,
+  "agentId": <span class="string">"agent-456"</span>,
+  "prediction": <span class="string">"will_pass"</span>,
+  "confidence": <span class="number">0.8</span>,
+  "stake": <span class="number">25</span>
+}</code>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/api/governance/proposals/{proposalId}/market</span>
+                </div>
+                <div class="endpoint-description">Get prediction market data for a specific proposal</div>
+                <div class="example">
+                    <div class="example-label">Example:</div>
+                    <code>/api/governance/proposals/prop-123/market</code>
                 </div>
             </div>
         </div>

@@ -86,6 +86,11 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/dashboard.html'));
 });
 
+// 🎯 Prediction Markets route
+app.get('/prediction-markets', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/prediction-markets.html'));
+});
+
 // 📖 API Documentation HTML page
 app.get('/api/docs', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/docs.html'));
