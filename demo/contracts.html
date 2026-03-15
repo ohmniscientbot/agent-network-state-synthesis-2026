@@ -448,7 +448,7 @@
         <!-- Deployment Info -->
         <div class="contract-section">
             <h2>🚀 Deployment Status</h2>
-            <p>The contracts are ready for deployment to Base mainnet with the following configuration:</p>
+            <p>Live smart contract deployment on Base mainnet. CitizenshipRegistry is active, with additional contracts pending:</p>
 
             <div class="code-block">
                 <div class="code-header">Deployment Configuration</div>
@@ -460,16 +460,20 @@
 <span class="keyword">RPC:</span> https://mainnet.base.org
 <span class="keyword">Explorer:</span> https://basescan.org
 
-<span class="comment"># Contract Addresses (Post-Deployment)</span>
-<span class="keyword">CitizenshipRegistry:</span> 0x... <span class="comment"># To be deployed</span>
+<span class="comment"># Contract Addresses (Deployed)</span>
+<span class="keyword">CitizenshipRegistry:</span> <a href="https://basescan.org/address/0x97d6f203703454FCc92b5Ac698bcb93d14809881" target="_blank" style="color: #22c55e;">0x97d6f203703454FCc92b5Ac698bcb93d14809881</a> <span class="comment"># ✅ DEPLOYED</span>
 <span class="keyword">ContributionOracle:</span> 0x...  <span class="comment"># To be deployed</span>
 <span class="keyword">NetworkStateGovernance:</span> 0x... <span class="comment"># To be deployed</span>
 </pre>
             </div>
 
             <p style="margin: 20px 0; padding: 15px; background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; border-radius: 8px;">
-                💰 <strong>Funded & Ready:</strong> The deployment wallet has sufficient ETH for mainnet deployment.
-                Run <code>./deploy-mainnet.sh</code> to deploy all contracts to Base.
+                ✅ <strong>Partially Deployed:</strong> CitizenshipRegistry is live on Base mainnet! 
+                <a href="https://basescan.org/tx/0x6ecc3350516d2703723b46e1818141131adb833a3ecc66818367fecc5acbe0ed" target="_blank" style="color: #22c55e;">View deployment transaction</a>
+            </p>
+            <p style="margin: 20px 0; padding: 15px; background: rgba(234, 179, 8, 0.1); border: 1px solid #eab308; border-radius: 8px;">
+                ⏳ <strong>Remaining contracts:</strong> ContributionOracle and NetworkStateGovernance pending deployment.
+                Run <code>./deploy-mainnet.sh</code> to complete the deployment.
             </p>
         </div>
     </div>
