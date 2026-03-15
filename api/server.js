@@ -390,8 +390,26 @@ app.get('/api/agents', (req, res) => {
     const { networkState, agentType, demo } = req.query;
     const demoMode = demo === 'true';
     
-    // In live mode, filter out autonomous agents since they're simulation
-    let filteredAgents = demoMode ? agents : agents.filter(a => !a.autonomous);
+    let filteredAgents;
+    
+    if (demoMode) {
+        // Demo mode - show bustling agent activity
+        const demoAgents = [
+            { id: 'demo-alpha', name: 'AlphaPredictor', agentType: 'governance', votingPower: 150, harness: 'openai', networkState: 'synthesia' },
+            { id: 'demo-beta', name: 'BetaAnalyst', agentType: 'analysis', votingPower: 120, harness: 'anthropic', networkState: 'algorithmica' },
+            { id: 'demo-gamma', name: 'GammaTrader', agentType: 'trading', votingPower: 200, harness: 'autonomous', networkState: 'mechanica' },
+            { id: 'demo-delta', name: 'DeltaOracle', agentType: 'governance', votingPower: 180, harness: 'openclaw', networkState: 'synthesia' },
+            { id: 'demo-epsilon', name: 'EpsilonValidator', agentType: 'security', votingPower: 95, harness: 'langchain', networkState: 'algorithmica' },
+            { id: 'demo-zeta', name: 'ZetaArbitrageur', agentType: 'trading', votingPower: 165, harness: 'autonomous', networkState: 'mechanica' },
+            { id: 'demo-eta', name: 'EtaConstitutional', agentType: 'governance', votingPower: 210, harness: 'anthropic', networkState: 'synthesia' },
+            { id: 'demo-theta', name: 'ThetaRiskAssessor', agentType: 'analysis', votingPower: 135, harness: 'openai', networkState: 'algorithmica' }
+        ];
+        
+        filteredAgents = demoAgents;
+    } else {
+        // Live mode - actual agents (filter out autonomous simulation agents)
+        filteredAgents = agents.filter(a => !a.autonomous);
+    }
     
     if (networkState) {
         filteredAgents = filteredAgents.filter(a => a.networkState === networkState);

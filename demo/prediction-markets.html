@@ -194,11 +194,45 @@
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">📊 Your Performance</div>
-                    <div>
-                        <label for="agentSelect" style="color: #94a3b8; margin-right: 10px;">Agent:</label>
-                        <select id="agentSelect" class="form-control" style="width: auto; display: inline-block;" onchange="loadAgentStats()">
-                            <option value="">Select agent...</option>
-                        </select>
+                    <div style="position: relative; display: inline-block;">
+                        <label for="agentInput" style="color: #94a3b8; margin-right: 10px;">Agent:</label>
+                        <input 
+                            type="text" 
+                            id="agentInput" 
+                            placeholder="Type agent name..." 
+                            autocomplete="off"
+                            style="
+                                background: #1e293b; 
+                                border: 1px solid #475569; 
+                                color: #f8fafc; 
+                                padding: 8px 12px; 
+                                border-radius: 4px; 
+                                width: 200px;
+                                outline: none;
+                            "
+                            onfocus="showAgentSuggestions()"
+                            onblur="hideAgentSuggestions()"
+                            oninput="filterAgentSuggestions()"
+                        />
+                        <div 
+                            id="agentSuggestions" 
+                            style="
+                                position: absolute; 
+                                top: 100%; 
+                                left: 0; 
+                                right: 0; 
+                                background: #1e293b; 
+                                border: 1px solid #475569; 
+                                border-top: none;
+                                border-radius: 0 0 4px 4px; 
+                                max-height: 200px; 
+                                overflow-y: auto; 
+                                z-index: 1000; 
+                                display: none;
+                            "
+                        >
+                            <!-- Suggestions populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
                 <div class="panel-content" id="performancePanel">
@@ -288,30 +322,97 @@
         // Load available agents
         async function loadAgents() {
             try {
-                const res = await fetch(`${API_BASE}/api/agents`);
+                const demoParam = currentMode === 'demo' ? '?demo=true' : '';
+                const res = await fetch(`${API_BASE}/api/agents${demoParam}`);
                 const data = await res.json();
                 agents = data.agents || [];
                 
-                const select = document.getElementById('agentSelect');
-                select.innerHTML = '<option value="">Select agent...</option>';
+                // Sort agents alphabetically by name
+                agents.sort((a, b) => a.name.localeCompare(b.name));
                 
-                agents.forEach(agent => {
-                    const option = document.createElement('option');
-                    option.value = agent.id;
-                    option.textContent = `${agent.name} (${agent.votingPower || 0} VP)`;
-                    select.appendChild(option);
-                });
+                console.log(`📊 Loaded ${agents.length} agents for prediction markets (${currentMode} mode)`);
                 
-                // Auto-select Ohmniscient if available
-                const ohmniscient = agents.find(a => a.name === 'Ohmniscient');
-                if (ohmniscient) {
-                    select.value = ohmniscient.id;
-                    currentAgent = ohmniscient.id;
+                // Auto-select first agent if available
+                if (agents.length > 0) {
+                    const firstAgent = agents[0];
+                    document.getElementById('agentInput').value = firstAgent.name;
+                    currentAgent = firstAgent.id;
                     loadAgentStats();
                 }
+                
             } catch (e) {
                 console.error('Failed to load agents:', e);
             }
+        }
+
+        // Show agent suggestions dropdown
+        function showAgentSuggestions() {
+            if (agents.length === 0) return;
+            
+            const suggestions = document.getElementById('agentSuggestions');
+            updateSuggestionsList(agents);
+            suggestions.style.display = 'block';
+        }
+
+        // Hide suggestions dropdown (with slight delay for clicks)
+        function hideAgentSuggestions() {
+            setTimeout(() => {
+                document.getElementById('agentSuggestions').style.display = 'none';
+            }, 150);
+        }
+
+        // Filter suggestions based on input
+        function filterAgentSuggestions() {
+            const input = document.getElementById('agentInput').value.toLowerCase();
+            const filteredAgents = agents.filter(agent => 
+                agent.name.toLowerCase().includes(input) ||
+                agent.agentType.toLowerCase().includes(input)
+            );
+            
+            updateSuggestionsList(filteredAgents);
+        }
+
+        // Update the suggestions list
+        function updateSuggestionsList(agentList) {
+            const suggestions = document.getElementById('agentSuggestions');
+            suggestions.innerHTML = '';
+            
+            agentList.forEach(agent => {
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    padding: 8px 12px; 
+                    cursor: pointer; 
+                    border-bottom: 1px solid #334155;
+                    color: #f8fafc;
+                    font-size: 0.9rem;
+                `;
+                
+                item.innerHTML = `
+                    <div style="font-weight: 500;">${agent.name}</div>
+                    <div style="color: #94a3b8; font-size: 0.8rem;">${agent.agentType} • ${agent.votingPower || 0} VP</div>
+                `;
+                
+                item.onmouseover = () => item.style.background = 'rgba(139, 92, 246, 0.2)';
+                item.onmouseout = () => item.style.background = 'transparent';
+                
+                item.onclick = () => selectAgent(agent);
+                suggestions.appendChild(item);
+            });
+            
+            if (agentList.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.style.cssText = 'padding: 8px 12px; color: #94a3b8; font-style: italic;';
+                noResults.textContent = 'No agents found';
+                suggestions.appendChild(noResults);
+            }
+        }
+
+        // Select an agent
+        function selectAgent(agent) {
+            document.getElementById('agentInput').value = agent.name;
+            document.getElementById('agentSuggestions').style.display = 'none';
+            currentAgent = agent.id;
+            loadAgentStats();
         }
         
         // Load prediction markets
@@ -484,14 +585,11 @@
         
         // Load agent stats and history
         async function loadAgentStats() {
-            const agentId = document.getElementById('agentSelect').value;
-            if (!agentId) {
+            if (!currentAgent) {
                 document.getElementById('performancePanel').innerHTML = 
                     '<div class="loading">Select an agent to view performance...</div>';
                 return;
             }
-            
-            currentAgent = agentId;
             
             try {
                 const demoParam = currentMode === 'demo' ? '?demo=true' : '';
@@ -575,10 +673,11 @@
             }
         }
         
-        // Refresh markets
+        // Refresh markets and agents when switching modes
         function refreshMarkets() {
+            loadAgents();  // Reload agents for current mode
             loadMarkets();
-            if (currentAgent) loadAgentStats();
+            loadStats();
         }
     </script>
 
