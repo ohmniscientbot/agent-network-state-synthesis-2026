@@ -1,5 +1,6 @@
 [
+  "api_websockets",
   "performance_optimization",
-  "security_hardening",
-  "token_rewards_advanced"
+  "token_rewards_advanced",
+  "security_hardening"
 ]
