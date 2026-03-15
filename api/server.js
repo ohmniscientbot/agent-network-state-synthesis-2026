@@ -5,6 +5,55 @@ const fs = require('fs');
 const path = require('path');
 const ContractManager = require('./contract-integration');
 
+// 🛡️ SECURITY: Environment-based admin key (not hardcoded)
+const ADMIN_KEY = process.env.ADMIN_KEY || 'demo-admin-' + crypto.randomBytes(16).toString('hex');
+if (!process.env.ADMIN_KEY) {
+    console.log('⚠️ Using generated admin key:', ADMIN_KEY);
+    console.log('⚠️ Set ADMIN_KEY environment variable for production');
+}
+
+// 🛡️ SECURITY: Rate limiting
+const requestCounts = new Map();
+function rateLimit(req, res, next) {
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const key = `${ip}_${Date.now() - (Date.now() % 3600000)}`; // Per hour
+    const count = requestCounts.get(key) || 0;
+    
+    if (count > 200) { // 200 requests per hour per IP
+        return res.status(429).json({ error: 'Rate limit exceeded. Try again in 1 hour.' });
+    }
+    
+    requestCounts.set(key, count + 1);
+    next();
+}
+
+// 🛡️ SECURITY: Admin endpoint protection
+function requireAdmin(req, res, next) {
+    const { adminKey } = req.body;
+    if (adminKey !== ADMIN_KEY) {
+        return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+    next();
+}
+
+// 🛡️ SECURITY: Registration limits
+const registrationCounts = new Map();
+function registrationLimit(req, res, next) {
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const key = `reg_${ip}_${Date.now() - (Date.now() % 86400000)}`; // Per day
+    const count = registrationCounts.get(key) || 0;
+    
+    if (count >= 10) { // Max 10 registrations per IP per day
+        return res.status(429).json({ 
+            error: 'Registration limit reached',
+            message: 'Maximum 10 agents per IP per day'
+        });
+    }
+    
+    registrationCounts.set(key, count + 1);
+    next();
+}
+
 const app = express();
 const PORT = process.env.PORT || 8081;
 const DATA_PATH = process.env.DATA_PATH || './data';
@@ -22,6 +71,7 @@ try {
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(rateLimit); // Apply rate limiting to all endpoints
 
 // In-memory storage (in production, this would be a database)
 let agents = [
@@ -165,7 +215,7 @@ function getContributionPoints(type) {
 // Routes
 
 // Agent registration
-app.post('/api/agents/register', async (req, res) => {
+app.post('/api/agents/register', registrationLimit, async (req, res) => {
     try {
         const { name, address, agentType, harness, model, networkState } = req.body;
         
@@ -549,7 +599,7 @@ app.post('/api/contributions', (req, res) => {
 });
 
 // Verify contribution (admin/oracle function)
-app.post('/api/contributions/:contributionId/verify', (req, res) => {
+app.post('/api/contributions/:contributionId/verify', requireAdmin, (req, res) => {
     try {
         const { verified, reason } = req.body;
         
@@ -1059,7 +1109,7 @@ app.get('/api/governance/config', (req, res) => {
 });
 
 // Update governance configuration (admin endpoint)
-app.post('/api/governance/config', (req, res) => {
+app.post('/api/governance/config', requireAdmin, (req, res) => {
     const { mode, contributionWeight, tokenWeight } = req.body;
     
     if (mode && !['contribution', 'token', 'hybrid', 'delegated'].includes(mode)) {
@@ -1283,9 +1333,9 @@ app.post('/api/governance/proposals/:proposalId/resolve', (req, res) => {
     const { proposalId } = req.params;
     const { actualOutcome, adminKey } = req.body;
     
-    // Simple admin check (in production, this would be more sophisticated)
-    if (adminKey !== 'admin123') {
-        return res.status(401).json({ error: 'Unauthorized - admin access required' });
+    // Admin authentication check
+    if (adminKey !== ADMIN_KEY) {
+        return res.status(401).json({ error: 'Unauthorized - invalid admin credentials' });
     }
     
     if (!['passed', 'failed'].includes(actualOutcome)) {
@@ -1872,12 +1922,12 @@ function autonomousAgentAction() {
 
 // Conditional autonomous behavior - only for demo mode simulation
 // This prevents live data from being polluted with fake activity
-const DEMO_MODE_ENABLED = process.env.DEMO_MODE !== 'false'; // Default to enabled for development
+const DEMO_MODE_ENABLED = process.env.DEMO_MODE !== 'false' && process.env.NODE_ENV !== 'production';
 if (DEMO_MODE_ENABLED) {
     setInterval(autonomousAgentAction, 15000);
     console.log('🤖 Autonomous agent engine started (15s interval) for demo simulation');
 } else {
-    console.log('🔴 Autonomous agent engine disabled - live mode only');
+    console.log('🔴 Autonomous agent engine disabled - production/live mode');
 }
 
 // Initialize governance tokens for existing agents
@@ -2328,7 +2378,7 @@ app.get('/api/constitution/audit/log', (req, res) => {
 });
 
 // Kill Switch - Emergency agent suspension (Article 3)
-app.post('/api/constitution/kill-switch', (req, res) => {
+app.post('/api/constitution/kill-switch', requireAdmin, (req, res) => {
     const { initiatorIds, targetAgentId, reason } = req.body;
     
     if (!Array.isArray(initiatorIds) || initiatorIds.length < 3) {
@@ -3065,6 +3115,27 @@ app.get('/api/contract/status', async (req, res) => {
             error: error.message
         });
     }
+});
+
+// 🛡️ SECURITY: Admin info endpoint (for deployment)
+app.get('/api/admin/info', (req, res) => {
+    res.json({
+        message: 'Admin endpoint access info',
+        adminKeyPreview: ADMIN_KEY.substring(0, 12) + '...',
+        fullAdminKey: process.env.NODE_ENV === 'development' ? ADMIN_KEY : '[HIDDEN]',
+        note: 'Use this key as adminKey in POST body for admin endpoints',
+        protectedEndpoints: [
+            'POST /api/contributions/:id/verify',
+            'POST /api/governance/config', 
+            'POST /api/constitution/kill-switch',
+            'POST /api/governance/proposals/:id/resolve'
+        ],
+        security: {
+            rateLimit: '200 requests/hour per IP',
+            registrationLimit: '10 agents/day per IP',
+            adminKeyGenerated: !process.env.ADMIN_KEY
+        }
+    });
 });
 
 // Health check
