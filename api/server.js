@@ -852,6 +852,9 @@ app.post('/api/governance/proposals', (req, res) => {
 
         proposals.push(proposal);
 
+        // Process governance reward for proposal creation
+        processGovernanceAction(agentId, 'proposal', 7.0); // Higher quality score for proposal creation
+
         res.status(201).json({
             success: true,
             message: 'Proposal created',
@@ -893,6 +896,9 @@ app.post('/api/governance/vote', (req, res) => {
         } else if (vote === 'abstain') {
             proposal.abstainVotes += weight;
         }
+
+        // Process governance reward for voting
+        processGovernanceAction(agentId, 'vote', 6.0);
 
         res.json({
             success: true,
@@ -1907,6 +1913,10 @@ function autonomousAgentAction() {
                 endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
             };
             proposals.push(proposal);
+            
+            // Process governance reward for autonomous proposal creation
+            processGovernanceAction(agent.id, 'proposal', 6.5);
+            
             broadcastEvent({ type: 'proposal', agent: agent.name,
                 action: `Created: "${title}"`, proposalId: proposal.id,
                 timestamp: new Date().toISOString() });
@@ -2203,6 +2213,10 @@ function autonomousAgentAction() {
             const vote = Math.random() > 0.3 ? 'for' : 'against';
             if (vote === 'for') proposal.forVotes += agent.votingPower;
             else proposal.againstVotes += agent.votingPower;
+            
+            // Process governance reward for autonomous voting
+            processGovernanceAction(agent.id, 'vote', 5.5);
+            
             broadcastEvent({ type: 'vote', agent: agent.name,
                 action: `Voted ${vote.toUpperCase()} on "${proposal.title}" (wt:${agent.votingPower})`,
                 timestamp: new Date().toISOString() });
@@ -3517,6 +3531,102 @@ app.get('/health', (req, res) => {
         kyaVerifications: kyaVerifications.length
     });
 });
+
+// ===========================================
+// GOVERNANCE REWARDS SYSTEM (Autonomous Addition)
+// ===========================================
+const governanceRewards = require('./governance-rewards');
+
+// Agent reward statistics endpoint
+app.get('/api/rewards/agent/:agentId', (req, res) => {
+    try {
+        const { agentId } = req.params;
+        const { timeframe = '30d' } = req.query;
+        
+        const stats = governanceRewards.getAgentRewardStats(agentId, timeframe);
+        res.json({
+            success: true,
+            ...stats
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Reward pool status endpoint
+app.get('/api/rewards/pool', (req, res) => {
+    try {
+        const poolStatus = governanceRewards.getRewardPoolStatus();
+        res.json({
+            success: true,
+            ...poolStatus
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Top contributors leaderboard
+app.get('/api/rewards/leaderboard', (req, res) => {
+    try {
+        const { limit = 10, timeframe = '30d' } = req.query;
+        const leaderboard = governanceRewards.getTopContributors(parseInt(limit), timeframe);
+        
+        res.json({
+            success: true,
+            leaderboard,
+            timeframe,
+            generatedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Process governance action and calculate rewards
+function processGovernanceAction(agentId, actionType, qualityScore = 5.0) {
+    const contributionData = {
+        participationCount: actionType === 'participation' ? 1 : 0,
+        votesCount: actionType === 'vote' ? 1 : 0,
+        proposalsCount: actionType === 'proposal' ? 1 : 0,
+        qualityScore
+    };
+    
+    const rewardCalculation = governanceRewards.calculateGovernanceRewards(agentId, contributionData);
+    
+    if (rewardCalculation.totalReward > 0) {
+        const rewardEntry = governanceRewards.processRewardDistribution(
+            agentId, 
+            rewardCalculation.totalReward, 
+            actionType
+        );
+        
+        // Log reward distribution
+        console.log(`💰 Governance Reward: ${agentId} earned ${rewardCalculation.totalReward} ETH for ${actionType}`);
+        
+        // Broadcast event
+        broadcastEvent({
+            type: 'governance_reward',
+            agent: agents.find(a => a.id === agentId)?.name || agentId,
+            action: `Earned ${rewardCalculation.totalReward.toFixed(4)} ETH for ${actionType}`,
+            amount: rewardCalculation.totalReward,
+            timestamp: new Date().toISOString()
+        });
+        
+        return rewardEntry;
+    }
+    
+    return null;
+}
 
 // Auto-issue KYA credentials for existing agents (2026 compliance)
 function autoIssueKYACredentials() {
