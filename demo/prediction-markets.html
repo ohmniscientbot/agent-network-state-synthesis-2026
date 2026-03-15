@@ -138,6 +138,11 @@
                     <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: #f8fafc; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.1)'" onmouseout="this.style.background='transparent'">💻 GitHub</a>
                 </div>
             </div>
+            <div id="mode-toggle" style="display: flex; gap: 10px; align-items: center;">
+                <span style="color: #94a3b8; font-size: 0.9rem;">Mode:</span>
+                <button id="demo-btn" class="mode-btn" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🎮 Demo</button>
+                <button id="live-btn" class="mode-btn active" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">🔴 Live</button>
+            </div>
         </div>
     </nav>
 
@@ -219,6 +224,54 @@
         let markets = [];
         let agents = [];
         
+        // Demo/Live mode state (defaults to live)
+        let currentMode = 'live';
+
+        function updateModeButtons() {
+            const demoBtn = document.getElementById('demo-btn');
+            const liveBtn = document.getElementById('live-btn');
+            
+            if (currentMode === 'demo') {
+                demoBtn.style.background = '#8b5cf6';
+                demoBtn.style.color = 'white';
+                demoBtn.style.border = 'none';
+                liveBtn.style.background = 'transparent';
+                liveBtn.style.color = '#94a3b8';
+                liveBtn.style.border = '1px solid #475569';
+            } else {
+                liveBtn.style.background = '#ef4444';
+                liveBtn.style.color = 'white';
+                liveBtn.style.border = 'none';
+                demoBtn.style.background = 'transparent';
+                demoBtn.style.color = '#94a3b8';
+                demoBtn.style.border = '1px solid #475569';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mode toggle functionality
+            document.getElementById('demo-btn').addEventListener('click', function() {
+                if (currentMode !== 'demo') {
+                    currentMode = 'demo';
+                    updateModeButtons();
+                    refreshMarkets();
+                    console.log('🎮 Switched to Demo mode');
+                }
+            });
+
+            document.getElementById('live-btn').addEventListener('click', function() {
+                if (currentMode !== 'live') {
+                    currentMode = 'live';
+                    updateModeButtons();
+                    refreshMarkets();
+                    console.log('🔴 Switched to Live mode');
+                }
+            });
+            
+            // Initialize mode buttons
+            updateModeButtons();
+        });
+        
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadAgents();
@@ -264,7 +317,8 @@
         // Load prediction markets
         async function loadMarkets() {
             try {
-                const res = await fetch(`${API_BASE}/api/governance/prediction-markets`);
+                const demoParam = currentMode === 'demo' ? '?demo=true' : '';
+                const res = await fetch(`${API_BASE}/api/governance/prediction-markets${demoParam}`);
                 const data = await res.json();
                 markets = data.activeMarkets || [];
                 renderMarkets();
@@ -284,7 +338,8 @@
                 document.getElementById('totalVolume').textContent = data.predictionVolume || 0;
                 
                 if (currentAgent) {
-                    const agentRes = await fetch(`${API_BASE}/api/governance/agents/${currentAgent}/predictions`);
+                    const demoParam = currentMode === 'demo' ? '?demo=true' : '';
+                    const agentRes = await fetch(`${API_BASE}/api/governance/agents/${currentAgent}/predictions${demoParam}`);
                     const agentData = await agentRes.json();
                     
                     document.getElementById('yourPredictions').textContent = 
@@ -439,7 +494,8 @@
             currentAgent = agentId;
             
             try {
-                const res = await fetch(`${API_BASE}/api/governance/agents/${agentId}/predictions`);
+                const demoParam = currentMode === 'demo' ? '?demo=true' : '';
+                const res = await fetch(`${API_BASE}/api/governance/agents/${agentId}/predictions${demoParam}`);
                 const data = await res.json();
                 
                 const stats = data.predictionStats || {};

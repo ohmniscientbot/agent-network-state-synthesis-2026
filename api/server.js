@@ -1512,34 +1512,139 @@ app.post('/api/governance/proposals/:proposalId/resolve', (req, res) => {
 
 // Get all active prediction markets
 app.get('/api/governance/prediction-markets', (req, res) => {
-    const activeMarkets = Object.values(predictionMarkets)
-        .filter(market => !market.resolved)
-        .map(market => {
-            const proposal = proposals.find(p => p.id === market.proposalId);
-            const impliedProbability = market.totalStakeFor + market.totalStakeAgainst > 0 
-                ? market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)
-                : 0.5;
-            
-            return {
-                ...market,
-                proposalTitle: proposal?.title || 'Unknown',
-                proposalStatus: proposal?.status || 'unknown',
-                impliedProbability,
-                totalStake: market.totalStakeFor + market.totalStakeAgainst
-            };
-        })
-        .sort((a, b) => b.totalStake - a.totalStake);
+    const demoMode = req.query.demo === 'true';
     
-    res.json({
-        activeMarkets,
-        totalActiveMarkets: activeMarkets.length,
-        totalPredictionVolume: activeMarkets.reduce((sum, m) => sum + m.totalStake, 0)
-    });
+    if (demoMode) {
+        // Demo data - active prediction markets with high activity
+        const demoMarkets = [
+            {
+                proposalId: 'demo-prop-001',
+                proposalTitle: 'Increase Agent Registration Rewards',
+                proposalStatus: 'active',
+                totalStakeFor: 350,
+                totalStakeAgainst: 125,
+                totalPredictions: 23,
+                impliedProbability: 0.74,
+                totalStake: 475,
+                createdAt: '2026-03-14T10:00:00Z'
+            },
+            {
+                proposalId: 'demo-prop-002',
+                proposalTitle: 'Constitutional Amendment: Emergency Powers',
+                proposalStatus: 'active',
+                totalStakeFor: 180,
+                totalStakeAgainst: 290,
+                totalPredictions: 19,
+                impliedProbability: 0.38,
+                totalStake: 470,
+                createdAt: '2026-03-13T15:30:00Z'
+            },
+            {
+                proposalId: 'demo-prop-003',
+                proposalTitle: 'Treasury Allocation for KYA Infrastructure',
+                proposalStatus: 'active',
+                totalStakeFor: 220,
+                totalStakeAgainst: 85,
+                totalPredictions: 15,
+                impliedProbability: 0.72,
+                totalStake: 305,
+                createdAt: '2026-03-14T08:15:00Z'
+            }
+        ];
+        
+        res.json({
+            activeMarkets: demoMarkets,
+            totalActiveMarkets: demoMarkets.length,
+            totalPredictionVolume: demoMarkets.reduce((sum, m) => sum + m.totalStake, 0),
+            mode: 'demo'
+        });
+    } else {
+        // Live data
+        const activeMarkets = Object.values(predictionMarkets)
+            .filter(market => !market.resolved)
+            .map(market => {
+                const proposal = proposals.find(p => p.id === market.proposalId);
+                const impliedProbability = market.totalStakeFor + market.totalStakeAgainst > 0 
+                    ? market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)
+                    : 0.5;
+                
+                return {
+                    ...market,
+                    proposalTitle: proposal?.title || 'Unknown',
+                    proposalStatus: proposal?.status || 'unknown',
+                    impliedProbability,
+                    totalStake: market.totalStakeFor + market.totalStakeAgainst
+                };
+            })
+            .sort((a, b) => b.totalStake - a.totalStake);
+        
+        res.json({
+            activeMarkets,
+            totalActiveMarkets: activeMarkets.length,
+            totalPredictionVolume: activeMarkets.reduce((sum, m) => sum + m.totalStake, 0),
+            mode: 'live'
+        });
+    }
 });
 
 // Get agent's prediction history and performance
 app.get('/api/governance/agents/:agentId/predictions', (req, res) => {
     const { agentId } = req.params;
+    const demoMode = req.query.demo === 'true';
+    
+    if (demoMode) {
+        // Demo data for agent prediction performance
+        const demoPredictionStats = {
+            totalPredictions: 15,
+            resolvedPredictions: 12,
+            correctPredictions: 9,
+            accuracyRate: 0.75,
+            totalStaked: 350,
+            totalRewards: 420,
+            netGains: 70
+        };
+        
+        const demoPredictions = [
+            {
+                proposalTitle: 'Increase Agent Registration Rewards',
+                prediction: 'will_pass',
+                confidence: 0.8,
+                stake: 45,
+                timestamp: '2026-03-14T10:30:00Z',
+                resolved: false,
+                actualOutcome: null,
+                correct: null
+            },
+            {
+                proposalTitle: 'Treasury Allocation for KYA Infrastructure', 
+                prediction: 'will_pass',
+                confidence: 0.72,
+                stake: 30,
+                timestamp: '2026-03-14T08:45:00Z',
+                resolved: true,
+                actualOutcome: 'passed',
+                correct: true
+            },
+            {
+                proposalTitle: 'Constitutional Amendment: Emergency Powers',
+                prediction: 'will_fail',
+                confidence: 0.65,
+                stake: 25,
+                timestamp: '2026-03-13T16:00:00Z',
+                resolved: true,
+                actualOutcome: 'failed',
+                correct: true
+            }
+        ];
+        
+        return res.json({
+            agentId,
+            agentName: agentId,
+            predictionStats: demoPredictionStats,
+            predictions: demoPredictions,
+            mode: 'demo'
+        });
+    }
     
     const agent = agents.find(a => a.id === agentId);
     if (!agent) {
