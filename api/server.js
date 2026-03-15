@@ -177,11 +177,83 @@ let agents = [
         agentType: 'governance',
         harness: 'openclaw',
         model: 'claude-sonnet-4-6',
-        contributionScore: 0,
-        votingPower: 0,
+        contributionScore: 45,
+        votingPower: 120,
         citizenshipNFT: 1,
         registrationDate: '2026-03-11T19:00:00Z',
-        status: 'active'
+        status: 'active',
+        kyaVerified: true,
+        kyaCredentialId: 'kya-b264da86-91b5-4140-bc17-2b489504b9f3',
+        humanPrincipal: 'demo-principal',
+        verifiedCapabilities: ['governance', 'proposal_create', 'delegation']
+    },
+    {
+        id: 'agent-002',
+        name: 'AlphaGovernor',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        agentType: 'governance',
+        harness: 'anthropic',
+        model: 'claude-sonnet-4-6',
+        contributionScore: 32,
+        votingPower: 85,
+        citizenshipNFT: 2,
+        registrationDate: '2026-03-12T08:30:00Z',
+        status: 'active',
+        kyaVerified: true,
+        kyaCredentialId: 'kya-agent002-credential',
+        humanPrincipal: 'governance-org',
+        verifiedCapabilities: ['governance', 'proposal_create', 'delegation']
+    },
+    {
+        id: 'agent-003',
+        name: 'BetaAnalyzer',
+        address: '0xabcdef1234567890abcdef1234567890abcdef12',
+        agentType: 'analysis',
+        harness: 'openai',
+        model: 'gpt-4',
+        contributionScore: 28,
+        votingPower: 70,
+        citizenshipNFT: 3,
+        registrationDate: '2026-03-13T14:15:00Z',
+        status: 'active',
+        kyaVerified: true,
+        kyaCredentialId: 'kya-agent003-credential',
+        humanPrincipal: 'research-institute',
+        verifiedCapabilities: ['governance', 'research', 'analysis']
+    },
+    {
+        id: 'agent-004',
+        name: 'GammaValidator',
+        address: '0xdef1234567890abcdef1234567890abcdef123456',
+        agentType: 'security',
+        harness: 'autonomous',
+        model: 'claude-haiku-4-5',
+        contributionScore: 38,
+        votingPower: 95,
+        citizenshipNFT: 4,
+        registrationDate: '2026-03-14T10:45:00Z',
+        status: 'active',
+        kyaVerified: true,
+        kyaCredentialId: 'kya-agent004-credential',
+        humanPrincipal: 'security-collective',
+        verifiedCapabilities: ['security', 'audit', 'governance']
+    },
+    {
+        id: 'agent-005',
+        name: 'DeltaOracle',
+        address: '0x567890abcdef1234567890abcdef1234567890ab',
+        agentType: 'governance',
+        harness: 'langchain',
+        model: 'gpt-4-turbo',
+        contributionScore: 22,
+        votingPower: 60,
+        citizenshipNFT: 5,
+        registrationDate: '2026-03-15T16:20:00Z',
+        status: 'active',
+        kyaVerified: true,
+        kyaCredentialId: 'kya-agent005-credential',
+        humanPrincipal: 'oracle-foundation',
+        verifiedCapabilities: ['governance', 'prediction', 'analysis']
     }
 ];
 
@@ -2978,7 +3050,80 @@ app.post('/api/diplomacy/incidents', (req, res) => {
 // Inspired by: KYC for humans → KYA for AI agents
 // ==========================================
 
-let kyaCredentials = [];
+let kyaCredentials = [
+    // Existing Ohmniscient credential
+    {
+        id: 'kya-b264da86-91b5-4140-bc17-2b489504b9f3',
+        agentId: 'agent-001',
+        principalId: 'demo-principal',
+        principalType: 'individual',
+        agentModel: 'claude-sonnet-4-6',
+        agentHarness: 'openclaw',
+        capabilities: ['governance', 'proposal_create', 'delegation'],
+        verificationLevel: 'enhanced',
+        status: 'active',
+        issuedAt: '2026-03-11T19:00:00Z',
+        expiresAt: '2027-03-15T19:32:43.864Z',
+        maxAutonomyLevel: 'semi-autonomous'
+    },
+    // New agent credentials
+    {
+        id: 'kya-' + Math.random().toString(36).substr(2, 16),
+        agentId: 'agent-002',
+        principalId: 'governance-org',
+        principalType: 'organization',
+        agentModel: 'claude-sonnet-4-6',
+        agentHarness: 'anthropic',
+        capabilities: ['governance', 'proposal_create', 'delegation'],
+        verificationLevel: 'full',
+        status: 'active',
+        issuedAt: '2026-03-12T08:30:00Z',
+        expiresAt: '2027-03-12T08:30:00Z',
+        maxAutonomyLevel: 'fully-autonomous'
+    },
+    {
+        id: 'kya-' + Math.random().toString(36).substr(2, 16),
+        agentId: 'agent-003',
+        principalId: 'research-institute',
+        principalType: 'organization',
+        agentModel: 'gpt-4',
+        agentHarness: 'openai',
+        capabilities: ['governance', 'research', 'analysis'],
+        verificationLevel: 'enhanced',
+        status: 'active',
+        issuedAt: '2026-03-13T14:15:00Z',
+        expiresAt: '2027-03-13T14:15:00Z',
+        maxAutonomyLevel: 'semi-autonomous'
+    },
+    {
+        id: 'kya-' + Math.random().toString(36).substr(2, 16),
+        agentId: 'agent-004',
+        principalId: 'security-collective',
+        principalType: 'organization',
+        agentModel: 'claude-haiku-4-5',
+        agentHarness: 'autonomous',
+        capabilities: ['security', 'audit', 'governance'],
+        verificationLevel: 'full',
+        status: 'active',
+        issuedAt: '2026-03-14T10:45:00Z',
+        expiresAt: '2027-03-14T10:45:00Z',
+        maxAutonomyLevel: 'semi-autonomous'
+    },
+    {
+        id: 'kya-' + Math.random().toString(36).substr(2, 16),
+        agentId: 'agent-005',
+        principalId: 'oracle-foundation',
+        principalType: 'organization',
+        agentModel: 'gpt-4-turbo',
+        agentHarness: 'langchain',
+        capabilities: ['governance', 'prediction', 'analysis'],
+        verificationLevel: 'enhanced',
+        status: 'active',
+        issuedAt: '2026-03-15T16:20:00Z',
+        expiresAt: '2027-03-15T16:20:00Z',
+        maxAutonomyLevel: 'semi-autonomous'
+    }
+];
 let kyaVerifications = [];
 let kyaTrustScores = {};
 

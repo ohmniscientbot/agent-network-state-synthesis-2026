@@ -185,20 +185,20 @@
     <div class="neural-network-bg" id="neural-bg"></div>
     
     <!-- Navigation Bar with Dark Theme -->
-    <nav style="background: var(--card-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-neural); padding: 15px 0; position: sticky; top: 0; z-index: 100;">
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <h2 style="color: var(--neural-purple); font-size: 1.5rem; margin: 0; font-family: 'Space Grotesk', sans-serif;">🏛️ Synthocracy</h2>
-                <div style="display: flex; gap: 15px; margin-left: 20px;">
-                    <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🏠 Home</a>
-                    <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📊 Dashboard</a>
-                    <a href="/prediction-markets" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🎯 Prediction Markets</a>
-                    <a href="/api/docs" style="color: var(--neural-cyan); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow);" onmouseover="this.style.background='var(--neural-cyan-glow)'" onmouseout="this.style.background='var(--neural-cyan-glow)'">📖 API Docs</a>
-                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
+    <nav style="background: var(--card-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-neural); padding: 12px 0; position: sticky; top: 0; z-index: 100;">
+        <div style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="color: var(--neural-purple); font-size: 1.4rem; margin: 0; font-family: 'Space Grotesk', sans-serif; white-space: nowrap;">🏛️ Synthocracy</h2>
+                <div style="display: flex; gap: 8px; margin-left: 15px;">
+                    <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🏠 Home</a>
+                    <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📊 Dashboard</a>
+                    <a href="/prediction-markets" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🎯 Markets</a>
+                    <a href="/api/docs" style="color: var(--neural-cyan); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow); font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-cyan-glow)'" onmouseout="this.style.background='var(--neural-cyan-glow)'">📖 Docs</a>
+                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <span style="color: var(--neural-green);">API Status</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="color: var(--neural-green); font-size: 0.85rem; white-space: nowrap;">API Status</span>
                 <span class="status-indicator" style="width: 8px; height: 8px; background: var(--neural-green); border-radius: 50%; display: inline-block;"></span>
             </div>
         </div>

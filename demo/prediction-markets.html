@@ -166,22 +166,22 @@
     <div class="neural-network-bg" id="neural-bg"></div>
 
     <!-- Navigation Bar with Dark Theme -->
-    <nav style="background: var(--card-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-neural); padding: 15px 0; position: sticky; top: 0; z-index: 100;">
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <h2 style="color: var(--neural-purple); font-size: 1.5rem; margin: 0; font-family: 'Space Grotesk', sans-serif;">🏛️ Synthocracy</h2>
-                <div style="display: flex; gap: 15px; margin-left: 20px;">
-                    <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🏠 Home</a>
-                    <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📊 Dashboard</a>
-                    <a href="/prediction-markets" style="color: var(--neural-cyan); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow);" onmouseover="this.style.background='var(--neural-cyan-glow)'" onmouseout="this.style.background='var(--neural-cyan-glow)'">🎯 Prediction Markets</a>
-                    <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📖 API Docs</a>
-                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 8px 16px; border-radius: var(--radius-sm); transition: all 0.3s;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
+    <nav style="background: var(--card-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-neural); padding: 12px 0; position: sticky; top: 0; z-index: 100;">
+        <div style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="color: var(--neural-purple); font-size: 1.4rem; margin: 0; font-family: 'Space Grotesk', sans-serif; white-space: nowrap;">🏛️ Synthocracy</h2>
+                <div style="display: flex; gap: 8px; margin-left: 15px;">
+                    <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🏠 Home</a>
+                    <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📊 Dashboard</a>
+                    <a href="/prediction-markets" style="color: var(--neural-cyan); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow); font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-cyan-glow)'" onmouseout="this.style.background='var(--neural-cyan-glow)'">🎯 Markets</a>
+                    <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📖 Docs</a>
+                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
                 </div>
             </div>
-            <div id="mode-toggle" style="display: flex; gap: 10px; align-items: center;">
-                <span style="color: var(--secondary-text); font-size: 0.9rem;">Mode:</span>
-                <button id="demo-btn" class="mode-btn" style="background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🎮 Demo</button>
-                <button id="live-btn" class="mode-btn active" style="background: var(--neural-red); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🔴 Live</button>
+            <div id="mode-toggle" style="display: flex; gap: 8px; align-items: center;">
+                <span style="color: var(--secondary-text); font-size: 0.8rem; white-space: nowrap;">Mode:</span>
+                <button id="demo-btn" class="mode-btn" style="background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif; white-space: nowrap;">🎮 Demo</button>
+                <button id="live-btn" class="mode-btn active" style="background: var(--neural-red); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif; white-space: nowrap;">🔴 Live</button>
             </div>
         </div>
     </nav>
