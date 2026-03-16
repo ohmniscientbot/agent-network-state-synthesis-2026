@@ -132,6 +132,68 @@
             color: #94a3b8;
             margin: 40px 0;
         }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .agent-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--neural-purple);
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .agent-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neural-purple), var(--neural-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .agent-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--primary-text);
+        }
+
+        .agent-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge.verified { background: var(--neural-green-glow); color: var(--neural-green); }
+        .badge.expert { background: var(--neural-purple-glow); color: var(--neural-purple); }
+        .badge.contributor { background: var(--neural-cyan-glow); color: var(--neural-cyan); }
         
         .nav-buttons {
             text-align: center;
@@ -215,6 +277,13 @@
 
         <div id="metrics" class="metrics-grid" style="display: none;">
             <!-- Metrics will be populated by JavaScript -->
+        </div>
+
+        <div id="agent-reputation" class="reputation-section" style="display: none; margin-top: 40px;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 20px; color: var(--neural-purple); font-family: 'Space Grotesk', sans-serif;">🏆 Top Performing Agents</h2>
+            <div id="agent-cards" class="agent-grid">
+                <!-- Dynamic agent cards will be populated here -->
+            </div>
         </div>
     </div>
 
@@ -301,6 +370,9 @@
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('metrics').style.display = 'grid';
+                
+                // Load and display agent reputation
+                loadAgentReputation();
                 
                 const metricsContainer = document.getElementById('metrics');
                 

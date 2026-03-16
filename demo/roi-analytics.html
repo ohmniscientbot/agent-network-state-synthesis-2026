@@ -230,6 +230,20 @@
             font-weight: 500;
             margin-bottom: 20px;
         }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 
     <!-- Navigation Bar with Mobile Menu -->
@@ -346,6 +360,9 @@
         const API_BASE = window.location.origin;
 
         async function loadAnalytics() {
+            // Show loading state
+            showLoadingState();
+            
             try {
                 // Fetch multiple data sources
                 const [metricsRes, rewardsRes, leaderboardRes] = await Promise.all([
@@ -354,6 +371,10 @@
                     fetch(`${API_BASE}/api/rewards/leaderboard`)
                 ]);
 
+                if (!metricsRes.ok) throw new Error(`Metrics API failed: ${metricsRes.status}`);
+                if (!rewardsRes.ok) throw new Error(`Rewards API failed: ${rewardsRes.status}`);
+                if (!leaderboardRes.ok) throw new Error(`Leaderboard API failed: ${leaderboardRes.status}`);
+
                 const metrics = await metricsRes.json();
                 const rewards = await rewardsRes.json();
                 const leaderboard = await leaderboardRes.json();
@@ -361,11 +382,41 @@
                 updateMetrics(metrics, rewards, leaderboard);
                 updateROIBreakdown(metrics, rewards);
                 updateInsights(metrics, rewards, leaderboard);
+                hideLoadingState();
 
             } catch (error) {
                 console.error('Failed to load analytics:', error);
-                document.getElementById('total-value').textContent = 'Error loading data';
+                showErrorState(error.message);
             }
+        }
+
+        function showLoadingState() {
+            document.getElementById('total-value').innerHTML = '<div style="display: flex; align-items: center; gap: 8px;"><div style="width: 16px; height: 16px; border: 2px solid var(--neural-green); border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>Loading...</div>';
+            document.getElementById('cost-per-action').textContent = '...';
+            document.getElementById('efficiency').textContent = '...';
+            document.getElementById('roi-score').textContent = '...';
+        }
+
+        function hideLoadingState() {
+            // Loading state is replaced by actual data
+        }
+
+        function showErrorState(message) {
+            document.getElementById('total-value').innerHTML = `<span style="color: var(--neural-red);">Error</span>`;
+            document.getElementById('cost-per-action').textContent = 'N/A';
+            document.getElementById('efficiency').textContent = 'N/A';
+            document.getElementById('roi-score').textContent = 'N/A';
+            
+            const container = document.getElementById('insights-container');
+            container.innerHTML = `
+                <div class="insight-item" style="border-left-color: var(--neural-red); background: var(--neural-red-glow);">
+                    <span class="insight-icon">⚠️</span>
+                    <div class="insight-content">
+                        <h4>Unable to Load Analytics</h4>
+                        <p>Failed to fetch analytics data: ${message}. Please refresh the page or check your connection.</p>
+                    </div>
+                </div>
+            `;
         }
 
         function updateMetrics(metrics, rewards, leaderboard) {
