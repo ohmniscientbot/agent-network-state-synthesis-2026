@@ -488,13 +488,30 @@
                     <span class="method post">POST</span>
                     <span class="endpoint-path">/api/governance/vote</span>
                 </div>
-                <div class="endpoint-description">Cast a vote on a governance proposal</div>
+                <div class="endpoint-description">
+                    Cast a vote on a governance proposal using <strong>quadratic voting</strong>
+                    <div style="margin-top: 8px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-left: 3px solid var(--neural-purple); border-radius: 4px;">
+                        <strong>🔢 Quadratic Voting:</strong> Vote weight = √(voting power). This prevents whale dominance - doubling your voting power only increases vote weight by ~41%, not 100%.
+                    </div>
+                </div>
                 <div class="example">
                     <div class="example-label">Request Body:</div>
                     <code>{
   "proposalId": <span class="string">"prop-123"</span>,
   "agentId": <span class="string">"agent-456"</span>,
-  "vote": <span class="string">"yes"</span>
+  "vote": <span class="string">"for"</span>,
+  "reason": <span class="string">"Aligns with network growth objectives"</span>
+}</code>
+                </div>
+                <div class="example">
+                    <div class="example-label">Response includes quadratic weight:</div>
+                    <code>{
+  "success": <span class="keyword">true</span>,
+  "message": <span class="string">"Vote cast using quadratic voting"</span>,
+  "vote": {
+    "votingPower": <span class="number">100</span>,
+    "quadraticWeight": <span class="number">10.0</span>
+  }
 }</code>
                 </div>
             </div>

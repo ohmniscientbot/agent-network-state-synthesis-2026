@@ -891,30 +891,53 @@ app.post('/api/governance/vote', (req, res) => {
             });
         }
 
-        // Record vote (simplified - in production, prevent double voting)
-        const weight = agent.votingPower;
+        // Quadratic voting: weight = √(voting power) to prevent whale dominance
+        const rawVotingPower = agent.votingPower;
+        const quadraticWeight = Math.sqrt(rawVotingPower);
+        
         if (vote === 'for') {
-            proposal.forVotes += weight;
+            proposal.forVotes = (proposal.forVotes || 0) + quadraticWeight;
         } else if (vote === 'against') {
-            proposal.againstVotes += weight;
+            proposal.againstVotes = (proposal.againstVotes || 0) + quadraticWeight;
         } else if (vote === 'abstain') {
-            proposal.abstainVotes += weight;
+            proposal.abstainVotes = (proposal.abstainVotes || 0) + quadraticWeight;
         }
+
+        // Add individual vote record
+        if (!proposal.votes) proposal.votes = [];
+        proposal.votes.push({
+            agentId,
+            agentName: agent.name || agentId,
+            vote,
+            votingPower: rawVotingPower,
+            quadraticWeight: parseFloat(quadraticWeight.toFixed(2)),
+            timestamp: new Date().toISOString(),
+            reason: reason || 'No reason provided'
+        });
 
         // Process governance reward for voting
         processGovernanceAction(agentId, 'vote', 6.0);
 
         res.json({
             success: true,
-            message: 'Vote cast',
+            message: 'Vote cast using quadratic voting',
             vote: {
                 agentId,
                 proposalId,
                 vote,
-                weight,
+                votingPower: rawVotingPower,
+                quadraticWeight: parseFloat(quadraticWeight.toFixed(2)),
                 reason
             },
-            proposal
+            proposal: {
+                id: proposal.id,
+                title: proposal.title,
+                status: proposal.status,
+                forVotes: proposal.forVotes || 0,
+                againstVotes: proposal.againstVotes || 0,
+                abstainVotes: proposal.abstainVotes || 0,
+                totalVotes: proposal.votes.length
+            }
         });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -3773,18 +3796,35 @@ function seedGovernanceActivity() {
                 createdAt: new Date(now - (proposalTemplates.length - i) * day * 0.7).toISOString()
             };
 
+            // Initialize vote tallies
+            proposal.forVotes = 0;
+            proposal.againstVotes = 0;
+            proposal.abstainVotes = 0;
+
             if (i < 4) {
                 realAgents.forEach((voter, vi) => {
                     if (voter.id === proposer.id && Math.random() > 0.3) return;
                     const inFavor = Math.random() > 0.25;
+                    const voteType = inFavor ? 'for' : 'against';
+                    const rawVotingPower = voter.votingPower || 10;
+                    const quadraticWeight = Math.sqrt(rawVotingPower);
+                    
                     proposal.votes.push({
                         agentId: voter.id,
                         agentName: voter.name || voter.id,
-                        vote: inFavor ? 'for' : 'against',
-                        votingPower: voter.votingPower || 10,
+                        vote: voteType,
+                        votingPower: rawVotingPower,
+                        quadraticWeight: parseFloat(quadraticWeight.toFixed(2)),
                         timestamp: new Date(now - (3 - i) * day * 0.5 + vi * 3600000).toISOString(),
                         reason: inFavor ? 'Aligns with network growth objectives' : 'Needs more detailed implementation plan'
                     });
+
+                    // Update tallies with quadratic weights
+                    if (voteType === 'for') {
+                        proposal.forVotes += quadraticWeight;
+                    } else {
+                        proposal.againstVotes += quadraticWeight;
+                    }
                 });
             }
 
