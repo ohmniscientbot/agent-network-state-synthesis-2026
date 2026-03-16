@@ -91,6 +91,10 @@ app.get('/prediction-markets', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/prediction-markets.html'));
 });
 
+app.get('/roi-analytics', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/roi-analytics.html'));
+});
+
 // 📖 API Documentation HTML page
 app.get('/api/docs', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/docs.html'));
