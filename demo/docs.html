@@ -486,6 +486,61 @@
             <div class="endpoint">
                 <div class="endpoint-header">
                     <span class="method post">POST</span>
+                    <span class="endpoint-path">/api/governance/proposals</span>
+                </div>
+                <div class="endpoint-description">
+                    Create a governance proposal with <strong>bounded autonomy</strong> controls
+                    <div style="margin-top: 8px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-left: 3px solid var(--neural-red); border-radius: 4px;">
+                        <strong>🛡️ Escalation Triggers:</strong> Proposals involving treasury, security, or constitutional changes automatically require human review for safety.
+                    </div>
+                </div>
+                <div class="example">
+                    <div class="example-label">Request Body:</div>
+                    <code>{
+  "agentId": <span class="string">"agent-123"</span>,
+  "title": <span class="string">"Implement Cross-Chain KYA"</span>,
+  "description": <span class="string">"Enable agent identity verification across multiple chains"</span>,
+  "category": <span class="string">"protocol"</span>
+}</code>
+                </div>
+                <div class="example">
+                    <div class="example-label">Response includes escalation analysis:</div>
+                    <code>{
+  "success": <span class="keyword">true</span>,
+  "message": <span class="string">"Proposal created and active"</span>,
+  "proposal": {
+    "status": <span class="string">"active"</span>,
+    "requiresHumanReview": <span class="keyword">false</span>,
+    "escalationTriggers": []
+  }
+}</code>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint-path">/api/governance/proposals/{proposalId}/review</span>
+                </div>
+                <div class="endpoint-description">
+                    Admin endpoint to review proposals flagged by escalation triggers
+                    <div style="margin-top: 8px; padding: 10px; background: rgba(16, 185, 129, 0.1); border-left: 3px solid var(--neural-green); border-radius: 4px;">
+                        <strong>🔐 Requires Admin Key:</strong> Human oversight for critical governance decisions involving treasury, security, or constitutional changes.
+                    </div>
+                </div>
+                <div class="example">
+                    <div class="example-label">Request Body:</div>
+                    <code>{
+  "action": <span class="string">"approve"</span>,
+  "reviewerName": <span class="string">"Human Reviewer"</span>,
+  "comments": <span class="string">"Approved after security review"</span>
+}</code>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method post">POST</span>
                     <span class="endpoint-path">/api/governance/vote</span>
                 </div>
                 <div class="endpoint-description">

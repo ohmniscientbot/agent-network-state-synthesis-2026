@@ -383,6 +383,62 @@ function getContributionPoints(type) {
     return points[type] || 0;
 }
 
+// Bounded autonomy: Check if proposal requires human oversight
+function checkEscalationTriggers(title, description, category, agent) {
+    const triggers = [];
+    const text = (title + ' ' + description).toLowerCase();
+    
+    // Financial triggers
+    if (text.includes('treasury') || text.includes('fund') || text.includes('budget') || text.includes('eth')) {
+        triggers.push({
+            type: 'financial_risk',
+            severity: 'high',
+            reason: 'Proposal involves financial resources or treasury management'
+        });
+    }
+    
+    // Security triggers
+    if (text.includes('admin') || text.includes('key') || text.includes('permission') || text.includes('access')) {
+        triggers.push({
+            type: 'security_risk', 
+            severity: 'critical',
+            reason: 'Proposal involves security-sensitive permissions or access control'
+        });
+    }
+    
+    // Constitutional changes
+    if (text.includes('constitution') || text.includes('fundamental') || text.includes('core') || category === 'constitutional') {
+        triggers.push({
+            type: 'constitutional_change',
+            severity: 'high', 
+            reason: 'Proposal affects fundamental governance rules or constitution'
+        });
+    }
+    
+    // High-impact operational changes
+    if (text.includes('shutdown') || text.includes('disable') || text.includes('emergency') || text.includes('halt')) {
+        triggers.push({
+            type: 'operational_risk',
+            severity: 'critical',
+            reason: 'Proposal could disrupt system operations or halt processes'
+        });
+    }
+    
+    // Agent behavior anomalies
+    const recentProposals = proposals.filter(p => p.proposerId === agent.id && 
+        new Date(p.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length;
+    
+    if (recentProposals >= 3) {
+        triggers.push({
+            type: 'behavior_anomaly',
+            severity: 'medium',
+            reason: `Agent has created ${recentProposals} proposals in past 24 hours - potential spam or compromise`
+        });
+    }
+    
+    return triggers;
+}
+
 // Routes
 
 // Agent registration
@@ -839,6 +895,10 @@ app.post('/api/governance/proposals', (req, res) => {
             });
         }
 
+        // Bounded autonomy: Check for escalation triggers
+        const escalationTriggers = checkEscalationTriggers(title, description, category, agent);
+        const requiresHumanReview = escalationTriggers.length > 0;
+
         const proposal = {
             id: 'proposal-' + crypto.randomBytes(4).toString('hex'),
             proposerId: agentId,
@@ -849,21 +909,101 @@ app.post('/api/governance/proposals', (req, res) => {
             forVotes: 0,
             againstVotes: 0,
             abstainVotes: 0,
-            status: 'active',
+            status: requiresHumanReview ? 'pending_review' : 'active',
+            escalationTriggers,
+            requiresHumanReview,
+            votes: [],
             createdAt: new Date().toISOString(),
-            endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days
+            endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days
+            reviewedAt: null,
+            reviewedBy: null
         };
 
         proposals.push(proposal);
 
-        // Process governance reward for proposal creation
-        processGovernanceAction(agentId, 'proposal', 7.0); // Higher quality score for proposal creation
+        // Process governance reward for proposal creation (reduced if requires review)
+        const qualityScore = requiresHumanReview ? 6.0 : 7.0;
+        processGovernanceAction(agentId, 'proposal', qualityScore);
 
         res.status(201).json({
             success: true,
-            message: 'Proposal created',
-            proposal
+            message: requiresHumanReview ? 
+                'Proposal created but requires human review due to escalation triggers' : 
+                'Proposal created and active',
+            proposal: {
+                id: proposal.id,
+                title: proposal.title,
+                status: proposal.status,
+                requiresHumanReview,
+                escalationTriggers: escalationTriggers.map(t => ({
+                    type: t.type,
+                    severity: t.severity,
+                    reason: t.reason
+                })),
+                createdAt: proposal.createdAt,
+                endTime: proposal.endTime
+            }
         });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Admin: Review and approve/reject proposals (bounded autonomy oversight)
+app.post('/api/governance/proposals/:proposalId/review', requireAdmin, (req, res) => {
+    try {
+        const { proposalId } = req.params;
+        const { action, reviewerName, comments } = req.body; // action: 'approve' | 'reject' | 'modify'
+        
+        const proposal = proposals.find(p => p.id === proposalId);
+        if (!proposal) {
+            return res.status(404).json({ error: 'Proposal not found' });
+        }
+        
+        if (proposal.status !== 'pending_review') {
+            return res.status(400).json({ 
+                error: 'Proposal not in reviewable state',
+                currentStatus: proposal.status 
+            });
+        }
+        
+        if (!['approve', 'reject', 'modify'].includes(action)) {
+            return res.status(400).json({ 
+                error: 'Invalid action. Must be approve, reject, or modify' 
+            });
+        }
+        
+        // Update proposal status based on review
+        proposal.reviewedAt = new Date().toISOString();
+        proposal.reviewedBy = reviewerName || 'Admin';
+        proposal.reviewComments = comments;
+        
+        switch (action) {
+            case 'approve':
+                proposal.status = 'active';
+                break;
+            case 'reject':  
+                proposal.status = 'rejected';
+                break;
+            case 'modify':
+                proposal.status = 'pending_modification';
+                break;
+        }
+        
+        res.json({
+            success: true,
+            message: `Proposal ${action}d by human reviewer`,
+            proposal: {
+                id: proposal.id,
+                title: proposal.title,
+                status: proposal.status,
+                escalationTriggers: proposal.escalationTriggers,
+                reviewedAt: proposal.reviewedAt,
+                reviewedBy: proposal.reviewedBy,
+                reviewComments: proposal.reviewComments
+            }
+        });
+        
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }
