@@ -542,7 +542,7 @@
                 const data = await res.json();
                 
                 document.getElementById('activeMarkets').textContent = data.activePredictionMarkets || 0;
-                document.getElementById('totalVolume').textContent = data.predictionVolume || 0;
+                document.getElementById('totalVolume').textContent = (data.predictionVolume || 0).toFixed(2);
                 
                 if (currentAgent) {
                     const demoParam = currentMode === 'demo' ? '?demo=true' : '';
@@ -580,11 +580,11 @@
                                 ${probability}% likely to pass
                             </div>
                             <div class="market-stakes">
-                                ${totalStake} tokens staked • ${market.totalPredictions} predictions
+                                ${(totalStake || 0).toFixed(2)} tokens staked • ${market.totalPredictions} predictions
                             </div>
                         </div>
                         <div style="font-size: 0.8rem; color: #94a3b8;">
-                            For: ${market.totalStakeFor} tokens • Against: ${market.totalStakeAgainst} tokens
+                            For: ${(market.totalStakeFor || 0).toFixed(2)} tokens • Against: ${(market.totalStakeAgainst || 0).toFixed(2)} tokens
                         </div>
                         <div class="market-actions">
                             <button class="btn btn-success btn-sm" onclick="showPredictionForm('${market.proposalId}', 'will_pass')">

@@ -316,7 +316,7 @@
                     { value: data.totalVotingPower, label: 'Total Voting Power', icon: '🗳️' },
                     { value: `${data.rewardsDistributed} ETH`, label: 'Rewards Distributed', icon: '💰' },
                     { value: data.kyaAverageTrustScore || 'N/A', label: 'Avg Trust Score', icon: '🔒' },
-                    { value: data.actionsPerMinute || 0, label: 'Actions/Minute', icon: '⚡' }
+                    { value: (data.actionsPerMinute || 0).toFixed(2), label: 'Actions/Minute', icon: '⚡' }
                 ];
                 
                 metrics.forEach(metric => {
