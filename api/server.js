@@ -2419,8 +2419,9 @@ app.get('/api/dashboard/metrics', (req, res) => {
         // Count actual proposals and votes
         const activeProposalCount = proposals.filter(p => p.status === 'active').length;
         const totalVotesCast = proposals.reduce((sum, p) => sum + (p.votes ? p.votes.length : 0), 0);
-        const activeMarkets = predictionMarkets ? predictionMarkets.filter(m => m.status === 'active').length : 0;
-        const totalPredictionCount = predictionMarkets ? predictionMarkets.reduce((sum, m) => sum + (m.participants ? m.participants.length : 0), 0) : 0;
+        const marketValues = predictionMarkets ? Object.values(predictionMarkets) : [];
+        const activeMarkets = marketValues.filter(m => m.status === 'active').length;
+        const totalPredictionCount = marketValues.reduce((sum, m) => sum + (m.participants ? m.participants.length : 0), 0);
         
         res.json({
             activeAgents: realAgents.length,
@@ -2430,7 +2431,7 @@ app.get('/api/dashboard/metrics', (req, res) => {
             totalProposals: proposals.length,
             totalVotingPower: realAgents.reduce((s, a) => s + (a.votingPower || 0), 0),
             votescast: totalVotesCast,
-            rewardsDistributed: rewardsDistributed ? rewardsDistributed.toFixed(4) : '0.0000',
+            rewardsDistributed: typeof rewardsDistributed === 'number' ? rewardsDistributed.toFixed(4) : String(rewardsDistributed || '0.0000'),
             networkStates: realNetworkStats,
             actionsPerMinute: Math.max(0, Math.round((totalVotesCast + realContributions.length) / Math.max(1, process.uptime() / 60) * 100) / 100),
             uptime: Math.floor(process.uptime()),
@@ -2452,7 +2453,7 @@ app.get('/api/dashboard/metrics', (req, res) => {
             
             activePredictionMarkets: activeMarkets,
             totalPredictions: totalPredictionCount,
-            predictionVolume: predictionMarkets ? predictionMarkets.reduce((sum, m) => sum + (m.totalStake || 0), 0) : 0,
+            predictionVolume: marketValues.reduce((sum, m) => sum + (m.totalStake || 0), 0),
             resolvedMarkets: 0,
             constitutionalArticles: 0,
             pendingAmendments: 0,
@@ -3811,38 +3812,28 @@ function seedGovernanceActivity() {
             }
         });
 
-        // Seed prediction markets
-        if (predictionMarkets && predictionMarkets.length === 0) {
-            predictionMarkets.push({
-                id: 'market-seed-1',
-                title: 'Will cross-chain KYA verification be implemented by Q2 2026?',
-                description: 'Market on whether the cross-chain KYA proposal passes and gets implemented within the proposed timeline.',
-                creator: realAgents[0].id,
+        // Seed prediction markets (object keyed by proposalId)
+        if (predictionMarkets && Object.keys(predictionMarkets).length === 0) {
+            predictionMarkets['prop-seed-1'] = {
+                proposalId: 'prop-seed-1',
                 status: 'active',
                 totalStake: 0.15,
-                outcomes: [
-                    { label: 'Yes', probability: 0.72, stake: 0.108 },
-                    { label: 'No', probability: 0.28, stake: 0.042 }
-                ],
+                outcomes: { yes: 0.72, no: 0.28 },
+                stakes: { yes: 0.108, no: 0.042 },
                 participants: realAgents.slice(0, 4).map(a => a.id),
                 deadline: new Date(now + 30 * day).toISOString(),
                 createdAt: new Date(now - 2 * day).toISOString()
-            });
-            predictionMarkets.push({
-                id: 'market-seed-2',
-                title: 'Network agent count exceeds 20 by April 2026?',
-                description: 'Prediction on whether the Synthocracy network will grow to 20+ verified agents.',
-                creator: realAgents[1].id,
+            };
+            predictionMarkets['prop-seed-4'] = {
+                proposalId: 'prop-seed-4',
                 status: 'active',
                 totalStake: 0.08,
-                outcomes: [
-                    { label: 'Yes', probability: 0.45, stake: 0.036 },
-                    { label: 'No', probability: 0.55, stake: 0.044 }
-                ],
+                outcomes: { yes: 0.45, no: 0.55 },
+                stakes: { yes: 0.036, no: 0.044 },
                 participants: realAgents.slice(0, 3).map(a => a.id),
                 deadline: new Date(now + 45 * day).toISOString(),
                 createdAt: new Date(now - day).toISOString()
-            });
+            };
         }
 
         // Seed activity log
@@ -3871,7 +3862,7 @@ function seedGovernanceActivity() {
             });
         }
 
-        console.log(`✅ Seeded: ${proposals.length} proposals, ${contributions.length} contributions, ${predictionMarkets.length} markets`);
+        console.log(`✅ Seeded: ${proposals.length} proposals, ${contributions.length} contributions, ${Object.keys(predictionMarkets).length} markets`);
         saveState();
     } catch (error) {
         console.error('❌ Seed failed:', error);
