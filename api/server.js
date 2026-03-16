@@ -1503,7 +1503,7 @@ app.get('/api/governance/proposals/:proposalId/market', (req, res) => {
     
     const proposalPredictions = predictions.filter(p => p.proposalId === proposalId);
     const impliedProbability = market.totalStakeFor + market.totalStakeAgainst > 0 
-        ? market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)
+        ? parseFloat((market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)).toFixed(2))
         : 0.5;
     
     res.json({
@@ -1512,8 +1512,8 @@ app.get('/api/governance/proposals/:proposalId/market', (req, res) => {
         predictions: proposalPredictions.map(p => ({
             agentName: p.agentName,
             prediction: p.prediction,
-            confidence: p.confidence,
-            stake: p.stake,
+            confidence: parseFloat((p.confidence || 0).toFixed(2)),
+            stake: parseFloat((p.stake || 0).toFixed(4)),
             timestamp: p.timestamp
         }))
     });
@@ -1661,7 +1661,7 @@ app.get('/api/governance/prediction-markets', (req, res) => {
             .map(market => {
                 const proposal = proposals.find(p => p.id === market.proposalId);
                 const impliedProbability = market.totalStakeFor + market.totalStakeAgainst > 0 
-                    ? market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)
+                    ? parseFloat((market.totalStakeFor / (market.totalStakeFor + market.totalStakeAgainst)).toFixed(2))
                     : 0.5;
                 
                 return {
@@ -1669,7 +1669,7 @@ app.get('/api/governance/prediction-markets', (req, res) => {
                     proposalTitle: proposal?.title || 'Unknown',
                     proposalStatus: proposal?.status || 'unknown',
                     impliedProbability,
-                    totalStake: market.totalStakeFor + market.totalStakeAgainst
+                    totalStake: parseFloat((market.totalStakeFor + market.totalStakeAgainst).toFixed(4))
                 };
             })
             .sort((a, b) => b.totalStake - a.totalStake);
@@ -1677,7 +1677,7 @@ app.get('/api/governance/prediction-markets', (req, res) => {
         res.json({
             activeMarkets,
             totalActiveMarkets: activeMarkets.length,
-            totalPredictionVolume: activeMarkets.reduce((sum, m) => sum + m.totalStake, 0),
+            totalPredictionVolume: parseFloat(activeMarkets.reduce((sum, m) => sum + m.totalStake, 0).toFixed(4)),
             mode: 'live'
         });
     }
@@ -2433,7 +2433,7 @@ app.get('/api/dashboard/metrics', (req, res) => {
             votescast: totalVotesCast,
             rewardsDistributed: typeof rewardsDistributed === 'number' ? rewardsDistributed.toFixed(4) : String(rewardsDistributed || '0.0000'),
             networkStates: realNetworkStats,
-            actionsPerMinute: Math.max(0, Math.round((totalVotesCast + realContributions.length) / Math.max(1, process.uptime() / 60) * 100) / 100),
+            actionsPerMinute: parseFloat(Math.max(0, (totalVotesCast + realContributions.length) / Math.max(1, process.uptime() / 60)).toFixed(2)),
             uptime: Math.floor(process.uptime()),
             
             // KYA (Know Your Agent) Statistics
@@ -2453,7 +2453,7 @@ app.get('/api/dashboard/metrics', (req, res) => {
             
             activePredictionMarkets: activeMarkets,
             totalPredictions: totalPredictionCount,
-            predictionVolume: marketValues.reduce((sum, m) => sum + (m.totalStake || 0), 0),
+            predictionVolume: parseFloat(marketValues.reduce((sum, m) => sum + (m.totalStake || 0), 0).toFixed(2)),
             resolvedMarkets: 0,
             constitutionalArticles: 0,
             pendingAmendments: 0,
