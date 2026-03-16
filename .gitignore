@@ -2,12 +2,18 @@
 node_modules/
 package-lock.json
 
-# Environment & Secrets
+# Environment & Secrets  
 .env
-.env.*
+.env.local
+.env.production
+.env.development
 credentials.json
 *.key
 *.pem
+
+# Allow example files
+!.env.example
+!credentials.json.example
 
 # Build artifacts
 dist/
