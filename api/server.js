@@ -4938,9 +4938,6 @@ app.get('/api/debates/stats/overview', (req, res) => {
 // for judge evaluation of autonomous execution transparency
 // ============================================================
 
-const fs = require('fs');
-const path = require('path');
-
 function loadAgentFile(filename) {
     try {
         const filePath = path.join(__dirname, '..', filename);
