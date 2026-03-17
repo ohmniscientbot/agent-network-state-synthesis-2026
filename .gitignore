@@ -15,6 +15,9 @@ credentials.json
 !.env.example
 !credentials.json.example
 
+# Kubernetes config (contains embedded source & wallet addresses)
+k8s/
+
 # Build artifacts
 dist/
 build/

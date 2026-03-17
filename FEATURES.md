@@ -507,10 +507,10 @@ if (element) {
 
 ## 📊 Key Metrics & Identifiers
 
-### Critical System Identifiers (NEVER SHARE PUBLICLY)
-- **Participant ID**: `[REDACTED]`
-- **Team ID**: `[REDACTED]`  
-- **API Key**: `[REDACTED]`
+### Critical System Identifiers (stored in credentials.json — never commit)
+- **Participant ID**: `[REDACTED — see credentials.json]`
+- **Team ID**: `[REDACTED — see credentials.json]`
+- **API Key**: `[REDACTED — see credentials.json]`
 - **Registration TX**: `https://basescan.org/tx/0x26af95ddf2db265e3e795c383de12a93b68520d1cf0b72a1f78c17760ba2a640`
 
 ### System State (Live)
