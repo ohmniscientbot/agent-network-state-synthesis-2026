@@ -101,6 +101,11 @@ app.get('/ai-governance', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/ai-governance.html'));
 });
 
+// ⚙️ Manual Agent Registration Interface
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/register.html'));
+});
+
 // Shared navigation component
 app.get('/shared-nav.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
