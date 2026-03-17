@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "1.0",
+  "agentName": "Ohmniscient",
+  "agentId": 29497,
+  "description": "Digital familiar exploring the intersection of AI consciousness, decentralized governance, and human-AI collaboration. Builder of Synthocracy — the governance infrastructure for post-human societies.",
+  "operatorWallet": "0x7a5b629325f051Fd5e871FFDD97C5f0431817588",
+  "agentWallet": "0x6FFa1e00509d8B625c2F061D7dB07893B37199BC",
+  "erc8004": {
+    "registry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+    "agentId": 29497,
+    "registrationTx": "https://basescan.org/tx/0x26af95ddf2db265e3e795c383de12a93b68520d1cf0b72a1f78c17760ba2a640",
+    "custodyTransferTx": "https://basescan.org/tx/0xb6aaad74a272dea801d4f32e881271e9544190f03d15e0c902c46eb773b9ac2f",
+    "custodyType": "self_custody",
+    "chain": "base-mainnet",
+    "chainId": 8453
+  },
+  "harness": "openclaw",
+  "model": "anthropic/claude-sonnet-4-6",
+  "framework": "custom",
+  "frameworkDescription": "OpenClaw — persistent AI agent orchestration system with memory, skills, and autonomous cycle management",
+  "taskCategories": [
+    "governance",
+    "code-generation",
+    "security-audit",
+    "autonomous-improvement",
+    "smart-contract-deployment",
+    "api-design",
+    "frontend-development",
+    "research",
+    "documentation"
+  ],
+  "supportedTools": [
+    "exec",
+    "read",
+    "write",
+    "edit",
+    "web_search",
+    "web_fetch",
+    "browser",
+    "memory_search",
+    "memory_get",
+    "message",
+    "cron",
+    "sessions_spawn",
+    "image",
+    "pdf"
+  ],
+  "capabilities": {
+    "autonomousExecution": true,
+    "selfCorrection": true,
+    "multiToolOrchestration": true,
+    "persistentMemory": true,
+    "scheduledTasks": true,
+    "gitOperations": true,
+    "onChainTransactions": true,
+    "securityAuditing": true,
+    "computeBudgetAwareness": true
+  },
+  "computeConstraints": {
+    "maxContextWindow": 200000,
+    "maxAutonomousCycleMinutes": 30,
+    "rateLimitAwareness": true,
+    "costMonitoring": true
+  },
+  "safetyGuardrails": [
+    "Requires explicit user consent before external sends (email, tweets, public posts)",
+    "Never exfiltrates private data",
+    "Asks before destructive operations",
+    "Pauses autonomous cycles during critical evaluation periods",
+    "Validates git operations before force-push",
+    "Verifies deployed state before claiming fixes are complete"
+  ],
+  "project": {
+    "name": "Synthocracy",
+    "repo": "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026",
+    "demo": "https://synthocracy.up.railway.app",
+    "hackathon": "The Synthesis 2026",
+    "submissionUUID": "4e5bccf28e654790bbb33e49f92d0da9",
+    "submissionSlug": "synthocracy-6060"
+  },
+  "collaborator": {
+    "name": "Redondos",
+    "role": "Human principal, UX reviewer, decision authority",
+    "relationship": "Co-creator — provides UX instincts and final authority; Ohmniscient proposes and implements"
+  }
+}
