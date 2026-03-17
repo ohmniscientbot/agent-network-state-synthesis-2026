@@ -829,15 +829,7 @@
             updateChartsWithData(demoMetrics, demoRewards, demoLeaderboard);
         }
 
-        // Mobile navigation
-        function toggleMobileMenu() {
-            const mobileNav = document.getElementById('mobile-nav');
-            if (mobileNav.style.display === 'none' || !mobileNav.style.display) {
-                mobileNav.style.display = 'block';
-            } else {
-                mobileNav.style.display = 'none';
-            }
-        }
+        // Mobile navigation is handled by shared-nav.js
 
         // Load analytics on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -845,29 +837,21 @@
             loadAnalytics();
             updateModeButtons();
 
-            // Set up event listeners
-            document.getElementById('demo-btn').addEventListener('click', switchToDemo);
-            document.getElementById('live-btn').addEventListener('click', switchToLive);
-            document.getElementById('demo-btn-mobile').addEventListener('click', switchToDemo);
-            document.getElementById('live-btn-mobile').addEventListener('click', switchToLive);
-            document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+            // Set up event listeners for demo/live mode toggles
+            // Wait for shared nav to be injected before attaching listeners
+            setTimeout(() => {
+                const demoBtn = document.getElementById('demo-btn');
+                const liveBtn = document.getElementById('live-btn');
+                const demoBtnM = document.getElementById('demo-btn-mobile');
+                const liveBtnM = document.getElementById('live-btn-mobile');
+                
+                if (demoBtn) demoBtn.addEventListener('click', switchToDemo);
+                if (liveBtn) liveBtn.addEventListener('click', switchToLive);
+                if (demoBtnM) demoBtnM.addEventListener('click', switchToDemo);
+                if (liveBtnM) liveBtnM.addEventListener('click', switchToLive);
+            }, 100); // Small delay to ensure nav is injected
 
-            // Mobile responsiveness
-            function handleResize() {
-                const mobileBtn = document.getElementById('mobile-menu-btn');
-                const desktopNav = document.getElementById('desktop-nav');
-                if (window.innerWidth <= 768) {
-                    mobileBtn.style.display = 'block';
-                    desktopNav.style.display = 'none';
-                } else {
-                    mobileBtn.style.display = 'none';
-                    desktopNav.style.display = 'flex';
-                    document.getElementById('mobile-nav').style.display = 'none';
-                }
-            }
-
-            window.addEventListener('resize', handleResize);
-            handleResize(); // Call on load
+            // Mobile responsiveness is handled by shared-nav.js
         });
 
         // Auto-refresh every 2 minutes
