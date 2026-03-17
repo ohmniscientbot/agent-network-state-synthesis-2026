@@ -12,6 +12,7 @@ const NAV_CONFIG = {
         { href: "/dashboard", text: "📊 Dashboard", mobileText: "📊 Dashboard", id: "dashboard" }, 
         { href: "/prediction-markets", text: "🎯 Markets", mobileText: "🎯 Prediction Markets", id: "markets" },
         { href: "/roi-analytics", text: "📈 ROI", mobileText: "📈 ROI Analytics", id: "roi" },
+        { href: "/ai-governance", text: "🤖 AI", mobileText: "🤖 AI Governance", id: "ai-governance" },
         { href: "/api/docs", text: "📖 Docs", mobileText: "📖 API Documentation", id: "docs" },
         { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", mobileText: "💻 GitHub", id: "github", external: true }
     ]

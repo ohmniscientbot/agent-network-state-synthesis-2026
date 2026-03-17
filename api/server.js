@@ -96,6 +96,11 @@ app.get('/roi-analytics', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/roi-analytics.html'));
 });
 
+// 🤖 AI Governance Testing Interface
+app.get('/ai-governance', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/ai-governance.html'));
+});
+
 // Shared navigation component
 app.get('/shared-nav.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');

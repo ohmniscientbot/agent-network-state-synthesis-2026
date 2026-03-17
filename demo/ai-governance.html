@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Governance Testing - Synthocracy</title>
+    <script src="/shared-nav.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-blue-glow: rgba(59, 130, 246, 0.12);
+            --neural-purple: #8b5cf6;
+            --neural-purple-glow: rgba(139, 92, 246, 0.12);
+            --neural-cyan: #06b6d4;
+            --neural-cyan-glow: rgba(6, 182, 212, 0.12);
+            --neural-green: #10b981;
+            --neural-green-glow: rgba(16, 185, 129, 0.12);
+            --neural-red: #ef4444;
+            --neural-red-glow: rgba(239, 68, 68, 0.12);
+            --neural-yellow: #f59e0b;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --accent-text: #f1f5f9;
+            --radius-sm: 6px;
+            --radius-neural: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--primary-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, var(--neural-purple), var(--neural-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--secondary-text);
+            font-size: 1.1rem;
+        }
+
+        .test-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 25px;
+            margin: 20px 0;
+            backdrop-filter: blur(12px);
+        }
+
+        .section-title {
+            color: var(--neural-cyan);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--neural-purple), var(--neural-blue));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--radius-neural);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn.secondary {
+            background: transparent;
+            border: 1px solid var(--border-neural);
+            color: var(--primary-text);
+        }
+
+        .result-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin: 15px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            color: var(--accent-text);
+        }
+
+        .loading {
+            color: var(--neural-blue);
+            display: none;
+            margin: 10px 0;
+        }
+
+        .select-group {
+            margin: 15px 0;
+        }
+
+        .select-group label {
+            color: var(--secondary-text);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .select-group select {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-sm);
+            color: var(--primary-text);
+            padding: 10px;
+            width: 200px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-high { background: var(--neural-red-glow); color: var(--neural-red); }
+        .status-medium { background: var(--neural-yellow-glow); color: var(--neural-yellow); }
+        .status-low { background: var(--neural-green-glow); color: var(--neural-green); }
+
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .title { font-size: 2rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation will be injected by shared component -->
+    <script>
+        // Inject shared navigation with AI governance page highlighted
+        injectNavigation('ai-governance');
+    </script>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🤖 AI Governance Testing</h1>
+            <p class="subtitle">Test the AI proposal analysis, risk assessment, and security monitoring systems</p>
+        </div>
+
+        <div class="grid">
+            <div class="test-section">
+                <h2 class="section-title">🧠 Proposal Analysis</h2>
+                <p style="color: var(--secondary-text); margin-bottom: 15px;">
+                    Analyze individual proposals for quality, risk, and sentiment
+                </p>
+                
+                <div class="select-group">
+                    <label>Select Proposal:</label>
+                    <select id="proposal-select">
+                        <option value="">Loading proposals...</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="analyzeProposal()">🔍 Analyze Selected Proposal</button>
+                <button class="btn secondary" onclick="loadProposals()">🔄 Refresh Proposals</button>
+                
+                <div class="loading" id="analysis-loading">🔄 Analyzing proposal...</div>
+                <div class="result-container" id="analysis-result"></div>
+            </div>
+
+            <div class="test-section">
+                <h2 class="section-title">📊 Batch Analysis</h2>
+                <p style="color: var(--secondary-text); margin-bottom: 15px;">
+                    Analyze multiple proposals with aggregate statistics
+                </p>
+
+                <div class="select-group">
+                    <label>Status Filter:</label>
+                    <select id="status-filter">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="pending_review">Pending Review</option>
+                        <option value="passed">Passed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <div class="select-group">
+                    <label>Limit:</label>
+                    <select id="limit-select">
+                        <option value="5">5 proposals</option>
+                        <option value="10">10 proposals</option>
+                        <option value="20">20 proposals</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="batchAnalyze()">📈 Batch Analyze</button>
+                
+                <div class="loading" id="batch-loading">🔄 Analyzing proposals...</div>
+                <div class="result-container" id="batch-result"></div>
+            </div>
+
+            <div class="test-section">
+                <h2 class="section-title">🔍 AI Insights</h2>
+                <p style="color: var(--secondary-text); margin-bottom: 15px;">
+                    Get AI-powered governance insights and trend analysis
+                </p>
+
+                <button class="btn" onclick="getInsights()">💡 Get AI Insights</button>
+                
+                <div class="loading" id="insights-loading">🔄 Generating insights...</div>
+                <div class="result-container" id="insights-result"></div>
+            </div>
+
+            <div class="test-section">
+                <h2 class="section-title">🔐 Security Scan</h2>
+                <p style="color: var(--secondary-text); margin-bottom: 15px;">
+                    Monitor for potentially malicious or risky proposals
+                </p>
+
+                <button class="btn" onclick="securityScan()">🛡️ Run Security Scan</button>
+                
+                <div class="loading" id="security-loading">🔄 Scanning for threats...</div>
+                <div class="result-container" id="security-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        // Load available proposals
+        async function loadProposals() {
+            try {
+                const response = await fetch(`${API_BASE}/api/governance/proposals`);
+                const data = await response.json();
+                
+                const select = document.getElementById('proposal-select');
+                select.innerHTML = '<option value="">Select a proposal...</option>';
+                
+                data.proposals.forEach(proposal => {
+                    const option = document.createElement('option');
+                    option.value = proposal.id;
+                    option.textContent = `${proposal.title} (${proposal.status})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading proposals:', error);
+                document.getElementById('proposal-select').innerHTML = '<option value="">Error loading proposals</option>';
+            }
+        }
+
+        // Analyze individual proposal
+        async function analyzeProposal() {
+            const proposalId = document.getElementById('proposal-select').value;
+            if (!proposalId) {
+                alert('Please select a proposal to analyze');
+                return;
+            }
+
+            const loading = document.getElementById('analysis-loading');
+            const result = document.getElementById('analysis-result');
+            
+            loading.style.display = 'block';
+            result.textContent = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/governance/proposals/${proposalId}/analyze`);
+                const data = await response.json();
+                
+                // Format the analysis results nicely
+                const formatted = `🤖 AI PROPOSAL ANALYSIS
+========================================
+
+📋 PROPOSAL: ${data.title}
+
+📝 SUMMARY:
+${data.summary.brief}
+${data.summary.detailed}
+📖 Reading time: ${data.summary.estimatedReadTime}
+🔍 Key metrics: ${data.summary.keyMetrics.length > 0 ? data.summary.keyMetrics.join(', ') : 'None detected'}
+
+⚠️ RISK ANALYSIS:
+Overall Risk: ${data.riskAnalysis.overallRisk}
+Risk Score: ${(data.riskAnalysis.riskScore * 100).toFixed(1)}%
+Recommendation: ${data.riskAnalysis.recommendation}
+
+Identified Risks:
+${data.riskAnalysis.identifiedRisks.map(risk => `  • ${risk.type} (${risk.severity}): ${risk.description}`).join('\n')}
+
+📊 QUALITY SCORE:
+Grade: ${data.qualityScore.grade} (${data.qualityScore.score}/10)
+Breakdown: ${data.qualityScore.breakdown.join(', ')}
+
+💭 SENTIMENT ANALYSIS:
+Sentiment: ${data.sentimentAnalysis.sentiment} (${(data.sentimentAnalysis.confidence * 100).toFixed(1)}% confidence)
+Predicted Response: ${data.sentimentAnalysis.predictedCommunityResponse || 'No prediction available'}
+
+💡 RECOMMENDATIONS:
+${data.recommendations.map(rec => `  • ${rec.suggestion} (${rec.priority} priority)\n    Rationale: ${rec.rationale}`).join('\n\n')}
+
+🔐 SECURITY FLAGS:
+${data.securityFlags.length > 0 ? data.securityFlags.map(flag => `  ⚠️ ${flag.flag}: ${flag.description}`).join('\n') : 'No security issues detected'}
+
+🎯 AI CONFIDENCE: ${(data.aiConfidence * 100).toFixed(1)}%
+🕒 Generated: ${new Date(data.analysisTimestamp).toLocaleString()}`;
+
+                result.textContent = formatted;
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Batch analyze multiple proposals
+        async function batchAnalyze() {
+            const status = document.getElementById('status-filter').value;
+            const limit = document.getElementById('limit-select').value;
+            
+            const loading = document.getElementById('batch-loading');
+            const result = document.getElementById('batch-result');
+            
+            loading.style.display = 'block';
+            result.textContent = '';
+
+            try {
+                let url = `${API_BASE}/api/governance/proposals/analyze/batch?limit=${limit}`;
+                if (status) url += `&status=${status}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                const formatted = `📊 BATCH ANALYSIS RESULTS
+========================================
+
+📈 AGGREGATE STATISTICS:
+Total Analyzed: ${data.stats.totalAnalyzed}
+Average Quality Score: ${data.stats.averageQualityScore.toFixed(2)}/10
+Flagged for Review: ${data.stats.flaggedForReview}
+
+🚨 RISK DISTRIBUTION:
+• High Risk: ${data.stats.riskDistribution.high} proposals
+• Medium Risk: ${data.stats.riskDistribution.medium} proposals  
+• Low Risk: ${data.stats.riskDistribution.low} proposals
+• Minimal Risk: ${data.stats.riskDistribution.minimal} proposals
+
+😊 SENTIMENT DISTRIBUTION:
+• Positive: ${data.stats.sentimentDistribution.positive} proposals
+• Negative: ${data.stats.sentimentDistribution.negative} proposals
+• Neutral: ${data.stats.sentimentDistribution.neutral} proposals
+
+📋 INDIVIDUAL ANALYSES:
+${data.analyses.map((analysis, i) => 
+`\n${i + 1}. ${analysis.title}
+   Risk: ${analysis.riskAnalysis.overallRisk} | Quality: ${analysis.qualityScore.grade} (${analysis.qualityScore.score}/10)
+   Sentiment: ${analysis.sentimentAnalysis.sentiment} | Security Flags: ${analysis.securityFlags.length}`
+).join('\n')}
+
+🕒 Generated: ${new Date(data.generatedAt).toLocaleString()}`;
+
+                result.textContent = formatted;
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Get AI insights
+        async function getInsights() {
+            const loading = document.getElementById('insights-loading');
+            const result = document.getElementById('insights-result');
+            
+            loading.style.display = 'block';
+            result.textContent = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/governance/ai/insights`);
+                const data = await response.json();
+                
+                const formatted = `💡 AI GOVERNANCE INSIGHTS
+========================================
+
+🔍 KEY INSIGHTS:
+${data.insights.map(insight => `• ${insight}`).join('\n')}
+
+📊 GOVERNANCE TRENDS:
+• Average Quality Score: ${data.trends.averageQualityScore}/10
+• Risk Level Distribution:
+  - High: ${data.trends.riskLevelDistribution.high}
+  - Medium: ${data.trends.riskLevelDistribution.medium}
+  - Low: ${data.trends.riskLevelDistribution.low}
+• Security Flagged: ${data.trends.securityFlagged} proposals
+• Total Analyzed: ${data.trends.totalAnalyzed} proposals
+
+💡 RECOMMENDATIONS:
+${data.recommendations.map(rec => `• ${rec}`).join('\n')}
+
+📈 DATA AVAILABILITY: ${data.dataAvailable ? '✅ Sufficient data for analysis' : '❌ Insufficient data'}
+🕒 Generated: ${new Date(data.generatedAt).toLocaleString()}`;
+
+                result.textContent = formatted;
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Run security scan
+        async function securityScan() {
+            const loading = document.getElementById('security-loading');
+            const result = document.getElementById('security-result');
+            
+            loading.style.display = 'block';
+            result.textContent = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/governance/security/scan`);
+                const data = await response.json();
+                
+                const statusEmoji = data.securityStatus === 'ALL_CLEAR' ? '✅' : 
+                                  data.securityStatus === 'ALERTS_FOUND' ? '🚨' : '⚠️';
+                
+                const formatted = `🛡️ SECURITY SCAN RESULTS
+========================================
+
+${statusEmoji} SECURITY STATUS: ${data.securityStatus}
+🔍 Total Scanned: ${data.totalScanned} active proposals
+🚩 Flagged Proposals: ${data.flaggedProposals}
+
+📊 REVIEW SUMMARY:
+• Immediate Review Needed: ${data.summary.immediate_review_needed}
+• Enhanced Review Needed: ${data.summary.enhanced_review_needed}
+• Standard Review: ${data.summary.standard_review}
+
+${data.scans.length > 0 ? `\n🔍 FLAGGED PROPOSALS:
+${data.scans.map(scan => 
+`\n📋 ${scan.title} (${scan.proposalId})
+   🚨 Risk Level: ${scan.riskLevel}
+   📊 Quality Score: ${scan.qualityScore}/10
+   ⚡ Action: ${scan.recommended_action}
+   🔐 Security Flags: ${scan.securityFlags.length > 0 ? scan.securityFlags.map(f => f.flag).join(', ') : 'None'}
+   🎯 AI Confidence: ${(scan.aiConfidence * 100).toFixed(1)}%`
+).join('\n')}` : '\n✅ No concerning proposals detected'}
+
+🕒 Scan Time: ${new Date(data.timestamp).toLocaleString()}`;
+
+                result.textContent = formatted;
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Load proposals on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProposals();
+        });
+    </script>
+</body>
+</html>
