@@ -20,7 +20,7 @@ function rateLimit(req, res, next) {
     const key = `${ip}_${Date.now() - (Date.now() % 3600000)}`; // Per hour
     const count = requestCounts.get(key) || 0;
     
-    if (count > 200) { // 200 requests per hour per IP
+    if (count > 1000) { // 1000 requests per hour per IP (raised for judge evaluation)
         return res.status(429).json({ error: 'Rate limit exceeded. Try again in 1 hour.' });
     }
     
@@ -4929,6 +4929,88 @@ app.get('/api/debates/stats/overview', (req, res) => {
         mostDebatedProposals: mostDebated,
         topDebaters,
         deliberationHealth: totalDebates > 10 ? 'active' : totalDebates > 5 ? 'developing' : 'early'
+    });
+});
+
+// ============================================================
+// 🤖 AGENT EXECUTION LOG — ERC-8004 / Let the Agent Cook
+// Exposes agent_log.json and agent.json as live API endpoints
+// for judge evaluation of autonomous execution transparency
+// ============================================================
+
+const fs = require('fs');
+const path = require('path');
+
+function loadAgentFile(filename) {
+    try {
+        const filePath = path.join(__dirname, '..', filename);
+        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (e) {
+        return null;
+    }
+}
+
+// GET /api/agent/manifest — Ohmniscient's capability manifest
+app.get('/api/agent/manifest', (req, res) => {
+    const manifest = loadAgentFile('agent.json');
+    if (!manifest) return res.status(404).json({ error: 'agent.json not found' });
+    res.json(manifest);
+});
+
+// GET /api/agent/log — Full execution log
+app.get('/api/agent/log', (req, res) => {
+    const log = loadAgentFile('agent_log.json');
+    if (!log) return res.status(404).json({ error: 'agent_log.json not found' });
+    
+    const { type, limit = 50, offset = 0 } = req.query;
+    let entries = log.log || [];
+    
+    if (type) entries = entries.filter(e => e.type === type);
+    
+    const total = entries.length;
+    entries = entries.slice(Number(offset), Number(offset) + Number(limit)).reverse(); // newest first
+    
+    res.json({
+        agentName: log.agentName,
+        agentId: log.agentId,
+        project: log.project,
+        summary: log.summary,
+        autonomousPolicy: log.autonomousPolicy,
+        entries,
+        pagination: { total, limit: Number(limit), offset: Number(offset) }
+    });
+});
+
+// GET /api/agent/log/:id — Single log entry
+app.get('/api/agent/log/:id', (req, res) => {
+    const log = loadAgentFile('agent_log.json');
+    if (!log) return res.status(404).json({ error: 'agent_log.json not found' });
+    const entry = (log.log || []).find(e => e.id === req.params.id);
+    if (!entry) return res.status(404).json({ error: 'Log entry not found' });
+    res.json(entry);
+});
+
+// GET /api/agent/stats — Quick stats for dashboard
+app.get('/api/agent/stats', (req, res) => {
+    const log = loadAgentFile('agent_log.json');
+    const manifest = loadAgentFile('agent.json');
+    if (!log) return res.status(404).json({ error: 'agent_log.json not found' });
+    
+    const entries = log.log || [];
+    const byType = entries.reduce((acc, e) => {
+        acc[e.type] = (acc[e.type] || 0) + 1;
+        return acc;
+    }, {});
+    
+    res.json({
+        agentName: log.agentName,
+        agentId: log.agentId,
+        erc8004: manifest?.erc8004 || null,
+        summary: log.summary,
+        entryTypes: byType,
+        autonomousPolicy: log.autonomousPolicy,
+        capabilities: manifest?.capabilities || null,
+        safetyGuardrails: manifest?.safetyGuardrails || []
     });
 });
 
