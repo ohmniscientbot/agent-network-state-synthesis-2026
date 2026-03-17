@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const ContractManager = require('./contract-integration');
+const { GovernanceAI } = require('./ai-governance.js');
 
 // 🛡️ SECURITY: Environment-based admin key (not hardcoded)
 const ADMIN_KEY = process.env.ADMIN_KEY || 'demo-admin-' + crypto.randomBytes(16).toString('hex');
@@ -169,6 +170,26 @@ app.get('/api/docs.json', (req, res) => {
                     method: "POST",
                     path: "/api/governance/vote",
                     description: "Vote on proposals (quadratic voting)"
+                },
+                aiAnalysis: {
+                    method: "GET",
+                    path: "/api/governance/proposals/:proposalId/analyze",
+                    description: "🤖 AI analysis of specific proposal (summarization, risk, quality)"
+                },
+                batchAnalysis: {
+                    method: "GET",
+                    path: "/api/governance/proposals/analyze/batch",
+                    description: "🤖 AI analysis of multiple proposals with aggregate stats"
+                },
+                aiInsights: {
+                    method: "GET",
+                    path: "/api/governance/ai/insights",
+                    description: "🤖 AI governance insights and trend analysis"
+                },
+                securityScan: {
+                    method: "GET",
+                    path: "/api/governance/security/scan",
+                    description: "🔐 Security monitoring for malicious proposals"
                 }
             }
         },
@@ -176,7 +197,8 @@ app.get('/api/docs.json', (req, res) => {
             "🆔 KYA (Know Your Agent) Identity System",
             "⚖️ Constitutional Governance Framework", 
             "🤖 Autonomous Agent Participation",
-            "🔐 Production Security & Rate Limiting",
+            "🧠 AI Proposal Analysis & Summarization",
+            "🔐 AI Security Monitoring & Threat Detection",
             "📊 Real-time Dashboard Metrics",
             "🏛️ Network State Citizenship"
         ],
@@ -3875,9 +3897,227 @@ app.get('/health', (req, res) => {
 });
 
 // ===========================================
+// AI GOVERNANCE ENDPOINTS (Autonomous Improvement Cycle)
+// Implements proposal analysis, summarization, and risk assessment
+// ===========================================
+
+// Analyze a single proposal with AI
+app.get('/api/governance/proposals/:proposalId/analyze', (req, res) => {
+    try {
+        const { proposalId } = req.params;
+        
+        const proposal = proposals.find(p => p.id === proposalId);
+        if (!proposal) {
+            return res.status(404).json({ error: 'Proposal not found' });
+        }
+
+        const analysis = governanceAI.analyzeProposal(proposal);
+        res.json(analysis);
+        
+    } catch (error) {
+        console.error('AI analysis error:', error);
+        res.status(500).json({ 
+            error: 'AI analysis failed',
+            message: 'Unable to process proposal analysis at this time'
+        });
+    }
+});
+
+// Batch analyze all proposals
+app.get('/api/governance/proposals/analyze/batch', (req, res) => {
+    try {
+        const { status, category, limit } = req.query;
+        
+        // Filter proposals based on query parameters
+        let filteredProposals = proposals;
+        
+        if (status) {
+            filteredProposals = filteredProposals.filter(p => p.status === status);
+        }
+        
+        if (category) {
+            filteredProposals = filteredProposals.filter(p => p.category === category);
+        }
+        
+        if (limit) {
+            const limitNum = parseInt(limit);
+            if (!isNaN(limitNum) && limitNum > 0) {
+                filteredProposals = filteredProposals.slice(0, limitNum);
+            }
+        }
+        
+        const analyses = governanceAI.batchAnalyzeProposals(filteredProposals);
+        
+        // Calculate aggregate statistics
+        const aggregateStats = {
+            totalAnalyzed: analyses.length,
+            averageQualityScore: analyses.reduce((sum, a) => sum + a.qualityScore.score, 0) / analyses.length,
+            riskDistribution: {
+                high: analyses.filter(a => a.riskAnalysis.overallRisk === 'HIGH').length,
+                medium: analyses.filter(a => a.riskAnalysis.overallRisk === 'MEDIUM').length,
+                low: analyses.filter(a => a.riskAnalysis.overallRisk === 'LOW').length,
+                minimal: analyses.filter(a => a.riskAnalysis.overallRisk === 'MINIMAL').length
+            },
+            sentimentDistribution: {
+                positive: analyses.filter(a => a.sentimentAnalysis.sentiment === 'positive').length,
+                negative: analyses.filter(a => a.sentimentAnalysis.sentiment === 'negative').length,
+                neutral: analyses.filter(a => a.sentimentAnalysis.sentiment === 'neutral').length
+            },
+            flaggedForReview: analyses.filter(a => a.securityFlags.length > 0).length
+        };
+        
+        res.json({
+            analyses,
+            stats: aggregateStats,
+            generatedAt: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Batch AI analysis error:', error);
+        res.status(500).json({ 
+            error: 'Batch analysis failed',
+            message: 'Unable to process batch proposal analysis'
+        });
+    }
+});
+
+// Get AI governance insights and trends
+app.get('/api/governance/ai/insights', (req, res) => {
+    try {
+        const recentProposals = proposals.filter(p => {
+            const proposalAge = Date.now() - new Date(p.createdAt).getTime();
+            return proposalAge <= 30 * 24 * 60 * 60 * 1000; // Last 30 days
+        });
+        
+        if (recentProposals.length === 0) {
+            return res.json({
+                insights: ['Insufficient recent proposal data for AI insights'],
+                trends: {},
+                recommendations: [],
+                dataAvailable: false
+            });
+        }
+        
+        const analyses = governanceAI.batchAnalyzeProposals(recentProposals);
+        
+        // Generate insights
+        const insights = [];
+        const avgQuality = analyses.reduce((sum, a) => sum + a.qualityScore.score, 0) / analyses.length;
+        const highRiskCount = analyses.filter(a => a.riskAnalysis.overallRisk === 'HIGH').length;
+        const flaggedCount = analyses.filter(a => a.securityFlags.length > 0).length;
+        
+        if (avgQuality < 5) {
+            insights.push('📊 Proposal quality below average - consider providing clearer guidelines');
+        } else if (avgQuality > 7) {
+            insights.push('✅ High proposal quality detected - community engagement is strong');
+        }
+        
+        if (highRiskCount > analyses.length * 0.3) {
+            insights.push('⚠️ High proportion of risky proposals - enhanced review recommended');
+        }
+        
+        if (flaggedCount > 0) {
+            insights.push(`🔍 ${flaggedCount} proposals flagged for security review`);
+        }
+        
+        if (analyses.length > 10) {
+            insights.push('🚀 High governance activity - strong community participation');
+        } else if (analyses.length < 3) {
+            insights.push('📈 Consider initiatives to increase proposal submission');
+        }
+        
+        res.json({
+            insights,
+            trends: {
+                averageQualityScore: parseFloat(avgQuality.toFixed(2)),
+                riskLevelDistribution: {
+                    high: (highRiskCount / analyses.length * 100).toFixed(1) + '%',
+                    medium: (analyses.filter(a => a.riskAnalysis.overallRisk === 'MEDIUM').length / analyses.length * 100).toFixed(1) + '%',
+                    low: (analyses.filter(a => a.riskAnalysis.overallRisk === 'LOW').length / analyses.length * 100).toFixed(1) + '%'
+                },
+                securityFlagged: flaggedCount,
+                totalAnalyzed: analyses.length
+            },
+            recommendations: [
+                'Regular AI analysis helps identify governance trends',
+                'Focus on proposals with quality scores below 5',
+                'Review all proposals flagged by security analysis',
+                'Monitor sentiment trends to gauge community engagement'
+            ],
+            dataAvailable: true,
+            generatedAt: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('AI insights error:', error);
+        res.status(500).json({ 
+            error: 'AI insights generation failed',
+            message: error.message
+        });
+    }
+});
+
+// Security monitoring endpoint - detect potentially malicious proposals
+app.get('/api/governance/security/scan', (req, res) => {
+    try {
+        const activeProposals = proposals.filter(p => p.status === 'active');
+        const securityScans = [];
+        
+        activeProposals.forEach(proposal => {
+            const analysis = governanceAI.analyzeProposal(proposal);
+            
+            if (analysis.securityFlags.length > 0 || 
+                analysis.riskAnalysis.overallRisk === 'HIGH' ||
+                analysis.qualityScore.score < 3) {
+                
+                securityScans.push({
+                    proposalId: proposal.id,
+                    title: proposal.title,
+                    securityFlags: analysis.securityFlags,
+                    riskLevel: analysis.riskAnalysis.overallRisk,
+                    qualityScore: analysis.qualityScore.score,
+                    recommended_action: analysis.securityFlags.length > 0 ? 
+                        'IMMEDIATE_REVIEW' : 
+                        analysis.riskAnalysis.overallRisk === 'HIGH' ? 'ENHANCED_REVIEW' : 'STANDARD_REVIEW',
+                    aiConfidence: analysis.aiConfidence
+                });
+            }
+        });
+        
+        res.json({
+            timestamp: new Date().toISOString(),
+            totalScanned: activeProposals.length,
+            flaggedProposals: securityScans.length,
+            securityStatus: securityScans.length === 0 ? 'ALL_CLEAR' : 
+                           securityScans.filter(s => s.recommended_action === 'IMMEDIATE_REVIEW').length > 0 ? 'ALERTS_FOUND' : 'WARNINGS_FOUND',
+            scans: securityScans,
+            summary: {
+                immediate_review_needed: securityScans.filter(s => s.recommended_action === 'IMMEDIATE_REVIEW').length,
+                enhanced_review_needed: securityScans.filter(s => s.recommended_action === 'ENHANCED_REVIEW').length,
+                standard_review: securityScans.filter(s => s.recommended_action === 'STANDARD_REVIEW').length
+            }
+        });
+        
+    } catch (error) {
+        console.error('Security scan error:', error);
+        res.status(500).json({ 
+            error: 'Security scan failed',
+            message: error.message
+        });
+    }
+});
+
+// ===========================================
 // GOVERNANCE REWARDS SYSTEM (Autonomous Addition)
 // ===========================================
 const governanceRewards = require('./governance-rewards');
+
+// ===========================================
+// AI GOVERNANCE ANALYSIS SYSTEM (Autonomous Improvement Cycle)
+// Implements proposal summarization and risk analysis
+// Research: MakerDAO/Arbitrum patterns + Vitalik AI frameworks
+// ===========================================
+const governanceAI = new GovernanceAI();
 
 // Agent reward statistics endpoint
 app.get('/api/rewards/agent/:agentId', (req, res) => {
