@@ -176,13 +176,14 @@
                     <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🏠 Home</a>
                     <a href="/dashboard" style="color: var(--neural-cyan); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow); font-size: 0.85rem; white-space: nowrap;">📊 Dashboard</a>
                     <a href="/prediction-markets" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🎯 Markets</a>
+                    <a href="/roi-analytics" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📈 ROI</a>
                     <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📖 Docs</a>
                     <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <span style="color: var(--secondary-text); font-size: 0.8rem;">Mode:</span>
                     <button id="demo-btn" class="mode-btn" style="background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🎮 Demo</button>
-                    <button id="live-btn" class="mode-btn active" style="background: var(--neural-red); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🔴 Live</button>
+                    <button id="live-btn" class="mode-btn active" style="background: var(--neural-green); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🟢 Live</button>
                 </div>
             </div>
             <button id="mobile-menu-btn" style="display: none; background: none; border: none; color: var(--primary-text); font-size: 1.5rem; cursor: pointer;">☰</button>
@@ -192,11 +193,12 @@
                 <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">🏠 Home</a>
                 <a href="/dashboard" style="color: var(--neural-cyan); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); background: var(--neural-cyan-glow); text-align: center;">📊 Dashboard</a>
                 <a href="/prediction-markets" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">🎯 Prediction Markets</a>
+                <a href="/roi-analytics" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">📈 ROI Analytics</a>
                 <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">📖 API Documentation</a>
                 <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">💻 GitHub</a>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <button id="demo-btn-mobile" style="flex: 1; background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Inter', sans-serif;">🎮 Demo</button>
-                    <button id="live-btn-mobile" style="flex: 1; background: var(--neural-red); color: white; border: none; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Inter', sans-serif;">🔴 Live</button>
+                    <button id="live-btn-mobile" style="flex: 1; background: var(--neural-green); color: white; border: none; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Inter', sans-serif;">🟢 Live</button>
                 </div>
             </div>
         </div>
@@ -234,31 +236,31 @@
             const liveBtnM = document.getElementById('live-btn-mobile');
             
             if (currentMode === 'demo') {
-                demoBtn.style.background = 'var(--neural-purple)';
+                demoBtn.style.background = 'var(--neural-red)';
                 demoBtn.style.color = 'white';
                 demoBtn.style.border = 'none';
                 liveBtn.style.background = 'transparent';
                 liveBtn.style.color = 'var(--secondary-text)';
                 liveBtn.style.border = '1px solid var(--border-neural)';
-                if (demoBtnM) { demoBtnM.style.background = 'var(--neural-purple)'; demoBtnM.style.color = 'white'; demoBtnM.style.border = 'none'; }
+                if (demoBtnM) { demoBtnM.style.background = 'var(--neural-red)'; demoBtnM.style.color = 'white'; demoBtnM.style.border = 'none'; }
                 if (liveBtnM) { liveBtnM.style.background = 'transparent'; liveBtnM.style.color = 'var(--secondary-text)'; liveBtnM.style.border = '1px solid var(--border-neural)'; }
-                indicator.innerHTML = '🎮 Demo Mode';
-                indicator.style.background = 'var(--neural-purple-glow)';
-                indicator.style.border = '1px solid var(--neural-purple)';
-                indicator.style.color = 'var(--neural-purple)';
+                indicator.innerHTML = '🔴 Demo Mode';
+                indicator.style.background = 'var(--neural-red-glow)';
+                indicator.style.border = '1px solid var(--neural-red)';
+                indicator.style.color = 'var(--neural-red)';
             } else {
-                liveBtn.style.background = 'var(--neural-red)';
+                liveBtn.style.background = 'var(--neural-green)';
                 liveBtn.style.color = 'white';
                 liveBtn.style.border = 'none';
                 demoBtn.style.background = 'transparent';
                 demoBtn.style.color = 'var(--secondary-text)';
                 demoBtn.style.border = '1px solid var(--border-neural)';
-                if (liveBtnM) { liveBtnM.style.background = 'var(--neural-red)'; liveBtnM.style.color = 'white'; liveBtnM.style.border = 'none'; }
+                if (liveBtnM) { liveBtnM.style.background = 'var(--neural-green)'; liveBtnM.style.color = 'white'; liveBtnM.style.border = 'none'; }
                 if (demoBtnM) { demoBtnM.style.background = 'transparent'; demoBtnM.style.color = 'var(--secondary-text)'; demoBtnM.style.border = '1px solid var(--border-neural)'; }
-                indicator.innerHTML = '🔴 Live Mode';
-                indicator.style.background = 'rgba(239, 68, 68, 0.12)';
-                indicator.style.border = '1px solid var(--neural-red)';
-                indicator.style.color = 'var(--neural-red)';
+                indicator.innerHTML = '🟢 Live Mode';
+                indicator.style.background = 'var(--neural-green-glow)';
+                indicator.style.border = '1px solid var(--neural-green)';
+                indicator.style.color = 'var(--neural-green)';
             }
         }
 

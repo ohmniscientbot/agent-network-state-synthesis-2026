@@ -246,6 +246,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Chart container sizing */
+        .chart-container > div[style*="grid-template-columns"] > div {
+            min-height: 0;
+            position: relative;
+        }
+        
+        .chart-container canvas {
+            max-height: 350px !important;
+            height: 350px !important;
+        }
+        
         /* Chart responsive design */
         @media (max-width: 768px) {
             .chart-container > div[style*="grid-template-columns"] {
@@ -255,6 +266,7 @@
             
             .chart-container canvas {
                 max-height: 300px !important;
+                height: 300px !important;
             }
             
             .chart-container h4 {
@@ -315,7 +327,7 @@
         <div class="header">
             <h1 class="title">📈 ROI Analytics</h1>
             <p class="subtitle">AI Agent Performance, Cost Efficiency, and Value Generation Metrics</p>
-            <div id="mode-indicator" class="mode-indicator">🔴 Live Data</div>
+            <div id="mode-indicator" class="mode-indicator">🟢 Live Data</div>
         </div>
 
         <div class="analytics-grid">
@@ -607,7 +619,8 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1,
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -634,7 +647,8 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1.2,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -673,7 +687,8 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1.5,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -715,7 +730,8 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1,
                     plugins: {
                         legend: {
                             display: false
