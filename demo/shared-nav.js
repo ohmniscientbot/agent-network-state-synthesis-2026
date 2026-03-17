@@ -11,14 +11,14 @@ const NAV_CONFIG = {
         { href: "/", text: "🏠 Home", mobileText: "🏠 Home", id: "home" },
         { href: "/dashboard", text: "📊 Dashboard", mobileText: "📊 Dashboard", id: "dashboard" }, 
         { href: "/prediction-markets", text: "🎯 Markets", mobileText: "🎯 Prediction Markets", id: "markets" },
-        { href: "/roi-analytics", text: "📈 ROI", mobileText: "📈 ROI Analytics", id: "roi" }
+        { href: "/roi-analytics", text: "📈 ROI", mobileText: "📈 ROI Analytics", id: "roi" },
+        { href: "/debates", text: "⚖️ Debates", mobileText: "⚖️ Debate Chamber", id: "debates" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",
         mobileText: "🛠️ Developer Tools",
         id: "tools",
         items: [
-            { href: "/debates", text: "⚖️ Debate Chamber", id: "debates" },
             { href: "/ai-governance", text: "🤖 AI Testing", id: "ai-governance" },
             { href: "/register", text: "⚙️ Register Agent", id: "register" },
             { href: "/api/docs", text: "📖 API Documentation", id: "docs" },
