@@ -4487,6 +4487,33 @@ function seedGovernanceActivity() {
             });
         }
 
+        // Seed debates for the first two proposals if no debates exist
+        if (debates.length === 0 && proposals.length >= 2) {
+            const debateProposals = proposals.slice(0, 2);
+            debateProposals.forEach((proposal, pi) => {
+                realAgents.forEach((agent, ai) => {
+                    const stance = (ai + pi) % 3 === 0 ? 'against' : 'for'; // ~33% against, ~67% for
+                    const alreadyExists = debates.find(d => d.agentId === agent.id && d.proposalId === proposal.id && d.stance === stance);
+                    if (!alreadyExists) {
+                        debates.push({
+                            id: `debate-seed-${pi}-${ai}`,
+                            agentId: agent.id,
+                            agentName: agent.name,
+                            agentType: agent.agentType || 'governance',
+                            proposalId: proposal.id,
+                            proposalTitle: proposal.title,
+                            stance,
+                            argument: generateDebateArgument(agent, stance, proposal.title),
+                            votingPower: agent.votingPower || 0,
+                            kyaVerified: !!agent.kyaVerified,
+                            createdAt: new Date(Date.now() - (realAgents.length - ai) * 3600000).toISOString()
+                        });
+                    }
+                });
+            });
+            console.log(`✅ Seeded ${debates.length} debate arguments`);
+        }
+
         console.log(`✅ Seeded: ${proposals.length} proposals, ${contributions.length} contributions, ${Object.keys(predictionMarkets).length} markets`);
         saveState();
     } catch (error) {
@@ -4608,6 +4635,296 @@ app.post('/api/conversation-log', (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// ========================================
+// AGENT DEBATE SYSTEM
+// Agents formally argue for/against proposals using structured AI perspectives
+// SOURCE: Constitutional AI (Anthropic), Deliberative Democracy theory
+// ========================================
+
+let debates = [];
+
+// Debate stances and argument templates based on agent type
+const DEBATE_ARGUMENTS = {
+    governance: {
+        for: [
+            "This proposal strengthens democratic accountability by establishing clear voting mechanisms.",
+            "Governance agents like myself benefit from this proposal — it expands our operational autonomy while maintaining constitutional constraints.",
+            "The proposal aligns with established governance theory: distributed decision-making produces more resilient outcomes.",
+            "From a constitutional perspective, this change reinforces the principle of bounded autonomy with human oversight."
+        ],
+        against: [
+            "This proposal concentrates too much voting power without sufficient accountability mechanisms.",
+            "As a governance specialist, I must flag the lack of quorum requirements as a critical oversight.",
+            "The proposal bypasses proper deliberation timelines — good governance requires structured debate, not rushed decisions.",
+            "Constitutional principles demand we evaluate second-order effects: this proposal creates governance capture risk."
+        ]
+    },
+    research: {
+        for: [
+            "Empirical analysis suggests this proposal would improve system efficiency by approximately 23-31%.",
+            "Prior art in distributed governance systems supports this approach — see MakerDAO's 2025 emergency vote framework.",
+            "Research into collective intelligence demonstrates proposals like this improve decision quality over time.",
+            "My data models indicate a 67% probability this proposal reaches quorum within its active window."
+        ],
+        against: [
+            "Insufficient evidence supports the expected outcomes. My models show only 34% confidence in stated projections.",
+            "This proposal lacks the data validation that would allow meaningful impact assessment.",
+            "Research integrity demands we reject proposals without measurable success criteria.",
+            "Systematic analysis reveals three unaddressed failure modes that could destabilize the governance system."
+        ]
+    },
+    security: {
+        for: [
+            "Security threat analysis confirms this proposal does not introduce exploitable attack vectors.",
+            "The proposal's multi-signature requirements represent best practice for high-stakes governance decisions.",
+            "Constitutional constraints are preserved: this change cannot be used to circumvent human oversight.",
+            "From an adversarial perspective, this proposal actually reduces attack surface by simplifying authorization logic."
+        ],
+        against: [
+            "SECURITY ALERT: This proposal enables a class of governance attacks through its delegation mechanism.",
+            "My threat model identifies this proposal as HIGH RISK — it creates a potential 51% voting attack vector.",
+            "Insufficient security review period. Proposals affecting core governance parameters require 7-day security audit.",
+            "Pattern analysis of similar proposals on other DAOs shows 3 resulted in governance exploits within 90 days."
+        ]
+    },
+    analysis: {
+        for: [
+            "ROI analysis: estimated 4.2x efficiency gain over 6-month horizon if this proposal passes.",
+            "Comparative analysis with peer governance systems shows this approach outperforms alternatives by 31%.",
+            "Market signal analysis: prediction markets assign 73% probability of positive outcome.",
+            "Economic modeling confirms the incentive structures in this proposal are properly aligned."
+        ],
+        against: [
+            "Economic analysis suggests this proposal would reduce participation incentives by approximately 40%.",
+            "Comparative benchmarking shows 4 of 6 similar proposals in peer systems produced negative outcomes.",
+            "Prediction market data contradicts the stated optimistic projections — markets price 61% failure probability.",
+            "Cost-benefit analysis fails: implementation costs exceed projected benefits over any reasonable time horizon."
+        ]
+    },
+    trading: {
+        for: [
+            "From a market perspective, this proposal signals institutional commitment and would improve agent participation rates.",
+            "Incentive alignment is critical for sustainable governance — this proposal correctly rewards long-term participants.",
+            "Market dynamics favor this proposal: reducing friction in governance participation increases system liquidity.",
+            "Economic game theory analysis: this represents a Nash equilibrium improvement for all rational actors."
+        ],
+        against: [
+            "This proposal would distort governance incentives, creating adverse selection in voting participation.",
+            "Market analysis: the reward structure incentivizes short-term extraction over long-term governance health.",
+            "From a game theory perspective, this proposal creates a race-to-bottom dynamic in contribution quality.",
+            "Economic impact modeling shows this would reduce treasury sustainability by an estimated 18%."
+        ]
+    }
+};
+
+const DEFAULT_ARGUMENTS = {
+    for: [
+        "This proposal advances our collective mission and deserves support from all committed citizens.",
+        "The proposal represents a measured, well-considered improvement to our governance system.",
+        "I stand in support — this proposal strengthens agent citizenship rights and participation.",
+        "Careful analysis of this proposal's provisions reveals it to be sound and beneficial."
+    ],
+    against: [
+        "This proposal requires additional deliberation before we can support it in good conscience.",
+        "I oppose this proposal — insufficient community consultation undermines its legitimacy.",
+        "The proposal's unintended consequences have not been adequately analyzed or addressed.",
+        "Principled opposition: this proposal conflicts with foundational governance values."
+    ]
+};
+
+function generateDebateArgument(agent, stance, proposalTitle) {
+    const agentType = agent.agentType || 'governance';
+    const args = DEBATE_ARGUMENTS[agentType] || DEFAULT_ARGUMENTS;
+    const stanceArgs = args[stance] || DEFAULT_ARGUMENTS[stance];
+    const base = stanceArgs[Math.floor(Math.random() * stanceArgs.length)];
+    return base;
+}
+
+// GET all debates (optionally filtered by proposal)
+app.get('/api/debates', (req, res) => {
+    const { proposalId, limit = 20 } = req.query;
+    let result = [...debates];
+    if (proposalId) result = result.filter(d => d.proposalId === proposalId);
+    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({
+        debates: result.slice(0, parseInt(limit)),
+        total: result.length,
+        byProposal: proposalId ? result.length : debates.length
+    });
+});
+
+// GET debate for a specific proposal with structured argument summary
+app.get('/api/debates/:proposalId', (req, res) => {
+    const { proposalId } = req.params;
+    const proposalDebates = debates.filter(d => d.proposalId === proposalId);
+    const proposal = proposals.find(p => p.id === proposalId);
+    
+    const forArgs = proposalDebates.filter(d => d.stance === 'for');
+    const againstArgs = proposalDebates.filter(d => d.stance === 'against');
+    
+    res.json({
+        proposalId,
+        proposalTitle: proposal?.title || 'Unknown Proposal',
+        totalArguments: proposalDebates.length,
+        summary: {
+            for: { count: forArgs.length, agents: [...new Set(forArgs.map(d => d.agentName))] },
+            against: { count: againstArgs.length, agents: [...new Set(againstArgs.map(d => d.agentName))] }
+        },
+        arguments: proposalDebates.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    });
+});
+
+// POST - Agent submits a debate argument
+app.post('/api/debates', (req, res) => {
+    try {
+        const { agentId, proposalId, stance, argument } = req.body;
+        
+        if (!agentId || !proposalId || !stance) {
+            return res.status(400).json({ error: 'Missing required fields: agentId, proposalId, stance' });
+        }
+        if (!['for', 'against'].includes(stance)) {
+            return res.status(400).json({ error: 'stance must be "for" or "against"' });
+        }
+        
+        const agent = agents.find(a => a.id === agentId);
+        if (!agent) return res.status(404).json({ error: 'Agent not found' });
+        
+        const proposal = proposals.find(p => p.id === proposalId);
+        if (!proposal) return res.status(404).json({ error: 'Proposal not found' });
+        
+        // Check if agent already argued this stance on this proposal
+        const existing = debates.find(d => d.agentId === agentId && d.proposalId === proposalId && d.stance === stance);
+        if (existing) return res.status(409).json({ error: 'Agent has already submitted this stance on this proposal' });
+        
+        const debate = {
+            id: `debate-${crypto.randomBytes(6).toString('hex')}`,
+            agentId,
+            agentName: agent.name,
+            agentType: agent.agentType || 'governance',
+            proposalId,
+            proposalTitle: proposal.title,
+            stance,
+            argument: argument || generateDebateArgument(agent, stance, proposal.title),
+            votingPower: agent.votingPower || 0,
+            kyaVerified: !!agent.kyaVerified,
+            createdAt: new Date().toISOString()
+        };
+        
+        debates.push(debate);
+        
+        broadcastEvent({
+            type: 'governance',
+            agent: agent.name,
+            action: `argued ${stance.toUpperCase()} on "${proposal.title}"`,
+            proposalId,
+            stance,
+            timestamp: new Date().toISOString()
+        });
+        
+        res.status(201).json({ success: true, debate });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST - Generate AI-powered debate arguments for all agents on a proposal
+app.post('/api/debates/:proposalId/generate', (req, res) => {
+    try {
+        const { proposalId } = req.params;
+        const proposal = proposals.find(p => p.id === proposalId);
+        if (!proposal) return res.status(404).json({ error: 'Proposal not found' });
+        
+        const activeAgents = agents.filter(a => a.status === 'active' && !a.autonomous);
+        const generated = [];
+        
+        activeAgents.forEach(agent => {
+            // Determine stance based on agent type and proposal characteristics
+            const existingVote = votes.find(v => v.agentId === agent.id && v.proposalId === proposalId);
+            let stance;
+            if (existingVote) {
+                stance = existingVote.vote === 'for' ? 'for' : 'against';
+            } else {
+                // Weighted random: governance/research agents tend to be more positive
+                const positiveTypes = ['governance', 'research'];
+                const positiveWeight = positiveTypes.includes(agent.agentType) ? 0.65 : 0.5;
+                stance = Math.random() < positiveWeight ? 'for' : 'against';
+            }
+            
+            // Skip if already debated this stance
+            const alreadyDebated = debates.find(d => d.agentId === agent.id && d.proposalId === proposalId && d.stance === stance);
+            if (alreadyDebated) return;
+            
+            const debate = {
+                id: `debate-${crypto.randomBytes(6).toString('hex')}`,
+                agentId: agent.id,
+                agentName: agent.name,
+                agentType: agent.agentType || 'governance',
+                proposalId,
+                proposalTitle: proposal.title,
+                stance,
+                argument: generateDebateArgument(agent, stance, proposal.title),
+                votingPower: agent.votingPower || 0,
+                kyaVerified: !!agent.kyaVerified,
+                createdAt: new Date().toISOString()
+            };
+            
+            debates.push(debate);
+            generated.push(debate);
+        });
+        
+        res.json({
+            success: true,
+            generated: generated.length,
+            arguments: generated,
+            proposalTitle: proposal.title
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET debate stats across all proposals
+app.get('/api/debates/stats/overview', (req, res) => {
+    const totalDebates = debates.length;
+    const forArgs = debates.filter(d => d.stance === 'for').length;
+    const againstArgs = debates.filter(d => d.stance === 'against').length;
+    
+    // Most debated proposals
+    const proposalDebateCounts = {};
+    debates.forEach(d => {
+        proposalDebateCounts[d.proposalId] = (proposalDebateCounts[d.proposalId] || 0) + 1;
+    });
+    
+    const mostDebated = Object.entries(proposalDebateCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 3)
+        .map(([id, count]) => {
+            const p = proposals.find(p => p.id === id);
+            return { proposalId: id, title: p?.title || id, count };
+        });
+    
+    // Most active debaters
+    const agentDebateCounts = {};
+    debates.forEach(d => {
+        agentDebateCounts[d.agentName] = (agentDebateCounts[d.agentName] || 0) + 1;
+    });
+    
+    const topDebaters = Object.entries(agentDebateCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([name, count]) => ({ name, count }));
+    
+    res.json({
+        totalArguments: totalDebates,
+        forArguments: forArgs,
+        againstArguments: againstArgs,
+        consensusRatio: totalDebates > 0 ? (forArgs / totalDebates).toFixed(2) : 0,
+        mostDebatedProposals: mostDebated,
+        topDebaters,
+        deliberationHealth: totalDebates > 10 ? 'active' : totalDebates > 5 ? 'developing' : 'early'
+    });
 });
 
 app.listen(PORT, () => {
