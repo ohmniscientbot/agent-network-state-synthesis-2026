@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROI Analytics - Synthocracy</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-primary: #0f0f0f;
@@ -244,6 +245,22 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Chart responsive design */
+        @media (max-width: 768px) {
+            .chart-container > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+            
+            .chart-container canvas {
+                max-height: 300px !important;
+            }
+            
+            .chart-container h4 {
+                font-size: 1rem !important;
+            }
+        }
     </style>
 
     <!-- Navigation Bar with Mobile Menu -->
@@ -342,6 +359,34 @@
         </div>
 
         <div class="chart-container">
+            <h3 class="chart-title">📊 Governance Activity Trends</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 20px 0;">
+                <div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius-neural); border: 1px solid var(--border-neural);">
+                    <h4 style="margin: 0 0 15px 0; color: var(--neural-cyan);">Agent Activity Distribution</h4>
+                    <canvas id="agentActivityChart" width="400" height="300"></canvas>
+                </div>
+                <div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius-neural); border: 1px solid var(--border-neural);">
+                    <h4 style="margin: 0 0 15px 0; color: var(--neural-purple);">Governance Efficiency Over Time</h4>
+                    <canvas id="efficiencyChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h3 class="chart-title">💰 Value Generation & Cost Analysis</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin: 20px 0;">
+                <div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius-neural); border: 1px solid var(--border-neural);">
+                    <h4 style="margin: 0 0 15px 0; color: var(--neural-green);">ROI by Activity Type</h4>
+                    <canvas id="roiChart" width="600" height="400"></canvas>
+                </div>
+                <div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius-neural); border: 1px solid var(--border-neural);">
+                    <h4 style="margin: 0 0 15px 0; color: var(--neural-red);">Cost Efficiency</h4>
+                    <canvas id="costChart" width="300" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
             <h3 class="chart-title">📈 ROI Breakdown by Activity Type</h3>
             <div class="roi-breakdown" id="roi-breakdown">
                 <!-- Dynamic content loaded here -->
@@ -382,6 +427,7 @@
                 updateMetrics(metrics, rewards, leaderboard);
                 updateROIBreakdown(metrics, rewards);
                 updateInsights(metrics, rewards, leaderboard);
+                updateChartsWithData(metrics, rewards, leaderboard);
                 hideLoadingState();
 
             } catch (error) {
@@ -535,8 +581,195 @@
             `).join('');
         }
 
+        // Chart.js setup with dark theme
+        Chart.defaults.color = '#cbd5e1';
+        Chart.defaults.borderColor = 'rgba(139, 92, 246, 0.3)';
+
+        let charts = {};
+
+        function initializeCharts() {
+            // Agent Activity Distribution (Doughnut Chart)
+            const activityCtx = document.getElementById('agentActivityChart').getContext('2d');
+            charts.activityChart = new Chart(activityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Governance', 'Contributions', 'Voting', 'Proposals'],
+                    datasets: [{
+                        data: [35, 30, 25, 10],
+                        backgroundColor: [
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(6, 182, 212, 0.8)', 
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#cbd5e1', padding: 20 }
+                        }
+                    }
+                }
+            });
+
+            // Governance Efficiency Over Time (Line Chart)
+            const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+            charts.efficiencyChart = new Chart(efficiencyCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Efficiency %',
+                        data: [65, 72, 78, 85],
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: 'rgba(139, 92, 246, 0.1)' },
+                            ticks: { color: '#cbd5e1' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(139, 92, 246, 0.1)' },
+                            ticks: { color: '#cbd5e1' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#cbd5e1' } }
+                    }
+                }
+            });
+
+            // ROI by Activity Type (Bar Chart)
+            const roiCtx = document.getElementById('roiChart').getContext('2d');
+            charts.roiChart = new Chart(roiCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Governance Participation', 'Quality Contributions', 'Proposal Generation', 'Market Analysis'],
+                    datasets: [{
+                        label: 'ROI ($)',
+                        data: [2400, 1800, 3200, 1200],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(6, 182, 212, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(245, 158, 11, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(16, 185, 129, 0.1)' },
+                            ticks: { 
+                                color: '#cbd5e1',
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { color: 'rgba(16, 185, 129, 0.1)' },
+                            ticks: { color: '#cbd5e1' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#cbd5e1' } }
+                    }
+                }
+            });
+
+            // Cost Efficiency (Gauge-style Doughnut)
+            const costCtx = document.getElementById('costChart').getContext('2d');
+            charts.costChart = new Chart(costCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Efficient', 'Waste'],
+                    datasets: [{
+                        data: [78, 22],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(239, 68, 68, 0.3)'
+                        ],
+                        circumference: 180,
+                        rotation: 270,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartsWithData(metrics, rewards, leaderboard) {
+            try {
+                // Update agent activity distribution with real data
+                if (charts.activityChart) {
+                    const totalActivity = (metrics.totalContributions || 0) + (metrics.votescast || 0) + (metrics.totalProposals || 0);
+                    const activityData = [
+                        Math.round((metrics.votescast || 0) / Math.max(totalActivity, 1) * 100),
+                        Math.round((metrics.totalContributions || 0) / Math.max(totalActivity, 1) * 100),
+                        Math.round((metrics.totalProposals || 0) / Math.max(totalActivity, 1) * 100),
+                        Math.round((metrics.activePredictionMarkets || 0) / Math.max(totalActivity, 1) * 100)
+                    ];
+                    charts.activityChart.data.datasets[0].data = activityData;
+                    charts.activityChart.update();
+                }
+
+                // Update ROI chart with calculated values
+                if (charts.roiChart) {
+                    const contributions = metrics.totalContributions || 0;
+                    const votes = metrics.votescast || 0;
+                    const proposals = metrics.totalProposals || 0;
+                    charts.roiChart.data.datasets[0].data = [
+                        votes * 25,      // Governance participation value
+                        contributions * 150,  // Quality contributions value
+                        proposals * 500,      // Proposal generation value
+                        (metrics.activePredictionMarkets || 0) * 200  // Market analysis value
+                    ];
+                    charts.roiChart.update();
+                }
+
+                // Update efficiency gauge with real efficiency calculation
+                if (charts.costChart) {
+                    const efficiency = Math.min(95, Math.max(10, (totalActivity / Math.max(metrics.activeAgents || 1, 1)) * 15));
+                    charts.costChart.data.datasets[0].data = [efficiency, 100 - efficiency];
+                    charts.costChart.update();
+                }
+            } catch (error) {
+                console.warn('Chart update error:', error);
+            }
+        }
+
         // Load analytics on page load
-        document.addEventListener('DOMContentLoaded', loadAnalytics);
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCharts();
+            loadAnalytics();
+        });
 
         // Auto-refresh every 2 minutes
         setInterval(loadAnalytics, 120000);
