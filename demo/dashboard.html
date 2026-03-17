@@ -185,6 +185,39 @@
             <!-- Metrics will be populated by JavaScript -->
         </div>
 
+        <!-- AI Governance Insights Panel -->
+        <div id="ai-insights-section" style="margin-top: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; color: var(--primary-text);">
+                    🤖 AI Governance Insights
+                </h2>
+                <a href="/ai-governance" style="font-size: 0.8rem; color: var(--neural-cyan); text-decoration: none;">Full Analysis →</a>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <!-- Risk Distribution Card -->
+                <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <h3 style="font-size: 0.9rem; color: var(--secondary-text); margin-bottom: 12px;">📊 Proposal Risk Distribution</h3>
+                    <div id="risk-distribution">
+                        <div style="text-align: center; color: var(--muted-text); padding: 20px;">Loading...</div>
+                    </div>
+                </div>
+                <!-- Quality Summary Card -->
+                <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <h3 style="font-size: 0.9rem; color: var(--secondary-text); margin-bottom: 12px;">📈 Governance Quality</h3>
+                    <div id="quality-summary">
+                        <div style="text-align: center; color: var(--muted-text); padding: 20px;">Loading...</div>
+                    </div>
+                </div>
+                <!-- Security Status Card -->
+                <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <h3 style="font-size: 0.9rem; color: var(--secondary-text); margin-bottom: 12px;">🔒 Security Status</h3>
+                    <div id="security-status">
+                        <div style="text-align: center; color: var(--muted-text); padding: 20px;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Live Activity Feed -->
         <div id="activity-feed-section" style="margin-top: 40px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -408,9 +441,146 @@
             currentMode = 'live';
         }
         
+        // ========================================
+        // AI GOVERNANCE INSIGHTS
+        // ========================================
+        async function loadAIInsights() {
+            try {
+                // Fetch batch analysis and security scan in parallel
+                const [batchRes, securityRes] = await Promise.all([
+                    fetch('/api/governance/proposals/analyze/batch').catch(() => null),
+                    fetch('/api/governance/security/scan').catch(() => null)
+                ]);
+
+                // Risk Distribution
+                const riskEl = document.getElementById('risk-distribution');
+                if (batchRes && batchRes.ok) {
+                    const batchData = await batchRes.json();
+                    const risks = batchData.aggregate?.riskDistribution || {};
+                    const total = Object.values(risks).reduce((a, b) => a + b, 0) || 1;
+                    
+                    const riskColors = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#3b82f6', MINIMAL: '#10b981' };
+                    const riskIcons = { HIGH: '🔴', MEDIUM: '🟡', LOW: '🔵', MINIMAL: '🟢' };
+                    
+                    let riskHTML = '';
+                    ['HIGH', 'MEDIUM', 'LOW', 'MINIMAL'].forEach(level => {
+                        const count = risks[level] || 0;
+                        const pct = Math.round((count / total) * 100);
+                        riskHTML += `
+                            <div style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                                    <span>${riskIcons[level]} ${level}</span>
+                                    <span style="color: ${riskColors[level]}">${count} (${pct}%)</span>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); border-radius: 4px; height: 6px; overflow: hidden;">
+                                    <div style="background: ${riskColors[level]}; height: 100%; width: ${pct}%; border-radius: 4px; transition: width 0.5s;"></div>
+                                </div>
+                            </div>`;
+                    });
+                    
+                    // Add average quality score
+                    const avgQuality = batchData.aggregate?.averageQualityScore;
+                    if (avgQuality !== undefined) {
+                        riskHTML += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-neural); font-size: 0.85rem; color: var(--secondary-text);">
+                            Avg Quality: <span style="color: var(--neural-cyan); font-weight: 600;">${avgQuality.toFixed(1)}/10</span>
+                        </div>`;
+                    }
+                    
+                    if (riskEl) riskEl.innerHTML = riskHTML;
+                } else {
+                    if (riskEl) riskEl.innerHTML = '<div style="text-align: center; color: var(--muted-text); padding: 10px; font-size: 0.85rem;">Analysis unavailable</div>';
+                }
+
+                // Quality Summary
+                const qualityEl = document.getElementById('quality-summary');
+                if (batchRes && batchRes.ok) {
+                    // Re-parse since response was consumed
+                    const batchRes2 = await fetch('/api/governance/proposals/analyze/batch');
+                    const batchData2 = await batchRes2.json();
+                    const analyses = batchData2.analyses || [];
+                    
+                    if (analyses.length > 0) {
+                        const sentiments = { positive: 0, neutral: 0, negative: 0 };
+                        analyses.forEach(a => {
+                            const s = a.analysis?.sentiment?.label?.toLowerCase() || 'neutral';
+                            if (sentiments[s] !== undefined) sentiments[s]++;
+                        });
+                        
+                        const sentColors = { positive: '#10b981', neutral: '#3b82f6', negative: '#ef4444' };
+                        const sentIcons = { positive: '😊', neutral: '😐', negative: '😟' };
+                        
+                        let qualHTML = `<div style="font-size: 2rem; text-align: center; margin-bottom: 12px;">
+                            ${analyses.length} <span style="font-size: 0.9rem; color: var(--secondary-text);">proposals analyzed</span>
+                        </div>`;
+                        
+                        qualHTML += '<div style="display: flex; gap: 12px; justify-content: center;">';
+                        Object.entries(sentiments).forEach(([label, count]) => {
+                            qualHTML += `<div style="text-align: center;">
+                                <div style="font-size: 1.5rem;">${sentIcons[label]}</div>
+                                <div style="font-size: 1.2rem; font-weight: 600; color: ${sentColors[label]}">${count}</div>
+                                <div style="font-size: 0.7rem; color: var(--secondary-text); text-transform: capitalize;">${label}</div>
+                            </div>`;
+                        });
+                        qualHTML += '</div>';
+                        
+                        // Add top-scoring proposal
+                        const sorted = [...analyses].sort((a, b) => (b.analysis?.qualityScore?.score || 0) - (a.analysis?.qualityScore?.score || 0));
+                        if (sorted[0]) {
+                            const top = sorted[0];
+                            qualHTML += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-neural); font-size: 0.8rem;">
+                                🏆 Top: <span style="color: var(--neural-cyan);">${top.title || top.proposalId}</span>
+                                <span style="color: var(--neural-green); font-weight: 600;"> ${top.analysis?.qualityScore?.grade || '?'}</span>
+                            </div>`;
+                        }
+                        
+                        if (qualityEl) qualityEl.innerHTML = qualHTML;
+                    } else {
+                        if (qualityEl) qualityEl.innerHTML = '<div style="text-align: center; color: var(--muted-text); padding: 10px; font-size: 0.85rem;">No proposals to analyze</div>';
+                    }
+                }
+
+                // Security Status
+                const secEl = document.getElementById('security-status');
+                if (securityRes && securityRes.ok) {
+                    const secData = await securityRes.json();
+                    const flagged = secData.flaggedProposals || [];
+                    const scanned = secData.totalScanned || 0;
+                    const status = flagged.length === 0 ? 'secure' : 'alert';
+                    
+                    let secHTML = `
+                        <div style="text-align: center; margin-bottom: 16px;">
+                            <div style="font-size: 2.5rem;">${status === 'secure' ? '🛡️' : '⚠️'}</div>
+                            <div style="font-size: 1.1rem; font-weight: 600; color: ${status === 'secure' ? 'var(--neural-green)' : 'var(--neural-red)'}; margin-top: 4px;">
+                                ${status === 'secure' ? 'All Clear' : `${flagged.length} Flagged`}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--secondary-text); margin-top: 4px;">
+                                ${scanned} proposals scanned
+                            </div>
+                        </div>`;
+                    
+                    if (flagged.length > 0) {
+                        secHTML += '<div style="border-top: 1px solid var(--border-neural); padding-top: 8px;">';
+                        flagged.slice(0, 2).forEach(f => {
+                            secHTML += `<div style="font-size: 0.8rem; padding: 4px 0; color: var(--neural-red);">
+                                ⚠️ ${f.title || f.proposalId}: ${f.reason || 'Flagged for review'}
+                            </div>`;
+                        });
+                        secHTML += '</div>';
+                    }
+                    
+                    if (secEl) secEl.innerHTML = secHTML;
+                } else {
+                    if (secEl) secEl.innerHTML = '<div style="text-align: center; color: var(--muted-text); padding: 10px; font-size: 0.85rem;">Security scan unavailable</div>';
+                }
+            } catch (error) {
+                console.error('AI insights error:', error);
+            }
+        }
+
         // Initialize mode and load dashboard on page load
         updateModeButtons();
         loadDashboard();
+        loadAIInsights();
         
         // Refresh every 30 seconds for metrics (SSE handles real-time activity)
         setInterval(loadDashboard, 30000);
@@ -583,6 +753,7 @@
                     currentMode = newMode;
                     updateModeButtons();
                     loadDashboard();
+                    loadAIInsights();
                     // Reconnect activity feed for new mode
                     const feed = document.getElementById('activity-feed');
                     if (feed) feed.innerHTML = '<div id="feed-empty" style="text-align: center; padding: 40px; color: var(--secondary-text);">🔄 Switching to ' + newMode + ' feed...</div>';
