@@ -8,12 +8,12 @@ const NAV_CONFIG = {
         color: "var(--neural-purple)"
     },
     links: [
-        { href: "/", text: "🏠 Home", id: "home" },
-        { href: "/dashboard", text: "📊 Dashboard", id: "dashboard" }, 
-        { href: "/prediction-markets", text: "🎯 Markets", id: "markets" },
-        { href: "/roi-analytics", text: "📈 ROI", id: "roi" },
-        { href: "/api/docs", text: "📖 Docs", id: "docs" },
-        { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", id: "github", external: true }
+        { href: "/", text: "🏠 Home", mobileText: "🏠 Home", id: "home" },
+        { href: "/dashboard", text: "📊 Dashboard", mobileText: "📊 Dashboard", id: "dashboard" }, 
+        { href: "/prediction-markets", text: "🎯 Markets", mobileText: "🎯 Prediction Markets", id: "markets" },
+        { href: "/roi-analytics", text: "📈 ROI", mobileText: "📈 ROI Analytics", id: "roi" },
+        { href: "/api/docs", text: "📖 Docs", mobileText: "📖 API Documentation", id: "docs" },
+        { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", mobileText: "💻 GitHub", id: "github", external: true }
     ]
 };
 
@@ -22,25 +22,26 @@ function generateNavigation(currentPageId = null) {
     // Generate desktop navigation links
     const desktopLinks = NAV_CONFIG.links.map(link => {
         const isActive = link.id === currentPageId;
-        const activeStyle = isActive ? 
-            `color: var(--neural-cyan); background: var(--neural-cyan-glow);` :
-            `color: var(--primary-text); onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'"`;
-        
         const targetAttr = link.external ? `target="_blank"` : '';
         
-        return `<a href="${link.href}" ${targetAttr} style="${activeStyle} text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;">${link.text}</a>`;
+        if (isActive) {
+            return `<a href="${link.href}" ${targetAttr} style="color: var(--neural-cyan); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow); font-size: 0.85rem; white-space: nowrap;">${link.text}</a>`;
+        } else {
+            return `<a href="${link.href}" ${targetAttr} style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">${link.text}</a>`;
+        }
     }).join('\n                    ');
 
     // Generate mobile navigation links  
     const mobileLinks = NAV_CONFIG.links.map(link => {
         const isActive = link.id === currentPageId;
-        const activeStyle = isActive ?
-            `color: var(--neural-cyan); background: var(--neural-cyan-glow);` :
-            `color: var(--primary-text); border: 1px solid var(--border-neural);`;
-        
         const targetAttr = link.external ? `target="_blank"` : '';
+        const linkText = link.mobileText || link.text;
         
-        return `<a href="${link.href}" ${targetAttr} style="${activeStyle} text-decoration: none; padding: 12px; border-radius: var(--radius-sm); text-align: center;">${link.text}</a>`;
+        if (isActive) {
+            return `<a href="${link.href}" ${targetAttr} style="color: var(--neural-cyan); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); background: var(--neural-cyan-glow); text-align: center;">${linkText}</a>`;
+        } else {
+            return `<a href="${link.href}" ${targetAttr} style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">${linkText}</a>`;
+        }
     }).join('\n                ');
 
     return `
