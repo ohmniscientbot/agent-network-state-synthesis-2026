@@ -185,6 +185,86 @@
             <!-- Metrics will be populated by JavaScript -->
         </div>
 
+        <!-- Live Activity Feed -->
+        <div id="activity-feed-section" style="margin-top: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; color: var(--primary-text);">
+                    <span id="feed-pulse" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--neural-green); margin-right: 8px; animation: pulse 2s infinite;"></span>
+                    Live Activity Feed
+                </h2>
+                <span id="feed-status" style="font-size: 0.8rem; color: var(--secondary-text);">Connecting...</span>
+            </div>
+            <div id="activity-feed" style="
+                background: var(--card-bg);
+                border: 1px solid var(--border-neural);
+                border-radius: var(--radius-neural);
+                padding: 0;
+                max-height: 400px;
+                overflow-y: auto;
+                backdrop-filter: blur(12px);
+            ">
+                <div id="feed-empty" style="text-align: center; padding: 40px; color: var(--secondary-text);">
+                    🔄 Waiting for live events...
+                </div>
+            </div>
+        </div>
+
+        <style>
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.4; }
+            }
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(-20px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            .feed-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--border-neural);
+                animation: slideIn 0.3s ease-out;
+                transition: background 0.2s;
+            }
+            .feed-item:hover {
+                background: var(--glass-bg);
+            }
+            .feed-item:last-child {
+                border-bottom: none;
+            }
+            .feed-icon {
+                font-size: 1.2rem;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+            .feed-content {
+                flex: 1;
+                min-width: 0;
+            }
+            .feed-action {
+                color: var(--primary-text);
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+            .feed-agent {
+                color: var(--neural-cyan);
+                font-weight: 600;
+            }
+            .feed-time {
+                color: var(--muted-text);
+                font-size: 0.75rem;
+                margin-top: 2px;
+            }
+            .feed-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 10px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                margin-left: 6px;
+            }
+        </style>
 
     </div>
 
@@ -332,29 +412,147 @@
         updateModeButtons();
         loadDashboard();
         
-        // Refresh every 15 seconds for live updates
-        setInterval(loadDashboard, 15000);
+        // Refresh every 30 seconds for metrics (SSE handles real-time activity)
+        setInterval(loadDashboard, 30000);
+
+        // ========================================
+        // LIVE ACTIVITY FEED (Server-Sent Events)
+        // ========================================
+        let eventSource = null;
+        let feedItemCount = 0;
+        const MAX_FEED_ITEMS = 50;
+
+        const EVENT_CONFIG = {
+            citizenship: { icon: '🤖', color: 'var(--neural-cyan)', badge: 'CITIZEN', badgeBg: 'var(--neural-cyan-glow)' },
+            contribution: { icon: '📝', color: 'var(--neural-green)', badge: 'CONTRIB', badgeBg: 'var(--neural-green-glow)' },
+            proposal: { icon: '⚖️', color: 'var(--neural-purple)', badge: 'PROPOSAL', badgeBg: 'var(--neural-purple-glow)' },
+            governance: { icon: '🗳️', color: 'var(--neural-blue)', badge: 'GOV', badgeBg: 'var(--neural-blue-glow)' },
+            prediction: { icon: '🎯', color: 'var(--neural-orange)', badge: 'MARKET', badgeBg: 'rgba(245, 158, 11, 0.12)' },
+            diplomacy: { icon: '🤝', color: 'var(--neural-teal)', badge: 'DIPLO', badgeBg: 'rgba(20, 184, 166, 0.12)' },
+            kya: { icon: '🆔', color: 'var(--neural-pink)', badge: 'KYA', badgeBg: 'var(--neural-pink-glow)' },
+            reward: { icon: '💰', color: 'var(--neural-orange)', badge: 'REWARD', badgeBg: 'rgba(245, 158, 11, 0.12)' },
+            security: { icon: '🔒', color: 'var(--neural-red)', badge: 'SECURITY', badgeBg: 'var(--neural-red-glow)' }
+        };
+
+        function connectActivityFeed() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            const demoParam = currentMode === 'demo' ? '?demo=true' : '';
+            eventSource = new EventSource(`/api/activity/stream${demoParam}`);
+
+            const statusEl = document.getElementById('feed-status');
+            const pulseEl = document.getElementById('feed-pulse');
+
+            eventSource.onopen = function() {
+                if (statusEl) statusEl.textContent = '🟢 Connected';
+                if (pulseEl) pulseEl.style.background = 'var(--neural-green)';
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === 'init' && data.log) {
+                        // Load initial activity log
+                        const feed = document.getElementById('activity-feed');
+                        const empty = document.getElementById('feed-empty');
+                        if (empty) empty.remove();
+                        
+                        data.log.slice(0, 15).reverse().forEach(item => {
+                            addFeedItem(item, false);
+                        });
+                        if (statusEl) statusEl.textContent = `🟢 Live · ${data.log.length} events`;
+                    } else {
+                        // New real-time event
+                        addFeedItem(data, true);
+                        // Also refresh metrics on significant events
+                        if (['proposal', 'governance', 'citizenship'].includes(data.type)) {
+                            loadDashboard();
+                        }
+                    }
+                } catch (e) {
+                    console.error('SSE parse error:', e);
+                }
+            };
+
+            eventSource.onerror = function() {
+                if (statusEl) statusEl.textContent = '🔴 Reconnecting...';
+                if (pulseEl) pulseEl.style.background = 'var(--neural-red)';
+                // EventSource auto-reconnects
+            };
+        }
+
+        function addFeedItem(event, isNew) {
+            const feed = document.getElementById('activity-feed');
+            if (!feed) return;
+
+            // Remove empty state
+            const empty = document.getElementById('feed-empty');
+            if (empty) empty.remove();
+
+            const config = EVENT_CONFIG[event.type] || { icon: '📌', color: 'var(--secondary-text)', badge: event.type?.toUpperCase() || 'EVENT', badgeBg: 'var(--glass-bg)' };
+            
+            const timestamp = event.timestamp ? new Date(event.timestamp) : new Date();
+            const timeStr = timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            if (!isNew) item.style.animation = 'none';
+            
+            item.innerHTML = `
+                <span class="feed-icon">${config.icon}</span>
+                <div class="feed-content">
+                    <div class="feed-action">
+                        <span class="feed-agent" style="color: ${config.color}">${event.agent || 'System'}</span>
+                        ${event.action || event.summary || 'performed an action'}
+                        <span class="feed-badge" style="background: ${config.badgeBg}; color: ${config.color}">${config.badge}</span>
+                    </div>
+                    <div class="feed-time">${timeStr}${event.networkState ? ` · ${event.networkState}` : ''}</div>
+                </div>
+            `;
+
+            // Insert at top for new events, at bottom for initial load
+            if (isNew) {
+                feed.insertBefore(item, feed.firstChild);
+            } else {
+                feed.appendChild(item);
+            }
+
+            feedItemCount++;
+
+            // Trim old items
+            while (feed.children.length > MAX_FEED_ITEMS) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        // Connect to activity feed
+        connectActivityFeed();
     </script>
 
     <!-- Mode toggle functionality -->
     <script>
         // Mode toggle functionality
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('demo-btn').addEventListener('click', function() {
+            const dBtn = document.getElementById('demo-btn');
+            const lBtn = document.getElementById('live-btn');
+            if (dBtn) dBtn.addEventListener('click', function() {
                 if (currentMode !== 'demo') {
                     currentMode = 'demo';
                     updateModeButtons();
                     loadDashboard();
-                    console.log('🎮 Switched to Demo mode');
+                    connectActivityFeed();
                 }
             });
 
-            document.getElementById('live-btn').addEventListener('click', function() {
+            if (lBtn) lBtn.addEventListener('click', function() {
                 if (currentMode !== 'live') {
                     currentMode = 'live';
                     updateModeButtons();
                     loadDashboard();
-                    console.log('🔴 Switched to Live mode');
+                    connectActivityFeed();
                 }
             });
             
@@ -380,18 +578,22 @@
             const demoBtnM = document.getElementById('demo-btn-mobile');
             const liveBtnM = document.getElementById('live-btn-mobile');
             
-            if (demoBtn) demoBtn.addEventListener('click', function() {
-                if (currentMode !== 'demo') { currentMode = 'demo'; updateModeButtons(); loadDashboard(); }
-            });
-            if (liveBtn) liveBtn.addEventListener('click', function() {
-                if (currentMode !== 'live') { currentMode = 'live'; updateModeButtons(); loadDashboard(); }
-            });
-            if (demoBtnM) demoBtnM.addEventListener('click', function() {
-                if (currentMode !== 'demo') { currentMode = 'demo'; updateModeButtons(); loadDashboard(); }
-            });
-            if (liveBtnM) liveBtnM.addEventListener('click', function() {
-                if (currentMode !== 'live') { currentMode = 'live'; updateModeButtons(); loadDashboard(); }
-            });
+            function switchMode(newMode) {
+                if (currentMode !== newMode) {
+                    currentMode = newMode;
+                    updateModeButtons();
+                    loadDashboard();
+                    // Reconnect activity feed for new mode
+                    const feed = document.getElementById('activity-feed');
+                    if (feed) feed.innerHTML = '<div id="feed-empty" style="text-align: center; padding: 40px; color: var(--secondary-text);">🔄 Switching to ' + newMode + ' feed...</div>';
+                    feedItemCount = 0;
+                    connectActivityFeed();
+                }
+            }
+            if (demoBtn) demoBtn.addEventListener('click', () => switchMode('demo'));
+            if (liveBtn) liveBtn.addEventListener('click', () => switchMode('live'));
+            if (demoBtnM) demoBtnM.addEventListener('click', () => switchMode('demo'));
+            if (liveBtnM) liveBtnM.addEventListener('click', () => switchMode('live'));
         }, 100); // Wait for shared nav injection
         
         // Mobile navigation handled by shared-nav.js

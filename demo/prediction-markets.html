@@ -324,13 +324,13 @@
             const liveBtnM = document.getElementById('live-btn-mobile');
             
             if (currentMode === 'demo') {
-                demoBtn.style.background = 'var(--neural-red)'; demoBtn.style.color = 'white'; demoBtn.style.border = 'none';
-                liveBtn.style.background = 'transparent'; liveBtn.style.color = 'var(--secondary-text)'; liveBtn.style.border = '1px solid var(--border-neural)';
+                if (demoBtn) { demoBtn.style.background = 'var(--neural-red)'; demoBtn.style.color = 'white'; demoBtn.style.border = 'none'; }
+                if (liveBtn) { liveBtn.style.background = 'transparent'; liveBtn.style.color = 'var(--secondary-text)'; liveBtn.style.border = '1px solid var(--border-neural)'; }
                 if (demoBtnM) { demoBtnM.style.background = 'var(--neural-red)'; demoBtnM.style.color = 'white'; demoBtnM.style.border = 'none'; }
                 if (liveBtnM) { liveBtnM.style.background = 'transparent'; liveBtnM.style.color = 'var(--secondary-text)'; liveBtnM.style.border = '1px solid var(--border-neural)'; }
             } else {
-                liveBtn.style.background = 'var(--neural-green)'; liveBtn.style.color = 'white'; liveBtn.style.border = 'none';
-                demoBtn.style.background = 'transparent'; demoBtn.style.color = 'var(--secondary-text)'; demoBtn.style.border = '1px solid var(--border-neural)';
+                if (liveBtn) { liveBtn.style.background = 'var(--neural-green)'; liveBtn.style.color = 'white'; liveBtn.style.border = 'none'; }
+                if (demoBtn) { demoBtn.style.background = 'transparent'; demoBtn.style.color = 'var(--secondary-text)'; demoBtn.style.border = '1px solid var(--border-neural)'; }
                 if (liveBtnM) { liveBtnM.style.background = 'var(--neural-green)'; liveBtnM.style.color = 'white'; liveBtnM.style.border = 'none'; }
                 if (demoBtnM) { demoBtnM.style.background = 'transparent'; demoBtnM.style.color = 'var(--secondary-text)'; demoBtnM.style.border = '1px solid var(--border-neural)'; }
             }
