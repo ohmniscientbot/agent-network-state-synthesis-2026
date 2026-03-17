@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎯 Prediction Markets - Synthocracy</title>
+    <script src="/shared-nav.js"></script>
     <style>
         /* Neural Design System Variables (embedded — external CSS 404s on Railway) */
         :root {
@@ -213,52 +214,15 @@
     </style>
 </head>
 <body>
+    <!-- Navigation will be injected by shared component -->
+    <script>
+        // Inject shared navigation with markets page highlighted
+        injectNavigation('markets');
+    </script>
+    
     <!-- Neural Network Background -->
     <div class="neural-network-bg" id="neural-bg"></div>
 
-    <style>
-        @media (max-width: 768px) {
-            #desktop-nav { display: none !important; }
-            #mobile-menu-btn { display: block !important; }
-        }
-    </style>
-
-    <!-- Navigation Bar with Mobile Menu -->
-    <nav style="background: var(--card-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-neural); padding: 12px 0; position: sticky; top: 0; z-index: 100;">
-        <div style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-            <h2 style="color: var(--neural-purple); font-size: 1.4rem; margin: 0; font-family: 'Space Grotesk', sans-serif;">🏛️ Synthocracy</h2>
-            <div id="desktop-nav" style="display: flex; align-items: center; gap: 15px;">
-                <div style="display: flex; gap: 8px;">
-                    <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🏠 Home</a>
-                    <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📊 Dashboard</a>
-                    <a href="/prediction-markets" style="color: var(--neural-cyan); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow); font-size: 0.85rem; white-space: nowrap;">🎯 Markets</a>
-                    <a href="/roi-analytics" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📈 ROI</a>
-                    <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📖 Docs</a>
-                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="color: var(--secondary-text); font-size: 0.8rem;">Mode:</span>
-                    <button id="demo-btn" class="mode-btn" style="background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🎮 Demo</button>
-                    <button id="live-btn" class="mode-btn active" style="background: var(--neural-green); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🟢 Live</button>
-                </div>
-            </div>
-            <button id="mobile-menu-btn" style="display: none; background: none; border: none; color: var(--primary-text); font-size: 1.5rem; cursor: pointer;">☰</button>
-        </div>
-        <div id="mobile-nav" style="display: none; background: var(--card-bg); border-top: 1px solid var(--border-neural); padding: 20px;">
-            <div style="display: flex; flex-direction: column; gap: 15px; max-width: 400px; margin: 0 auto;">
-                <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">🏠 Home</a>
-                <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">📊 Dashboard</a>
-                <a href="/prediction-markets" style="color: var(--neural-cyan); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); background: var(--neural-cyan-glow); text-align: center;">🎯 Prediction Markets</a>
-                <a href="/roi-analytics" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">📈 ROI Analytics</a>
-                <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">📖 API Documentation</a>
-                <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">💻 GitHub</a>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button id="demo-btn-mobile" style="flex: 1; background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Inter', sans-serif;">🎮 Demo</button>
-                    <button id="live-btn-mobile" style="flex: 1; background: var(--neural-green); color: white; border: none; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Inter', sans-serif;">🟢 Live</button>
-                </div>
-            </div>
-        </div>
-    </nav>
 
     <div class="container">        
         <div class="header">
@@ -374,43 +338,30 @@
             }
         }
 
-        // Mode toggle + mobile menu
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('demo-btn').addEventListener('click', function() {
+        // Mode toggle event listeners - wait for shared nav injection
+        setTimeout(() => {
+            const demoBtn = document.getElementById('demo-btn');
+            const liveBtn = document.getElementById('live-btn');
+            const demoBtnM = document.getElementById('demo-btn-mobile');
+            const liveBtnM = document.getElementById('live-btn-mobile');
+            
+            if (demoBtn) demoBtn.addEventListener('click', function() {
                 if (currentMode !== 'demo') { currentMode = 'demo'; updateModeButtons(); refreshMarkets(); }
             });
-            document.getElementById('live-btn').addEventListener('click', function() {
+            if (liveBtn) liveBtn.addEventListener('click', function() {
                 if (currentMode !== 'live') { currentMode = 'live'; updateModeButtons(); refreshMarkets(); }
             });
-
-            // Mobile mode buttons
-            var demoBtnM = document.getElementById('demo-btn-mobile');
-            var liveBtnM = document.getElementById('live-btn-mobile');
             if (demoBtnM) demoBtnM.addEventListener('click', function() {
                 if (currentMode !== 'demo') { currentMode = 'demo'; updateModeButtons(); refreshMarkets(); }
             });
             if (liveBtnM) liveBtnM.addEventListener('click', function() {
                 if (currentMode !== 'live') { currentMode = 'live'; updateModeButtons(); refreshMarkets(); }
             });
-
-            // Mobile menu toggle
-            var btn = document.getElementById('mobile-menu-btn');
-            var nav = document.getElementById('mobile-nav');
-            if (btn && nav) {
-                btn.addEventListener('click', function() {
-                    if (nav.style.display === 'none' || nav.style.display === '') {
-                        nav.style.display = 'block'; btn.textContent = '✕';
-                    } else {
-                        nav.style.display = 'none'; btn.textContent = '☰';
-                    }
-                });
-                nav.querySelectorAll('a').forEach(function(l) {
-                    l.addEventListener('click', function() { nav.style.display = 'none'; btn.textContent = '☰'; });
-                });
-            }
-
+            
             updateModeButtons();
-        });
+        }, 100); // Wait for shared nav injection
+        
+        // Mobile navigation handled by shared-nav.js
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
