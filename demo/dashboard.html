@@ -219,49 +219,23 @@
             </div>
         </div>
 
-        <!-- Agent Debate Chamber -->
-        <div id="debate-section" style="margin-top: 40px;">
+        <!-- Debate Chamber Snippet -->
+        <div id="debate-snippet-section" style="margin-top: 40px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; color: var(--primary-text);">
                     ⚖️ Debate Chamber
                 </h2>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <select id="debate-proposal-select" style="
-                        background: var(--card-bg);
-                        border: 1px solid var(--border-neural);
-                        color: var(--primary-text);
-                        padding: 6px 10px;
-                        border-radius: var(--radius-sm);
-                        font-size: 0.8rem;
-                        cursor: pointer;
-                    ">
-                        <option value="">Select proposal...</option>
-                    </select>
-                    <button id="generate-debate-btn" onclick="generateDebate()" style="
-                        background: linear-gradient(135deg, var(--neural-purple), var(--neural-blue));
-                        color: white;
-                        border: none;
-                        padding: 6px 14px;
-                        border-radius: var(--radius-sm);
-                        font-size: 0.8rem;
-                        cursor: pointer;
-                        font-weight: 600;
-                    ">⚡ Generate Debate</button>
-                </div>
+                <a href="/debates" style="font-size: 0.85rem; color: var(--neural-cyan); text-decoration: none; padding: 6px 14px; border: 1px solid var(--neural-cyan); border-radius: var(--radius-sm);">View All Debates →</a>
             </div>
-            <div id="debate-container" style="
+            <div id="debate-snippet" style="
                 background: var(--card-bg);
                 border: 1px solid var(--border-neural);
                 border-radius: var(--radius-neural);
                 overflow: hidden;
                 backdrop-filter: blur(12px);
-                min-height: 100px;
             ">
-                <div style="text-align: center; padding: 40px; color: var(--secondary-text);">
-                    Select a proposal and click ⚡ Generate Debate to see AI agents argue
-                </div>
+                <div style="text-align: center; padding: 30px; color: var(--secondary-text);">🔄 Loading debates...</div>
             </div>
-            <div id="debate-stats" style="display: none; margin-top: 10px; display: flex; gap: 20px; font-size: 0.8rem; color: var(--secondary-text);"></div>
         </div>
 
         <!-- Live Activity Feed -->
@@ -591,27 +565,38 @@
                 const secEl = document.getElementById('security-status');
                 if (securityRes && securityRes.ok) {
                     const secData = await securityRes.json();
-                    const flagged = secData.flaggedProposals || [];
-                    const scanned = secData.totalScanned || 0;
-                    const status = flagged.length === 0 ? 'secure' : 'alert';
+                    // API returns flaggedProposals as a count (int) and scans as the array
+                    const scans = secData.scans || [];
+                    const flaggedCount = typeof secData.flaggedProposals === 'number' 
+                        ? secData.flaggedProposals 
+                        : scans.filter(s => s.riskLevel === 'HIGH' || s.recommended_action === 'ENHANCED_REVIEW').length;
+                    const scanned = secData.totalScanned || scans.length;
+                    const status = flaggedCount === 0 ? 'secure' : 'alert';
+                    const immediateReview = secData.summary?.immediate_review_needed || 0;
+                    const enhancedReview = secData.summary?.enhanced_review_needed || 0;
                     
                     let secHTML = `
                         <div style="text-align: center; margin-bottom: 16px;">
                             <div style="font-size: 2.5rem;">${status === 'secure' ? '🛡️' : '⚠️'}</div>
                             <div style="font-size: 1.1rem; font-weight: 600; color: ${status === 'secure' ? 'var(--neural-green)' : 'var(--neural-red)'}; margin-top: 4px;">
-                                ${status === 'secure' ? 'All Clear' : `${flagged.length} Flagged`}
+                                ${status === 'secure' ? 'All Clear' : `${flaggedCount} Flagged`}
                             </div>
                             <div style="font-size: 0.8rem; color: var(--secondary-text); margin-top: 4px;">
-                                ${scanned} proposals scanned
+                                ${scanned} proposal${scanned !== 1 ? 's' : ''} scanned
                             </div>
                         </div>`;
                     
-                    if (flagged.length > 0) {
+                    if (enhancedReview > 0 || immediateReview > 0) {
                         secHTML += '<div style="border-top: 1px solid var(--border-neural); padding-top: 8px;">';
-                        flagged.slice(0, 2).forEach(f => {
-                            secHTML += `<div style="font-size: 0.8rem; padding: 4px 0; color: var(--neural-red);">
-                                ⚠️ ${f.title || f.proposalId}: ${f.reason || 'Flagged for review'}
-                            </div>`;
+                        if (immediateReview > 0) {
+                            secHTML += `<div style="font-size: 0.8rem; padding: 3px 0; color: var(--neural-red);">🚨 ${immediateReview} need immediate review</div>`;
+                        }
+                        if (enhancedReview > 0) {
+                            secHTML += `<div style="font-size: 0.8rem; padding: 3px 0; color: var(--neural-yellow);">⚠️ ${enhancedReview} need enhanced review</div>`;
+                        }
+                        const highRiskScans = scans.filter(s => s.riskLevel === 'HIGH' || s.recommended_action !== 'STANDARD_REVIEW');
+                        highRiskScans.slice(0, 2).forEach(s => {
+                            secHTML += `<div style="font-size: 0.75rem; padding: 2px 0; color: var(--secondary-text);">› ${s.title || s.proposalId}</div>`;
                         });
                         secHTML += '</div>';
                     }
@@ -750,138 +735,40 @@
         connectActivityFeed();
 
         // ========================================
-        // DEBATE CHAMBER
+        // DEBATE CHAMBER SNIPPET (dashboard teaser)
         // ========================================
-        async function loadDebateProposals() {
+        async function loadDebateSnippet() {
+            const el = document.getElementById('debate-snippet');
+            if (!el) return;
             try {
-                const res = await fetch(`${window.location.origin}/api/governance/proposals`);
+                const res = await fetch('/api/debates?limit=4');
                 const data = await res.json();
-                const select = document.getElementById('debate-proposal-select');
-                if (!select) return;
-                (data.proposals || data || []).slice(0, 8).forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.textContent = p.title ? (p.title.length > 45 ? p.title.substring(0, 45) + '...' : p.title) : p.id;
-                    select.appendChild(opt);
-                });
-                // Auto-load first proposal's existing debates
-                if (select.options.length > 1) {
-                    select.selectedIndex = 1;
-                    loadExistingDebates(select.value);
+                const args = data.debates || [];
+                if (args.length === 0) {
+                    el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--secondary-text);">No debates yet. <a href="/debates" style="color:var(--neural-cyan);">Start one →</a></div>`;
+                    return;
                 }
-            } catch(e) { console.error('Failed to load proposals for debate:', e); }
-        }
-
-        async function loadExistingDebates(proposalId) {
-            if (!proposalId) return;
-            try {
-                const res = await fetch(`${window.location.origin}/api/debates/${proposalId}`);
-                const data = await res.json();
-                renderDebates(data);
-            } catch(e) {
-                console.error('Failed to load debates:', e);
-            }
-        }
-
-        async function generateDebate() {
-            const select = document.getElementById('debate-proposal-select');
-            const proposalId = select?.value;
-            if (!proposalId) {
-                alert('Please select a proposal first');
-                return;
-            }
-            const btn = document.getElementById('generate-debate-btn');
-            if (btn) { btn.disabled = true; btn.textContent = '🔄 Generating...'; }
-
-            try {
-                const res = await fetch(`${window.location.origin}/api/debates/${proposalId}/generate`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }
-                });
-                const data = await res.json();
-                // Reload debates to get full data including existing
-                await loadExistingDebates(proposalId);
-            } catch(e) {
-                console.error('Failed to generate debate:', e);
-            } finally {
-                if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate Debate'; }
-            }
-        }
-
-        function renderDebates(data) {
-            const container = document.getElementById('debate-container');
-            const statsEl = document.getElementById('debate-stats');
-            if (!container) return;
-
-            const args = data.arguments || [];
-            if (args.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--secondary-text);">No debate arguments yet. Click ⚡ Generate Debate to start.</div>';
-                return;
-            }
-
-            // Sort: for first, then against, alternating
-            const forArgs = args.filter(d => d.stance === 'for');
-            const againstArgs = args.filter(d => d.stance === 'against');
-            const interleaved = [];
-            const maxLen = Math.max(forArgs.length, againstArgs.length);
-            for (let i = 0; i < maxLen; i++) {
-                if (i < forArgs.length) interleaved.push(forArgs[i]);
-                if (i < againstArgs.length) interleaved.push(againstArgs[i]);
-            }
-
-            container.innerHTML = interleaved.map(d => {
-                const isFor = d.stance === 'for';
-                const color = isFor ? 'var(--neural-green)' : 'var(--neural-red)';
-                const bg = isFor ? 'var(--neural-green-glow)' : 'var(--neural-red-glow)';
-                const icon = isFor ? '✅' : '❌';
-                const time = new Date(d.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-                return `<div style="
-                    display: flex;
-                    gap: 14px;
-                    padding: 16px;
-                    border-bottom: 1px solid var(--border-neural);
-                    ${isFor ? 'border-left: 3px solid var(--neural-green);' : 'border-left: 3px solid var(--neural-red);'}
-                ">
-                    <div style="flex-shrink: 0; margin-top: 2px; font-size: 1.1rem;">${icon}</div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
-                            <span style="color: ${color}; font-weight: 600; font-size: 0.9rem;">${d.agentName}</span>
-                            <span style="background: ${bg}; color: ${color}; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;">
-                                ${d.stance.toUpperCase()}
-                            </span>
-                            ${d.kyaVerified ? '<span style="background: rgba(6,182,212,0.1); color: var(--neural-cyan); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">🆔 KYA</span>' : ''}
-                            <span style="color: var(--muted-text); font-size: 0.75rem; margin-left: auto;">${time}</span>
+                el.innerHTML = args.map(d => {
+                    const isFor = d.stance === 'for';
+                    const color = isFor ? 'var(--neural-green)' : 'var(--neural-red)';
+                    return `<div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border-neural);border-left:3px solid ${color};">
+                        <div style="flex:1;min-width:0;">
+                            <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap;">
+                                <span style="color:${color};font-weight:600;font-size:0.85rem;">${d.agentName}</span>
+                                <span style="background:${isFor ? 'var(--neural-green-glow)' : 'var(--neural-red-glow)'};color:${color};padding:1px 7px;border-radius:10px;font-size:0.7rem;font-weight:600;">${d.stance.toUpperCase()}</span>
+                                <span style="color:var(--muted-text);font-size:0.72rem;margin-left:auto;">${d.proposalTitle ? d.proposalTitle.substring(0,35)+'…' : ''}</span>
+                            </div>
+                            <div style="color:var(--secondary-text);font-size:0.82rem;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${d.argument}</div>
                         </div>
-                        <div style="color: var(--primary-text); font-size: 0.875rem; line-height: 1.5;">${d.argument}</div>
-                        <div style="color: var(--muted-text); font-size: 0.75rem; margin-top: 4px;">
-                            Voting Power: ${d.votingPower} · ${d.agentType || 'governance'}
-                        </div>
-                    </div>
+                    </div>`;
+                }).join('') + `<div style="padding:12px 16px;text-align:center;">
+                    <a href="/debates" style="color:var(--neural-cyan);font-size:0.85rem;text-decoration:none;">View full debates & generate new arguments →</a>
                 </div>`;
-            }).join('');
-
-            // Stats bar
-            if (statsEl) {
-                statsEl.style.display = 'flex';
-                statsEl.innerHTML = `
-                    <span>📊 ${args.length} arguments</span>
-                    <span style="color: var(--neural-green);">✅ For: ${forArgs.length}</span>
-                    <span style="color: var(--neural-red);">❌ Against: ${againstArgs.length}</span>
-                    <span>📌 ${data.proposalTitle || 'Proposal'}</span>
-                `;
+            } catch(e) {
+                if (el) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted-text);font-size:0.85rem;">Debates unavailable</div>';
             }
         }
-
-        // Wire up proposal select
-        const debateSelect = document.getElementById('debate-proposal-select');
-        if (debateSelect) {
-            debateSelect.addEventListener('change', function() {
-                if (this.value) loadExistingDebates(this.value);
-            });
-        }
-
-        // Load proposals for debate selector
-        loadDebateProposals();
+        loadDebateSnippet();
     </script>
 
     <!-- Mode toggle functionality -->

@@ -18,6 +18,7 @@ const NAV_CONFIG = {
         mobileText: "🛠️ Developer Tools",
         id: "tools",
         items: [
+            { href: "/debates", text: "⚖️ Debate Chamber", id: "debates" },
             { href: "/ai-governance", text: "🤖 AI Testing", id: "ai-governance" },
             { href: "/register", text: "⚙️ Register Agent", id: "register" },
             { href: "/api/docs", text: "📖 API Documentation", id: "docs" },

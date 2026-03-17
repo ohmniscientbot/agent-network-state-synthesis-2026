@@ -101,6 +101,11 @@ app.get('/ai-governance', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/ai-governance.html'));
 });
 
+// ⚖️ Debate Chamber
+app.get('/debates', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/debates.html'));
+});
+
 // ⚙️ Manual Agent Registration Interface
 app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/register.html'));
