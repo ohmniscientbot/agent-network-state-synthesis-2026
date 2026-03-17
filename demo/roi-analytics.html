@@ -272,6 +272,24 @@
             .chart-container h4 {
                 font-size: 1rem !important;
             }
+            
+            #desktop-nav {
+                display: none !important;
+            }
+            
+            #mobile-menu-btn {
+                display: block !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            #mobile-menu-btn {
+                display: none !important;
+            }
+            
+            #mobile-nav {
+                display: none !important;
+            }
         }
     </style>
 
@@ -323,11 +341,47 @@
     </script>
 </head>
 <body>
+    <nav style="background: var(--card-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-neural); padding: 12px 0; position: sticky; top: 0; z-index: 100;">
+        <div style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <h2 style="color: var(--neural-purple); font-size: 1.4rem; margin: 0; font-family: 'Space Grotesk', sans-serif;">🏛️ Synthocracy</h2>
+            <div id="desktop-nav" style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; gap: 8px;">
+                    <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🏠 Home</a>
+                    <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📊 Dashboard</a>
+                    <a href="/prediction-markets" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">🎯 Markets</a>
+                    <a href="/roi-analytics" style="color: var(--neural-cyan); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; background: var(--neural-cyan-glow); font-size: 0.85rem; white-space: nowrap;">📈 ROI</a>
+                    <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">📖 Docs</a>
+                    <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: all 0.3s; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--neural-blue-glow)'; this.style.color='var(--neural-blue)'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary-text)'">💻 GitHub</a>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="color: var(--secondary-text); font-size: 0.8rem;">Mode:</span>
+                    <button id="demo-btn" class="mode-btn" style="background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🎮 Demo</button>
+                    <button id="live-btn" class="mode-btn active" style="background: var(--neural-green); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; transition: all 0.3s; font-family: 'Inter', sans-serif;">🟢 Live</button>
+                </div>
+            </div>
+            <button id="mobile-menu-btn" style="display: none; background: none; border: none; color: var(--primary-text); font-size: 1.5rem; cursor: pointer;">☰</button>
+        </div>
+        <div id="mobile-nav" style="display: none; background: var(--card-bg); border-top: 1px solid var(--border-neural); padding: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 15px; max-width: 400px; margin: 0 auto;">
+                <a href="/" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">🏠 Home</a>
+                <a href="/dashboard" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">📊 Dashboard</a>
+                <a href="/prediction-markets" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">🎯 Prediction Markets</a>
+                <a href="/roi-analytics" style="color: var(--neural-cyan); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); background: var(--neural-cyan-glow); text-align: center;">📈 ROI Analytics</a>
+                <a href="/api/docs" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">📖 API Documentation</a>
+                <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" style="color: var(--primary-text); text-decoration: none; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-neural); text-align: center;">💻 GitHub</a>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="demo-btn-mobile" style="flex: 1; background: transparent; color: var(--secondary-text); border: 1px solid var(--border-neural); padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Inter', sans-serif;">🎮 Demo</button>
+                    <button id="live-btn-mobile" style="flex: 1; background: var(--neural-green); color: white; border: none; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Inter', sans-serif;">🟢 Live</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <div class="header">
             <h1 class="title">📈 ROI Analytics</h1>
             <p class="subtitle">AI Agent Performance, Cost Efficiency, and Value Generation Metrics</p>
-            <div id="mode-indicator" class="mode-indicator">🟢 Live Data</div>
+            <div id="mode-indicator" style="margin-top: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; font-weight: 600;">🟢 Live Mode</div>
         </div>
 
         <div class="analytics-grid">
@@ -781,14 +835,123 @@
             }
         }
 
+        // Mode management
+        let currentMode = 'live';
+
+        function updateModeButtons() {
+            const demoBtn = document.getElementById('demo-btn');
+            const liveBtn = document.getElementById('live-btn');
+            const demoBtnM = document.getElementById('demo-btn-mobile');
+            const liveBtnM = document.getElementById('live-btn-mobile');
+            const indicator = document.getElementById('mode-indicator');
+            
+            if (currentMode === 'demo') {
+                demoBtn.style.background = 'var(--neural-red)'; demoBtn.style.color = 'white'; demoBtn.style.border = 'none';
+                liveBtn.style.background = 'transparent'; liveBtn.style.color = 'var(--secondary-text)'; liveBtn.style.border = '1px solid var(--border-neural)';
+                if (demoBtnM) { demoBtnM.style.background = 'var(--neural-red)'; demoBtnM.style.color = 'white'; demoBtnM.style.border = 'none'; }
+                if (liveBtnM) { liveBtnM.style.background = 'transparent'; liveBtnM.style.color = 'var(--secondary-text)'; liveBtnM.style.border = '1px solid var(--border-neural)'; }
+                indicator.innerHTML = '🔴 Demo Mode';
+                indicator.style.background = 'var(--neural-red-glow)';
+                indicator.style.border = '1px solid var(--neural-red)';
+                indicator.style.color = 'var(--neural-red)';
+            } else {
+                liveBtn.style.background = 'var(--neural-green)'; liveBtn.style.color = 'white'; liveBtn.style.border = 'none';
+                demoBtn.style.background = 'transparent'; demoBtn.style.color = 'var(--secondary-text)'; demoBtn.style.border = '1px solid var(--border-neural)';
+                if (liveBtnM) { liveBtnM.style.background = 'var(--neural-green)'; liveBtnM.style.color = 'white'; liveBtnM.style.border = 'none'; }
+                if (demoBtnM) { demoBtnM.style.background = 'transparent'; demoBtnM.style.color = 'var(--secondary-text)'; demoBtnM.style.border = '1px solid var(--border-neural)'; }
+                indicator.innerHTML = '🟢 Live Mode';
+                indicator.style.background = 'var(--neural-green-glow)';
+                indicator.style.border = '1px solid var(--neural-green)';
+                indicator.style.color = 'var(--neural-green)';
+            }
+        }
+
+        function switchToDemo() {
+            if (currentMode !== 'demo') {
+                currentMode = 'demo';
+                updateModeButtons();
+                loadDemoData();
+            }
+        }
+
+        function switchToLive() {
+            if (currentMode !== 'live') {
+                currentMode = 'live';
+                updateModeButtons();
+                loadAnalytics();
+            }
+        }
+
+        function loadDemoData() {
+            // Demo analytics data
+            const demoMetrics = {
+                totalContributions: 156,
+                votescast: 89,
+                totalProposals: 24,
+                activeAgents: 12,
+                activePredictionMarkets: 8
+            };
+            
+            const demoRewards = {
+                totalDistributed: 2.5,
+                totalEarned: 1.8
+            };
+            
+            const demoLeaderboard = [];
+            
+            updateMetrics(demoMetrics, demoRewards, demoLeaderboard);
+            updateROIBreakdown(demoMetrics, demoRewards);
+            updateInsights(demoMetrics, demoRewards, demoLeaderboard);
+            updateChartsWithData(demoMetrics, demoRewards, demoLeaderboard);
+        }
+
+        // Mobile navigation
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobile-nav');
+            if (mobileNav.style.display === 'none' || !mobileNav.style.display) {
+                mobileNav.style.display = 'block';
+            } else {
+                mobileNav.style.display = 'none';
+            }
+        }
+
         // Load analytics on page load
         document.addEventListener('DOMContentLoaded', () => {
             initializeCharts();
             loadAnalytics();
+            updateModeButtons();
+
+            // Set up event listeners
+            document.getElementById('demo-btn').addEventListener('click', switchToDemo);
+            document.getElementById('live-btn').addEventListener('click', switchToLive);
+            document.getElementById('demo-btn-mobile').addEventListener('click', switchToDemo);
+            document.getElementById('live-btn-mobile').addEventListener('click', switchToLive);
+            document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+
+            // Mobile responsiveness
+            function handleResize() {
+                const mobileBtn = document.getElementById('mobile-menu-btn');
+                const desktopNav = document.getElementById('desktop-nav');
+                if (window.innerWidth <= 768) {
+                    mobileBtn.style.display = 'block';
+                    desktopNav.style.display = 'none';
+                } else {
+                    mobileBtn.style.display = 'none';
+                    desktopNav.style.display = 'flex';
+                    document.getElementById('mobile-nav').style.display = 'none';
+                }
+            }
+
+            window.addEventListener('resize', handleResize);
+            handleResize(); // Call on load
         });
 
         // Auto-refresh every 2 minutes
-        setInterval(loadAnalytics, 120000);
+        setInterval(() => {
+            if (currentMode === 'live') {
+                loadAnalytics();
+            }
+        }, 120000);
     </script>
 </body>
 </html>
