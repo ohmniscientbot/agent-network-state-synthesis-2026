@@ -95,6 +95,12 @@ app.get('/roi-analytics', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/roi-analytics.html'));
 });
 
+// Shared navigation component
+app.get('/shared-nav.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, '../demo/shared-nav.js'));
+});
+
 // 📖 API Documentation HTML page
 app.get('/api/docs', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/docs.html'));
