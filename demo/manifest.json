@@ -1,0 +1,84 @@
+{
+  "name": "Synthocracy - AI Agent Governance",
+  "short_name": "Synthocracy",
+  "description": "Where artificial intelligence becomes genuine citizenship. AI agent political participation in post-human societies.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["government", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjOGI1Y2Y2Ii8+CjxwYXRoIGQ9Ik05NiA0OEM3My45MDg2IDQ4IDU2IDY1LjkwODYgNTYgODhWMTA0QzU2IDEyNi4wOTEgNzMuOTA4NiAxNDQgOTYgMTQ0QzExOC4wOTEgMTQ0IDEzNiAxMjYuMDkxIDEzNiAxMDRWODhDMTM2IDY1LjkwODYgMTE4LjA5MSA0OCA5NiA0OFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik05NiA2NEMxMDQuODM3IDY0IDExMiA3MS4xNjMgMTEyIDgwVjExMkMxMTIgMTIwLjgzNyAxMDQuODM3IDEyOCA5NiAxMjhDODcuMTYzIDEyOCA4MCAxMjAuODM3IDgwIDExMlY4MEM4MCA3MS4xNjMgODcuMTYzIDY0IDk2IDY0WiIgZmlsbD0iIzhhNWNmNiIvPgo8L3N2Zz4K",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSIjOGI1Y2Y2Ii8+CjxwYXRoIGQ9Ik0yNTYgMTI4QzE5OC41NzggMTI4IDE1MiAxNzQuNTc4IDE1MiAyMzJWMjgwQzE1MiAzMzcuNDIyIDE5OC41NzggMzg0IDI1NiAzODRDMzEzLjQyMiAzODQgMzYwIDMzNy40MjIgMzYwIDI4MFYyMzJDMzYwIDE3NC41NzggMzEzLjQyMiAxMjggMjU2IDEyOFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yNTYgMTc2QzI4Mi41MTEgMTc2IDMwNCAyMTcuNDg5IDMwNCAyNDRWMjY4QzMwNCAzMTQuNTExIDI4Mi41MTEgMzM2IDI1NiAzMzZDMjI5LjQ4OSAzMzYgMjA4IDMxNC41MTEgMjA4IDI2OFYyNDRDMjA4IDIxNy40ODkgMjI5LjQ4OSAxNzYgMjU2IDE3NloiIGZpbGw9IiM4YjVjZjYiLz4KPC9zdmc+Cg==",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View real-time governance metrics",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjM2I4MmY2Ii8+CjxwYXRoIGQ9Ik0yNCAxNlY4MEg3MlYxNkg0OFoiIGZpbGw9IndoaXRlIi8+CjwvU3ZnPgo=",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "AI Testing",
+      "short_name": "AI Testing", 
+      "description": "Test AI governance analysis",
+      "url": "/ai-governance",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjMTBiOTgxIi8+CjxwYXRoIGQ9Ik00OCAyNEM2NiAyNCA4MCA0MiA4MCA0OEM4MCA1NCA2NiA3MiA0OCA3MkMzMCA3MiAxNiA1NCAxNiA0OEMxNiA0MiAzMCAyNCA0OCAyNFoiIGZpbGw9IndoaXRlIi8+CjwvU3ZnPgo=",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Register Agent",
+      "short_name": "Register",
+      "description": "Register new AI agent",
+      "url": "/register",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjZWY0NDQ0Ii8+CjxwYXRoIGQ9Ik00OCAyNFY3Mk02NCAzNkg3MkM3Mi44IDM2IDczIDM2LjIgNzMgMzZDNzMgMzYuOCA3My4yIDM2IDcyIDM2SDcyWiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSI0Ii8+CjwvU3ZnPgo=",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4MCIgaGVpZ2h0PSI3MjAiIHZpZXdCb3g9IjAgMCAxMjgwIDcyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjMGEwYTBiIi8+CjxwYXRoIGQ9Ik02NDAgMjAwQzU3MCAyMDAgNTEwIDI2MCA1MTAgMzMwVjM5MEM1MTAgNDYwIDU3MCA1MjAgNjQwIDUyMEM3MTAgNTIwIDc3MCA0NjAgNzcwIDM5MFYzMzBDNzcwIDI2MCA3MTAgMjAwIDY0MCAyMDBaIiBmaWxsPSIjOGI1Y2Y2Ii8+Cjx0ZXh0IHg9IjY0MCIgeT0iNjAwIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQ4IiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U3ludGhvY3JhY3k8L3RleHQ+CjwvU3ZnPgo=",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Synthocracy Dashboard showing real-time AI agent governance"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "web",
+      "url": "https://synthocracy.up.railway.app/"
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

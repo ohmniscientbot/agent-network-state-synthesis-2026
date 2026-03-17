@@ -116,6 +116,9 @@ function injectNavigation(currentPageId = null) {
     const navHTML = generateNavigation(currentPageId);
     document.body.insertAdjacentHTML('afterbegin', navHTML);
     
+    // Initialize PWA support
+    injectPWASupport();
+    
     // Initialize mobile menu functionality
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileNav = document.getElementById('mobile-nav');
@@ -172,6 +175,182 @@ function injectNavigation(currentPageId = null) {
 
     window.addEventListener('resize', handleResize);
     handleResize(); // Call on load
+}
+
+// ========================================
+// PWA SUPPORT
+// ========================================
+function injectPWASupport() {
+    // Add manifest link to head if not already present
+    if (!document.querySelector('link[rel="manifest"]')) {
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = '/manifest.json';
+        document.head.appendChild(manifestLink);
+    }
+
+    // Add PWA meta tags for better app-like experience
+    const metaTags = [
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'apple-mobile-web-app-title', content: 'Synthocracy' },
+        { name: 'msapplication-TileColor', content: '#8b5cf6' },
+        { name: 'theme-color', content: '#8b5cf6' }
+    ];
+
+    metaTags.forEach(({ name, content }) => {
+        if (!document.querySelector(`meta[name="${name}"]`)) {
+            const meta = document.createElement('meta');
+            meta.name = name;
+            meta.content = content;
+            document.head.appendChild(meta);
+        }
+    });
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
+                    console.log('🏛️ Synthocracy PWA: Service Worker registered', registration.scope);
+                    
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateAvailable();
+                            }
+                        });
+                    });
+                })
+                .catch(function(error) {
+                    console.warn('🏛️ Synthocracy PWA: Service Worker registration failed', error);
+                });
+        });
+    }
+
+    // Handle install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallPrompt();
+    });
+
+    // Listen for successful app install
+    window.addEventListener('appinstalled', (e) => {
+        console.log('🎉 Synthocracy PWA installed successfully');
+        hideInstallPrompt();
+    });
+}
+
+function showInstallPrompt() {
+    // Create install button (only show on supported pages)
+    const currentPage = window.location.pathname;
+    if (currentPage === '/' || currentPage === '/dashboard') {
+        const installBtn = document.createElement('button');
+        installBtn.id = 'pwa-install-btn';
+        installBtn.innerHTML = '📱 Install App';
+        installBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--neural-purple);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            animation: slideUp 0.3s ease-out;
+        `;
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('🎉 User accepted PWA install');
+                }
+                deferredPrompt = null;
+                hideInstallPrompt();
+            }
+        });
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from { transform: translateY(100px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            #pwa-install-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(installBtn);
+    }
+}
+
+function hideInstallPrompt() {
+    const installBtn = document.getElementById('pwa-install-btn');
+    if (installBtn) {
+        installBtn.remove();
+    }
+}
+
+function showUpdateAvailable() {
+    // Show subtle update notification
+    const updateNotification = document.createElement('div');
+    updateNotification.id = 'pwa-update-notification';
+    updateNotification.innerHTML = `
+        <span>🔄 Update available</span>
+        <button onclick="location.reload()">Refresh</button>
+    `;
+    updateNotification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--neural-blue);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        z-index: 1001;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideIn 0.3s ease-out;
+    `;
+
+    const refreshBtn = updateNotification.querySelector('button');
+    refreshBtn.style.cssText = `
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    `;
+
+    document.body.appendChild(updateNotification);
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        if (updateNotification.parentNode) {
+            updateNotification.remove();
+        }
+    }, 10000);
 }
 
 // Auto-initialize if DOM is ready

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synthocracy Dashboard</title>
     <script src="/shared-nav.js"></script>
+    <script src="/loading-states.js"></script>
     <style>
         /* Neural Design System Variables */
         :root {
@@ -371,10 +372,10 @@
             try {
                 const demoParam = currentMode === 'demo' ? '?demo=true' : '';
                 
-                // Show loading state
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('loading').innerHTML = `<p>🔄 Loading ${currentMode} data...</p>`;
-                document.getElementById('metrics').style.display = 'none';
+                // Show skeleton loading state
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('metrics').style.display = 'grid';
+                window.SynthocracyLoading.showSkeletonGrid('metrics', 8, 'metric');
                 
                 console.log(`🔄 Fetching: /api/dashboard/metrics${demoParam}`);
                 const response = await fetch(`/api/dashboard/metrics${demoParam}`);
@@ -493,7 +494,7 @@
                     
                     if (riskEl) riskEl.innerHTML = riskHTML;
                 } else {
-                    if (riskEl) riskEl.innerHTML = '<div style="text-align: center; color: var(--muted-text); padding: 10px; font-size: 0.85rem;">Analysis unavailable</div>';
+                    if (riskEl) riskEl.innerHTML = '<div style="text-align: center; color: var(--muted-text); padding: 20px; font-size: 0.85rem;">📊 Analysis unavailable</div>';
                 }
 
                 // Quality Summary (uses same batchData — no duplicate fetch)

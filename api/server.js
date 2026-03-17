@@ -112,6 +112,29 @@ app.get('/shared-nav.js', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/shared-nav.js'));
 });
 
+// ========================================
+// PWA SUPPORT
+// ========================================
+
+// PWA Manifest
+app.get('/manifest.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/manifest+json');
+    res.sendFile(path.join(__dirname, '../demo/manifest.json'));
+});
+
+// Service Worker
+app.get('/sw.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache'); // Always get fresh service worker
+    res.sendFile(path.join(__dirname, '../demo/sw.js'));
+});
+
+// Loading States Component
+app.get('/loading-states.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, '../demo/loading-states.js'));
+});
+
 // 📖 API Documentation HTML page
 app.get('/api/docs', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/docs.html'));
