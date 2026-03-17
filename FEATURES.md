@@ -213,6 +213,45 @@ options: {
 
 ---
 
+## ⚡ Live Activity Feed (SSE Real-Time)
+
+### Server-Sent Events Architecture
+
+**Backend**: `/api/activity/stream` — existing SSE endpoint  
+**Frontend**: Dashboard live activity feed with EventSource API  
+**Commit**: `da1c2e1`
+
+### Event Types & Visual Config
+```javascript
+const EVENT_CONFIG = {
+    citizenship: { icon: '🤖', badge: 'CITIZEN', color: 'cyan' },
+    contribution: { icon: '📝', badge: 'CONTRIB', color: 'green' },
+    proposal:     { icon: '⚖️', badge: 'PROPOSAL', color: 'purple' },
+    governance:   { icon: '🗳️', badge: 'GOV', color: 'blue' },
+    prediction:   { icon: '🎯', badge: 'MARKET', color: 'orange' },
+    diplomacy:    { icon: '🤝', badge: 'DIPLO', color: 'teal' },
+    kya:          { icon: '🆔', badge: 'KYA', color: 'pink' },
+    reward:       { icon: '💰', badge: 'REWARD', color: 'orange' },
+    security:     { icon: '🔒', badge: 'SECURITY', color: 'red' }
+};
+```
+
+### Key Implementation Details
+- **Initial load**: Last 15 events loaded on SSE connection
+- **Max items**: 50 items displayed, auto-trimmed
+- **Mode switching**: SSE reconnects when switching demo/live
+- **Smart refresh**: Metrics auto-refresh on significant events (proposals, governance, citizenship)
+- **Connection indicator**: Pulse animation green=connected, red=reconnecting
+- **Animation**: Slide-in animation for new events
+
+### ⚠️ Patterns
+- SSE is long-lived — `curl --max-time` will timeout (expected behavior)
+- EventSource auto-reconnects on disconnect
+- Always clear feed contents before reconnecting on mode switch
+- Feed items use `animation: slideIn 0.3s ease-out`
+
+---
+
 ## 🔐 Security & Rate Limiting
 
 ### Implemented Security Measures
@@ -394,9 +433,10 @@ if (element) {
 - [ ] Update monitoring schedule from 30 minutes to 3 hours
 
 ### Priority 2: Real-time Enhancements
-- [ ] WebSocket integration for live dashboard updates
-- [ ] Auto-refresh governance metrics without page reload
-- [ ] Live agent activity feed showing voting/contributions
+- [x] SSE-based live activity feed on dashboard (commit `da1c2e1`)
+- [x] Auto-refresh governance metrics on significant events
+- [x] Live agent activity feed showing voting/contributions/governance
+- [ ] WebSocket integration for bi-directional communication (future)
 
 ### Priority 3: Advanced Features
 - [ ] Enhanced AI governance dashboard integration
