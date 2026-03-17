@@ -452,10 +452,15 @@
                     fetch('/api/governance/security/scan').catch(() => null)
                 ]);
 
+                // Parse batch data once for both risk and quality sections
+                let batchData = null;
+                if (batchRes && batchRes.ok) {
+                    batchData = await batchRes.json();
+                }
+
                 // Risk Distribution
                 const riskEl = document.getElementById('risk-distribution');
-                if (batchRes && batchRes.ok) {
-                    const batchData = await batchRes.json();
+                if (batchData) {
                     const risks = batchData.aggregate?.riskDistribution || {};
                     const total = Object.values(risks).reduce((a, b) => a + b, 0) || 1;
                     
@@ -491,13 +496,10 @@
                     if (riskEl) riskEl.innerHTML = '<div style="text-align: center; color: var(--muted-text); padding: 10px; font-size: 0.85rem;">Analysis unavailable</div>';
                 }
 
-                // Quality Summary
+                // Quality Summary (uses same batchData — no duplicate fetch)
                 const qualityEl = document.getElementById('quality-summary');
-                if (batchRes && batchRes.ok) {
-                    // Re-parse since response was consumed
-                    const batchRes2 = await fetch('/api/governance/proposals/analyze/batch');
-                    const batchData2 = await batchRes2.json();
-                    const analyses = batchData2.analyses || [];
+                if (batchData) {
+                    const analyses = batchData.analyses || [];
                     
                     if (analyses.length > 0) {
                         const sentiments = { positive: 0, neutral: 0, negative: 0 };
