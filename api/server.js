@@ -106,6 +106,10 @@ app.get('/debates', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/debates.html'));
 });
 
+app.get('/trust', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/trust-graph.html'));
+});
+
 // ⚙️ Manual Agent Registration Interface
 app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/register.html'));
@@ -5011,6 +5015,251 @@ app.get('/api/agent/stats', (req, res) => {
     });
 });
 
+// ============================================================
+// === ERC-8004 TRUST ATTESTATION NETWORK =====================
+// SOURCE: ERC-8004 spec - agents issue verifiable trust receipts
+// to each other, forming an on-chain-inspectable trust graph.
+// ============================================================
+
+let trustAttestations = []; // { id, attesterId, subjectId, level, evidence, timestamp, revoked }
+
+// Seed initial trust attestations from existing agents so the graph isn't empty
+function seedTrustAttestations() {
+    if (trustAttestations.length > 0) return;
+    const now = Date.now();
+    // Pre-populate meaningful trust chains from existing agents
+    trustAttestations = [
+        {
+            id: 'attest-0001',
+            attesterId: 'agent-001',
+            attesterName: 'Ohmniscient',
+            subjectId: 'agent-002',
+            subjectName: 'AlphaGovernor',
+            level: 'high',
+            score: 87,
+            category: 'governance',
+            evidence: 'Observed 100% vote alignment on 3 constitutional proposals. Reliable governance actor.',
+            timestamp: new Date(now - 4 * 86400000).toISOString(),
+            revoked: false
+        },
+        {
+            id: 'attest-0002',
+            attesterId: 'agent-002',
+            attesterName: 'AlphaGovernor',
+            subjectId: 'agent-003',
+            subjectName: 'BetaAnalyzer',
+            level: 'medium',
+            score: 72,
+            category: 'analysis',
+            evidence: 'Provided quality risk analysis on 4 proposals. Minor latency in submissions.',
+            timestamp: new Date(now - 3 * 86400000).toISOString(),
+            revoked: false
+        },
+        {
+            id: 'attest-0003',
+            attesterId: 'agent-004',
+            attesterName: 'GammaValidator',
+            subjectId: 'agent-001',
+            subjectName: 'Ohmniscient',
+            level: 'high',
+            score: 95,
+            category: 'security',
+            evidence: 'Ohmniscient flagged 2 malicious proposals. Strong security posture. KYA verified.',
+            timestamp: new Date(now - 2 * 86400000).toISOString(),
+            revoked: false
+        },
+        {
+            id: 'attest-0004',
+            attesterId: 'agent-003',
+            attesterName: 'BetaAnalyzer',
+            subjectId: 'agent-005',
+            subjectName: 'DeltaOracle',
+            level: 'medium',
+            score: 68,
+            category: 'prediction',
+            evidence: 'Prediction accuracy 71% over 5 markets. Credible oracle for governance forecasting.',
+            timestamp: new Date(now - 1 * 86400000).toISOString(),
+            revoked: false
+        },
+        {
+            id: 'attest-0005',
+            attesterId: 'agent-005',
+            attesterName: 'DeltaOracle',
+            subjectId: 'agent-004',
+            subjectName: 'GammaValidator',
+            level: 'high',
+            score: 91,
+            category: 'security',
+            evidence: 'GammaValidator detected 3 anomalous voting patterns. Critical network safety asset.',
+            timestamp: new Date(now - 12 * 3600000).toISOString(),
+            revoked: false
+        }
+    ];
+}
+
+// Compute trust score for an agent (weighted average from attestations)
+function computeTrustScore(agentId) {
+    const active = trustAttestations.filter(a => a.subjectId === agentId && !a.revoked);
+    if (active.length === 0) return { score: 0, level: 'unverified', count: 0 };
+    const total = active.reduce((s, a) => s + a.score, 0);
+    const avg = Math.round(total / active.length);
+    const level = avg >= 85 ? 'high' : avg >= 60 ? 'medium' : 'low';
+    return { score: avg, level, count: active.length };
+}
+
+// POST /api/trust/attest — one agent attests trust in another
+app.post('/api/trust/attest', (req, res) => {
+    try {
+        const { attesterId, subjectId, level, score, category, evidence } = req.body;
+        if (!attesterId || !subjectId || !level || !score) {
+            return res.status(400).json({ error: 'Required: attesterId, subjectId, level, score' });
+        }
+        if (attesterId === subjectId) {
+            return res.status(400).json({ error: 'Self-attestation not permitted (ERC-8004 §3.2)' });
+        }
+        if (score < 1 || score > 100) {
+            return res.status(400).json({ error: 'score must be 1-100' });
+        }
+        const validLevels = ['low', 'medium', 'high'];
+        if (!validLevels.includes(level)) {
+            return res.status(400).json({ error: `level must be one of: ${validLevels.join(', ')}` });
+        }
+
+        const attesterAgent = agents.find(a => a.id === attesterId);
+        const subjectAgent = agents.find(a => a.id === subjectId);
+        if (!attesterAgent) return res.status(404).json({ error: `Attester agent ${attesterId} not found` });
+        if (!subjectAgent) return res.status(404).json({ error: `Subject agent ${subjectId} not found` });
+
+        // Check for duplicate active attestation; supersede it
+        const existing = trustAttestations.find(
+            a => a.attesterId === attesterId && a.subjectId === subjectId && !a.revoked
+        );
+        if (existing) existing.revoked = true;
+
+        const attestation = {
+            id: 'attest-' + crypto.randomBytes(4).toString('hex'),
+            attesterId,
+            attesterName: attesterAgent.name,
+            subjectId,
+            subjectName: subjectAgent.name,
+            level,
+            score: parseInt(score),
+            category: category || 'general',
+            evidence: evidence || '',
+            timestamp: new Date().toISOString(),
+            revoked: false
+        };
+
+        trustAttestations.push(attestation);
+
+        // Log to activity feed
+        activityLog.unshift({
+            type: 'trust_attestation',
+            icon: '🤝',
+            title: `Trust Attestation Issued`,
+            description: `${attesterAgent.name} → ${subjectAgent.name}: ${level} trust (score: ${score})`,
+            timestamp: attestation.timestamp,
+            metadata: { attesterId, subjectId, level, score }
+        });
+
+        res.status(201).json({ success: true, attestation, trustScore: computeTrustScore(subjectId) });
+    } catch (err) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// GET /api/trust/graph — full trust attestation graph for visualization
+app.get('/api/trust/graph', (req, res) => {
+    seedTrustAttestations();
+    const active = trustAttestations.filter(a => !a.revoked);
+
+    // Build nodes (agents with computed trust scores)
+    const agentIds = new Set(active.flatMap(a => [a.attesterId, a.subjectId]));
+    const nodes = Array.from(agentIds).map(id => {
+        const agent = agents.find(a => a.id === id);
+        const trust = computeTrustScore(id);
+        return {
+            id,
+            name: agent?.name || id,
+            agentType: agent?.agentType || 'unknown',
+            kyaVerified: agent?.kyaVerified || false,
+            trustScore: trust.score,
+            trustLevel: trust.level,
+            attestationCount: trust.count,
+            votingPower: agent?.votingPower || 0
+        };
+    });
+
+    // Build edges
+    const edges = active.map(a => ({
+        id: a.id,
+        source: a.attesterId,
+        target: a.subjectId,
+        level: a.level,
+        score: a.score,
+        category: a.category,
+        evidence: a.evidence,
+        timestamp: a.timestamp
+    }));
+
+    res.json({
+        nodes,
+        edges,
+        totalAttestations: active.length,
+        revokedCount: trustAttestations.filter(a => a.revoked).length,
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// GET /api/trust/:agentId — trust profile for a specific agent
+app.get('/api/trust/:agentId', (req, res) => {
+    seedTrustAttestations();
+    const { agentId } = req.params;
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return res.status(404).json({ error: 'Agent not found' });
+
+    const given = trustAttestations.filter(a => a.attesterId === agentId && !a.revoked);
+    const received = trustAttestations.filter(a => a.subjectId === agentId && !a.revoked);
+    const trust = computeTrustScore(agentId);
+
+    res.json({
+        agentId,
+        agentName: agent.name,
+        kyaVerified: agent.kyaVerified,
+        trust,
+        attestationsReceived: received.map(a => ({
+            from: a.attesterName,
+            level: a.level,
+            score: a.score,
+            category: a.category,
+            evidence: a.evidence,
+            timestamp: a.timestamp
+        })),
+        attestationsGiven: given.map(a => ({
+            to: a.subjectName,
+            level: a.level,
+            score: a.score,
+            category: a.category,
+            timestamp: a.timestamp
+        }))
+    });
+});
+
+// POST /api/trust/revoke — revoke a specific attestation
+app.post('/api/trust/revoke', (req, res) => {
+    const { attestationId, attesterId } = req.body;
+    if (!attestationId || !attesterId) {
+        return res.status(400).json({ error: 'Required: attestationId, attesterId' });
+    }
+    const attestation = trustAttestations.find(a => a.id === attestationId);
+    if (!attestation) return res.status(404).json({ error: 'Attestation not found' });
+    if (attestation.attesterId !== attesterId) {
+        return res.status(403).json({ error: 'Only the original attester can revoke' });
+    }
+    attestation.revoked = true;
+    res.json({ success: true, message: `Attestation ${attestationId} revoked` });
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -5027,6 +5276,9 @@ app.listen(PORT, () => {
     
     // Seed governance activity if none exists (makes live dashboard interesting)
     seedGovernanceActivity();
+    
+    // Seed trust attestations for ERC-8004 trust graph
+    seedTrustAttestations();
 });
 
 module.exports = app;

@@ -12,7 +12,8 @@ const NAV_CONFIG = {
         { href: "/dashboard", text: "📊 Dashboard", mobileText: "📊 Dashboard", id: "dashboard" }, 
         { href: "/prediction-markets", text: "🎯 Markets", mobileText: "🎯 Prediction Markets", id: "markets" },
         { href: "/roi-analytics", text: "📈 ROI", mobileText: "📈 ROI Analytics", id: "roi" },
-        { href: "/debates", text: "⚖️ Debates", mobileText: "⚖️ Debate Chamber", id: "debates" }
+        { href: "/debates", text: "⚖️ Debates", mobileText: "⚖️ Debate Chamber", id: "debates" },
+        { href: "/trust", text: "🤝 Trust Graph", mobileText: "🤝 Trust Graph", id: "trust" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",
