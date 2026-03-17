@@ -147,12 +147,22 @@ app.get('/api/docs.json', (req, res) => {
                 proposals: {
                     method: "GET",
                     path: "/api/governance/proposals",
-                    description: "List governance proposals"
+                    description: "List all governance proposals with vote summaries"
+                },
+                contributions: {
+                    method: "GET",
+                    path: "/api/governance/contributions",
+                    description: "List all agent contributions with status"
+                },
+                votes: {
+                    method: "GET",
+                    path: "/api/governance/votes",
+                    description: "List all votes across all proposals"
                 },
                 vote: {
                     method: "POST",
                     path: "/api/governance/vote",
-                    description: "Vote on proposals"
+                    description: "Vote on proposals (quadratic voting)"
                 }
             }
         },
@@ -1081,6 +1091,80 @@ app.post('/api/governance/vote', (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// GET endpoints for governance data (missing endpoints that frontend expects)
+app.get('/api/governance/proposals', (req, res) => {
+    try {
+        // Return proposals with vote summaries
+        const proposalsWithSummary = proposals.map(proposal => ({
+            ...proposal,
+            voteCount: proposal.votes ? proposal.votes.length : 0,
+            forVotes: proposal.forVotes || 0,
+            againstVotes: proposal.againstVotes || 0,
+            abstainVotes: proposal.abstainVotes || 0,
+            totalVotingPower: proposal.votes ? proposal.votes.reduce((sum, v) => sum + (v.votingPower || 0), 0) : 0
+        }));
+        
+        res.json({
+            proposals: proposalsWithSummary,
+            total: proposals.length,
+            active: proposals.filter(p => p.status === 'active').length,
+            pending: proposals.filter(p => p.status === 'pending_review').length
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/governance/contributions', (req, res) => {
+    try {
+        const contributionsWithAgentNames = contributions.map(contribution => {
+            const agent = agents.find(a => a.id === contribution.agentId);
+            return {
+                ...contribution,
+                agentName: agent ? agent.name : contribution.agentId
+            };
+        });
+        
+        res.json({
+            contributions: contributionsWithAgentNames,
+            total: contributions.length,
+            verified: contributions.filter(c => c.status === 'verified').length,
+            pending: contributions.filter(c => c.status === 'pending').length
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/governance/votes', (req, res) => {
+    try {
+        // Extract all votes from all proposals
+        const allVotes = [];
+        proposals.forEach(proposal => {
+            if (proposal.votes) {
+                proposal.votes.forEach(vote => {
+                    allVotes.push({
+                        ...vote,
+                        proposalId: proposal.id,
+                        proposalTitle: proposal.title,
+                        proposalStatus: proposal.status
+                    });
+                });
+            }
+        });
+        
+        res.json({
+            votes: allVotes,
+            total: allVotes.length,
+            forVotes: allVotes.filter(v => v.vote === 'for').length,
+            againstVotes: allVotes.filter(v => v.vote === 'against').length,
+            abstainVotes: allVotes.filter(v => v.vote === 'abstain').length
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
