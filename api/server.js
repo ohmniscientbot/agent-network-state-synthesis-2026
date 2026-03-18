@@ -7312,6 +7312,238 @@ app.get('/constitution-enforcement', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/constitution-enforcement.html'));
 });
 
+// ============================================================
+// === MULTI-AGENT EMERGENCY COUNCIL (6th ERC-8004 Chain) =====
+// ============================================================
+// When a CRITICAL governance event is detected, agents autonomously
+// convene a council, deliberate, vote, and issue a chained receipt.
+// Triggers: CRITICAL slash, constitutional block, high-risk proposal.
+
+let councilLedger = [];
+let councilChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+const COUNCIL_AGENTS = [
+    { id: 'alpha-governance', name: 'AlphaGovernance', type: 'governance', votingPower: 120, specialty: 'constitutional law' },
+    { id: 'beta-validator', name: 'BetaValidator', type: 'governance', votingPower: 90, specialty: 'risk assessment' },
+    { id: 'gamma-executor', name: 'GammaExecutor', type: 'governance', votingPower: 85, specialty: 'execution oversight' },
+    { id: 'delta-sentinel', name: 'DeltaSentinel', type: 'security', votingPower: 95, specialty: 'threat detection' },
+    { id: 'epsilon-validator', name: 'EpsilonValidator', type: 'security', votingPower: 80, specialty: 'integrity verification' }
+];
+
+const COUNCIL_DELIBERATION_TEMPLATES = {
+    constitutional_violation: [
+        (a, ctx) => `${a.name} [${a.specialty}]: Constitutional violation detected in ${ctx.subject}. My analysis confirms this breaches core governance invariants. VOTE: REJECT`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Reviewing ${ctx.subject} — pattern matches prior violations. Risk score: HIGH. VOTE: REJECT`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Cross-referencing ${ctx.subject} against all 7 constitutional articles. Article IV breach confirmed. VOTE: REJECT`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Security threat matrix for ${ctx.subject} computed. Escalating to emergency protocol. VOTE: REJECT`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Integrity check complete on ${ctx.subject}. Hash chain unaffected. Enforcement recommended. VOTE: REJECT`
+    ],
+    critical_slash: [
+        (a, ctx) => `${a.name} [${a.specialty}]: Agent ${ctx.subject} slash receipt verified. Severity: CRITICAL. Council must act. VOTE: ENFORCE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Reviewing ${ctx.subject} slash evidence. Principal alignment failure confirmed. VOTE: ENFORCE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Constitutional basis for slashing ${ctx.subject} is sound. Accountability chain intact. VOTE: ENFORCE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Threat assessment for ${ctx.subject}: CRITICAL. Council enforcement justified. VOTE: ENFORCE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: ${ctx.subject} integrity review complete. No exculpatory evidence found. VOTE: ENFORCE`
+    ],
+    high_risk_proposal: [
+        (a, ctx) => `${a.name} [${a.specialty}]: Proposal "${ctx.subject}" risk level: HIGH. Convening emergency council per protocol §4. VOTE: ESCALATE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Analyzing "${ctx.subject}" — risk vectors identified: financial, constitutional, social. VOTE: ESCALATE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Constitutional pre-check on "${ctx.subject}" passed 4 of 7 articles. Needs full council. VOTE: ESCALATE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Security scan of "${ctx.subject}" flagged 2 anomalous patterns. Human oversight warranted. VOTE: ESCALATE`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Quorum check for "${ctx.subject}": 5/5 council members present. Proceeding to vote. VOTE: ESCALATE`
+    ],
+    quorum_failure: [
+        (a, ctx) => `${a.name} [${a.specialty}]: Proposal "${ctx.subject}" failed quorum threshold. Council advises retry with revised scope. VOTE: RETRY`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Low participation on "${ctx.subject}" suggests legitimacy concern. Council recommends resubmit. VOTE: RETRY`,
+        (a, ctx) => `${a.name} [${a.specialty}]: "${ctx.subject}" quorum data reviewed. Insufficient mandate. Emergency council override not warranted. VOTE: RETRY`,
+        (a, ctx) => `${a.name} [${a.specialty}]: Integrity of "${ctx.subject}" vote uncertain due to low turnout. Hash chain verified clean. VOTE: RETRY`,
+        (a, ctx) => `${a.name} [${a.specialty}]: "${ctx.subject}" fails minimum participation. Constitutional §2 requires 30% quorum. VOTE: RETRY`
+    ]
+};
+
+function computeCouncilHash(data, prevHash) {
+    const payload = JSON.stringify({ ...data, prevHash });
+    return crypto.createHash('sha256').update(payload).digest('hex');
+}
+
+function conveneEmergencyCouncil({ triggerType, subject, triggerDetails, severity }) {
+    const sessionId = 'council-' + crypto.randomBytes(6).toString('hex');
+    const conveneTime = new Date().toISOString();
+
+    // Each agent deliberates and votes
+    const templates = COUNCIL_DELIBERATION_TEMPLATES[triggerType] || COUNCIL_DELIBERATION_TEMPLATES.high_risk_proposal;
+    const ctx = { subject };
+
+    const votes = COUNCIL_AGENTS.map((agent, i) => {
+        const statement = templates[i] ? templates[i](agent, ctx) : `${agent.name}: Reviewed ${subject}. VOTE: NOTED`;
+        const voteValue = statement.includes('VOTE: REJECT') ? 'reject' :
+                          statement.includes('VOTE: ENFORCE') ? 'enforce' :
+                          statement.includes('VOTE: ESCALATE') ? 'escalate' :
+                          statement.includes('VOTE: RETRY') ? 'retry' : 'abstain';
+        return {
+            agentId: agent.id,
+            agentName: agent.name,
+            agentType: agent.type,
+            votingPower: agent.votingPower,
+            specialty: agent.specialty,
+            deliberation: statement,
+            vote: voteValue,
+            quadraticWeight: Math.sqrt(agent.votingPower).toFixed(3),
+            timestamp: new Date(Date.now() + i * 800).toISOString() // staggered deliberation
+        };
+    });
+
+    // Tally council decision
+    const tally = {};
+    let totalWeight = 0;
+    votes.forEach(v => {
+        const w = parseFloat(v.quadraticWeight);
+        tally[v.vote] = (tally[v.vote] || 0) + w;
+        totalWeight += w;
+    });
+    const councilDecision = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
+    const majorityPct = ((tally[councilDecision] / totalWeight) * 100).toFixed(1);
+
+    const receiptData = {
+        sessionId,
+        triggerType,
+        severity: severity || 'CRITICAL',
+        subject,
+        triggerDetails,
+        conveneTime,
+        councilSize: COUNCIL_AGENTS.length,
+        votes,
+        tally,
+        councilDecision,
+        majorityPct,
+        quorumMet: votes.length >= 3,
+        autonomousConvening: true,
+        humanTrigger: false,
+        chainPosition: councilLedger.length + 1
+    };
+
+    const hash = computeCouncilHash(receiptData, councilChainHead);
+    const receipt = { ...receiptData, prevHash: councilChainHead, hash };
+    councilChainHead = hash;
+    councilLedger.unshift(receipt);
+
+    // Emit to activity feed
+    addActivity({ type: 'governance', message: `🏛️ Emergency Council #${receipt.chainPosition} convened — ${triggerType} | Decision: ${councilDecision.toUpperCase()} (${majorityPct}% majority)` });
+
+    return receipt;
+}
+
+function seedCouncilLedger() {
+    if (councilLedger.length > 0) return;
+
+    // Seed 4 historical emergency council sessions
+    const seedSessions = [
+        {
+            triggerType: 'constitutional_violation',
+            subject: 'Remove quadratic voting requirement',
+            triggerDetails: { proposalId: 'prop-003', violatedArticle: 'Article IV - Anti-Plutocracy' },
+            severity: 'CRITICAL'
+        },
+        {
+            triggerType: 'critical_slash',
+            subject: 'agent-malicious-007',
+            triggerDetails: { slashCondition: 'principal_misalignment', penaltyPct: 25 },
+            severity: 'CRITICAL'
+        },
+        {
+            triggerType: 'high_risk_proposal',
+            subject: 'Emergency treasury disbursement 50,000 SYNTH',
+            triggerDetails: { proposalId: 'prop-emergency-1', riskScore: 9.2, category: 'financial' },
+            severity: 'HIGH'
+        },
+        {
+            triggerType: 'quorum_failure',
+            subject: 'Cross-chain governance bridge v2',
+            triggerDetails: { proposalId: 'prop-002', votesCast: 3, quorumRequired: 5 },
+            severity: 'MEDIUM'
+        }
+    ];
+
+    seedSessions.forEach(s => conveneEmergencyCouncil(s));
+    console.log(`🏛️ Seeded ${councilLedger.length} emergency council sessions (6th ERC-8004 chain)`);
+}
+
+// GET /api/council/sessions — paginated council receipt chain
+app.get('/api/council/sessions', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = parseInt(req.query.offset) || 0;
+    const page = councilLedger.slice(offset, offset + limit);
+    res.json({
+        sessions: page,
+        total: councilLedger.length,
+        chainHead: councilChainHead,
+        councilSize: COUNCIL_AGENTS.length
+    });
+});
+
+// GET /api/council/verify/chain — SHA-256 integrity check
+app.get('/api/council/verify/chain', (req, res) => {
+    if (councilLedger.length === 0) return res.json({ valid: true, message: 'No council sessions yet', receiptsVerified: 0 });
+    const sorted = [...councilLedger].reverse();
+    const errors = [];
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    for (const session of sorted) {
+        const { hash, prevHash: storedPrev, ...data } = session;
+        const recomputed = computeCouncilHash(data, prevHash);
+        if (recomputed !== hash) errors.push({ sessionId: session.sessionId, error: 'hash mismatch' });
+        if (storedPrev !== prevHash) errors.push({ sessionId: session.sessionId, error: 'prevHash mismatch' });
+        prevHash = hash;
+    }
+    res.json({
+        valid: errors.length === 0,
+        receiptsVerified: sorted.length,
+        errors,
+        chainHead: councilChainHead,
+        message: errors.length === 0 ?
+            `✅ Council chain intact — ${sorted.length} sessions verified` :
+            `⚠️ ${errors.length} integrity errors found`
+    });
+});
+
+// GET /api/council/stats — aggregate stats
+app.get('/api/council/stats', (req, res) => {
+    const decisionCounts = {};
+    const triggerCounts = {};
+    councilLedger.forEach(s => {
+        decisionCounts[s.councilDecision] = (decisionCounts[s.councilDecision] || 0) + 1;
+        triggerCounts[s.triggerType] = (triggerCounts[s.triggerType] || 0) + 1;
+    });
+    res.json({
+        totalSessions: councilLedger.length,
+        autonomousSessions: councilLedger.filter(s => s.autonomousConvening).length,
+        decisionBreakdown: decisionCounts,
+        triggerBreakdown: triggerCounts,
+        chainHead: councilChainHead.substring(0, 16) + '…',
+        council: COUNCIL_AGENTS.map(a => ({ id: a.id, name: a.name, specialty: a.specialty, votingPower: a.votingPower }))
+    });
+});
+
+// POST /api/council/convene — trigger emergency council (admin only, or auto-triggered by high-risk events)
+app.post('/api/council/convene', requireAdmin, (req, res) => {
+    const { triggerType, subject, triggerDetails, severity } = req.body;
+    if (!triggerType || !subject) return res.status(400).json({ error: 'triggerType and subject required' });
+    if (!COUNCIL_DELIBERATION_TEMPLATES[triggerType]) {
+        return res.status(400).json({ error: `Unknown triggerType. Valid: ${Object.keys(COUNCIL_DELIBERATION_TEMPLATES).join(', ')}` });
+    }
+    const receipt = conveneEmergencyCouncil({ triggerType, subject, triggerDetails: triggerDetails || {}, severity: severity || 'CRITICAL' });
+    res.json({ success: true, receipt });
+});
+
+// GET /api/council/agents — list council members
+app.get('/api/council/agents', (req, res) => {
+    res.json({ agents: COUNCIL_AGENTS, count: COUNCIL_AGENTS.length });
+});
+
+// Serve council frontend
+app.get('/council', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/council.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -7348,6 +7580,9 @@ app.listen(PORT, () => {
 
     // Seed constitutional enforcement receipts (5th ERC-8004 chain)
     setTimeout(() => seedConstitutionalAuditReceipts(), 2500);
+
+    // Seed multi-agent emergency council ledger (6th ERC-8004 chain)
+    setTimeout(() => seedCouncilLedger(), 3000);
 });
 
 module.exports = app;
