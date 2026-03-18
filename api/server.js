@@ -8293,8 +8293,8 @@ function runConsensusRound() {
     consensusLedger.push(receipt);
 
     // Broadcast to SSE activity feed
-    broadcastActivity({
-        type: 'consensus',
+    broadcastEvent({
+        type: 'governance',
         agentId: 'multi-agent-consensus',
         timestamp: now,
         description: `🤝 ${roundId}: ${outcome === 'CONSENSUS_REACHED' ? '✅' : outcome === 'DEADLOCK' ? '⚠️' : '❌'} ${outcome} on "${question.text.substring(0, 60)}…" (${forPct.toFixed(0)}% FOR)`
