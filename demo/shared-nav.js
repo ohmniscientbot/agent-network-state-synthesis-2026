@@ -21,7 +21,8 @@ const NAV_CONFIG = {
         { href: "/slash-ledger", text: "⚔️ Slash Ledger", mobileText: "⚔️ Agent Slash Ledger", id: "slash-ledger" },
         { href: "/audit", text: "🔍 Audit", mobileText: "🔍 Audit Timeline", id: "audit" },
         { href: "/alignment", text: "⚖️ Alignment", mobileText: "⚖️ Incentive Alignment", id: "alignment" },
-        { href: "/delegation", text: "🗳️ Delegation", mobileText: "🗳️ Liquid Democracy", id: "delegation" }
+        { href: "/delegation", text: "🗳️ Delegation", mobileText: "🗳️ Liquid Democracy", id: "delegation" },
+        { href: "/constitution-enforcement", text: "🛡️ Enforcement", mobileText: "🛡️ Constitutional Enforcement", id: "constitution-enforcement" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

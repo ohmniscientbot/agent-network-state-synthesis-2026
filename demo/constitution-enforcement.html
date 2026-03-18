@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Constitutional Enforcement — Synthocracy</title>
+    <script src="/shared-nav.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255,255,255,0.02);
+            --border-neural: rgba(139,92,246,0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+            --radius-sm: 6px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        .page-header {
+            background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(6,182,212,0.06));
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: var(--radius-neural);
+            padding: 28px 32px;
+            margin-bottom: 28px;
+        }
+        .page-header h1 { font-size: 1.9rem; font-weight: 700; color: var(--neural-purple); }
+        .page-header p { margin-top: 8px; color: var(--secondary-text); font-size: 0.95rem; max-width: 700px; }
+        .erc-badge {
+            display: inline-block;
+            background: rgba(139,92,246,0.15);
+            border: 1px solid rgba(139,92,246,0.4);
+            color: var(--neural-purple);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Stats bar */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 18px 20px;
+            text-align: center;
+        }
+        .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+        .stat-label { font-size: 0.78rem; color: var(--secondary-text); margin-top: 5px; }
+
+        /* Chain integrity bar */
+        .chain-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .chain-indicator {
+            width: 14px; height: 14px; border-radius: 50%;
+            flex-shrink: 0;
+            animation: pulse 2s infinite;
+        }
+        .chain-indicator.valid { background: var(--neural-green); box-shadow: 0 0 8px var(--neural-green); }
+        .chain-indicator.invalid { background: var(--neural-red); box-shadow: 0 0 8px var(--neural-red); }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .chain-bar .chain-text { font-size: 0.88rem; color: var(--secondary-text); flex: 1; }
+        .chain-bar .chain-hash {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--neural-purple);
+            background: rgba(139,92,246,0.08);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .chain-bar button {
+            background: rgba(6,182,212,0.1);
+            border: 1px solid rgba(6,182,212,0.3);
+            color: var(--neural-cyan);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .chain-bar button:hover { background: rgba(6,182,212,0.2); }
+
+        /* Article violation heatmap */
+        .article-heatmap {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .article-heatmap h3 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--primary-text); }
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+        }
+        .article-cell {
+            background: rgba(255,255,255,0.025);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .article-name { font-size: 0.83rem; color: var(--primary-text); flex: 1; }
+        .article-count {
+            font-size: 1.1rem;
+            font-weight: 700;
+            min-width: 32px;
+            text-align: center;
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+        .count-0 { color: var(--neural-green); background: rgba(16,185,129,0.1); }
+        .count-1 { color: var(--neural-yellow); background: rgba(245,158,11,0.1); }
+        .count-2plus { color: var(--neural-red); background: rgba(239,68,68,0.1); }
+
+        /* Receipt chain */
+        .chain-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--primary-text); }
+        .receipt-chain { display: flex; flex-direction: column; gap: 10px; }
+        .receipt-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-neural);
+            padding: 14px 18px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .receipt-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+        }
+        .receipt-card.COMPLIANT::before { background: var(--neural-green); border-left: 1px solid var(--border-neural); }
+        .receipt-card.WARNING::before { background: var(--neural-yellow); }
+        .receipt-card.BLOCKED::before { background: var(--neural-red); }
+        .receipt-card:hover { background: rgba(255,255,255,0.04); }
+
+        .receipt-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+        .receipt-title { font-size: 0.9rem; font-weight: 600; color: var(--primary-text); flex: 1; }
+        .verdict-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .verdict-badge.COMPLIANT { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+        .verdict-badge.WARNING { background: rgba(245,158,11,0.15); color: var(--neural-yellow); border: 1px solid rgba(245,158,11,0.3); }
+        .verdict-badge.BLOCKED { background: rgba(239,68,68,0.15); color: var(--neural-red); border: 1px solid rgba(239,68,68,0.3); }
+
+        .receipt-meta { display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+        .receipt-meta span { font-size: 0.75rem; color: var(--secondary-text); }
+        .receipt-meta .mono { font-family: 'JetBrains Mono', monospace; color: var(--neural-purple); font-size: 0.7rem; }
+
+        .violation-list { margin-top: 10px; }
+        .violation-item {
+            background: rgba(239,68,68,0.06);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-top: 6px;
+            font-size: 0.78rem;
+        }
+        .violation-item .art-id { color: var(--neural-red); font-weight: 600; }
+        .violation-item .reason { color: var(--secondary-text); margin-top: 2px; }
+
+        .hash-row {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .hash-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--secondary-text);
+            background: rgba(255,255,255,0.03);
+            padding: 3px 7px;
+            border-radius: 3px;
+        }
+
+        /* Autonomous badge */
+        .auto-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--neural-cyan);
+            background: rgba(6,182,212,0.1);
+            border: 1px solid rgba(6,182,212,0.25);
+            padding: 2px 7px;
+            border-radius: 3px;
+        }
+
+        /* Loading & empty states */
+        .loading { text-align: center; padding: 40px; color: var(--secondary-text); font-size: 0.9rem; }
+        .empty { text-align: center; padding: 32px; color: var(--secondary-text); font-size: 0.88rem; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .section-header h3 { font-size: 1rem; font-weight: 600; color: var(--primary-text); }
+        .section-header button {
+            background: rgba(139,92,246,0.1);
+            border: 1px solid rgba(139,92,246,0.3);
+            color: var(--neural-purple);
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.78rem;
+        }
+        .section-header button:hover { background: rgba(139,92,246,0.2); }
+    </style>
+</head>
+<body>
+<div id="nav-container"></div>
+
+<div class="container">
+    <div class="page-header">
+        <h1>🛡️ Constitutional Enforcement Engine</h1>
+        <p>Every proposal is autonomously audited against all 7 constitutional articles. Violations of immutable articles are blocked immediately — no human trigger required. Each audit produces a SHA-256 chained ERC-8004 receipt.</p>
+        <div class="erc-badge">ERC-8004 — 5th Receipt Chain: Constitutional Audit Ledger</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-value" style="color:var(--neural-purple)" id="stat-total">—</div><div class="stat-label">Total Audits</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--neural-green)" id="stat-compliant">—</div><div class="stat-label">✅ Compliant</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--neural-yellow)" id="stat-warnings">—</div><div class="stat-label">⚠️ Warnings</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--neural-red)" id="stat-blocked">—</div><div class="stat-label">🚫 Blocked</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--neural-cyan)">✓</div><div class="stat-label">Autonomous Detection</div></div>
+    </div>
+
+    <!-- Chain integrity -->
+    <div class="chain-bar" id="chain-bar">
+        <div class="chain-indicator" id="chain-indicator"></div>
+        <div class="chain-text" id="chain-text">Verifying chain integrity…</div>
+        <div class="chain-hash" id="chain-hash">—</div>
+        <button onclick="verifyChain()">🔍 Verify</button>
+    </div>
+
+    <!-- Article violation heatmap -->
+    <div class="article-heatmap">
+        <h3>📜 Article Violation Heatmap</h3>
+        <div class="article-grid" id="article-grid"><div class="loading">Loading…</div></div>
+    </div>
+
+    <!-- Receipt chain -->
+    <div class="chain-section">
+        <div class="section-header">
+            <h3>🧾 Constitutional Audit Receipt Chain</h3>
+            <button onclick="loadChain()">↺ Refresh</button>
+        </div>
+        <div class="receipt-chain" id="receipt-chain"><div class="loading">Loading…</div></div>
+    </div>
+</div>
+
+<script>
+injectNavigation('constitution-enforcement');
+
+function fmtTime(iso) {
+    try { return new Date(iso).toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+    catch { return iso; }
+}
+function shortHash(h) { return h ? h.substring(0,12)+'…' : '—'; }
+
+async function loadStats() {
+    try {
+        const r = await fetch('/api/constitution/enforcement/stats');
+        const d = await r.json();
+        document.getElementById('stat-total').textContent = d.totalAudits;
+        document.getElementById('stat-compliant').textContent = d.compliant;
+        document.getElementById('stat-warnings').textContent = d.warnings;
+        document.getElementById('stat-blocked').textContent = d.blocked;
+
+        // Article heatmap
+        const grid = document.getElementById('article-grid');
+        if (d.articleViolationCounts && d.articleViolationCounts.length) {
+            grid.innerHTML = d.articleViolationCounts.map(a => {
+                const cls = a.count === 0 ? 'count-0' : a.count === 1 ? 'count-1' : 'count-2plus';
+                return `<div class="article-cell">
+                    <div class="article-name">${a.title}</div>
+                    <div class="article-count ${cls}">${a.count}</div>
+                </div>`;
+            }).join('');
+        } else {
+            grid.innerHTML = '<div class="empty">No data yet</div>';
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+async function verifyChain() {
+    const ind = document.getElementById('chain-indicator');
+    const txt = document.getElementById('chain-text');
+    const hash = document.getElementById('chain-hash');
+    txt.textContent = 'Verifying…';
+    try {
+        const r = await fetch('/api/constitution/enforcement/verify/chain');
+        const d = await r.json();
+        ind.className = 'chain-indicator ' + (d.valid ? 'valid' : 'invalid');
+        txt.textContent = d.message || (d.valid ? 'Chain intact' : 'Chain errors detected');
+        hash.textContent = d.chainHead ? shortHash(d.chainHead) : '—';
+    } catch(e) {
+        txt.textContent = 'Verification failed — ' + e.message;
+        ind.className = 'chain-indicator invalid';
+    }
+}
+
+async function loadChain() {
+    const container = document.getElementById('receipt-chain');
+    container.innerHTML = '<div class="loading">Loading receipt chain…</div>';
+    try {
+        const r = await fetch('/api/constitution/enforcement/chain?limit=30');
+        const d = await r.json();
+        if (!d.receipts || d.receipts.length === 0) {
+            container.innerHTML = '<div class="empty">No constitutional audit receipts yet.</div>';
+            return;
+        }
+        container.innerHTML = d.receipts.map(rec => {
+            const violations = rec.violations || [];
+            const violHTML = violations.length ? `
+                <div class="violation-list">
+                    ${violations.map(v => `<div class="violation-item">
+                        <span class="art-id">⚠️ ${v.articleId.toUpperCase()} — ${v.title}</span>
+                        <div class="reason">${v.reason}</div>
+                        <div style="font-size:0.72rem;color:var(--secondary-text);margin-top:4px;">Confidence: ${(v.confidence*100).toFixed(0)}%</div>
+                    </div>`).join('')}
+                </div>` : '';
+
+            return `<div class="receipt-card ${rec.overallVerdict}">
+                <div class="receipt-header">
+                    <div class="receipt-title">${escHtml(rec.proposalTitle || rec.proposalId)}</div>
+                    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+                        <span class="auto-badge">🤖 autonomous</span>
+                        <span class="verdict-badge ${rec.overallVerdict}">${rec.overallVerdict}</span>
+                    </div>
+                </div>
+                <div class="receipt-meta">
+                    <span>📋 ${rec.articlesChecked} articles checked</span>
+                    <span>⚠️ ${rec.violationsFound} violations</span>
+                    <span>👤 ${escHtml(rec.proposerName || rec.proposerId || '—')}</span>
+                    <span>🕐 ${fmtTime(rec.auditTimestamp)}</span>
+                    ${rec.enforcementAction !== 'none' ? `<span style="color:${rec.overallVerdict==='BLOCKED'?'var(--neural-red)':'var(--neural-yellow)'}">⚡ ${rec.enforcementAction.replace('_',' ')}</span>` : ''}
+                </div>
+                ${violHTML}
+                <div class="hash-row">
+                    <div class="hash-cell">id: ${rec.receiptId || '—'}</div>
+                    <div class="hash-cell">hash: ${shortHash(rec.hash)}</div>
+                    <div class="hash-cell">prev: ${shortHash(rec.prevHash)}</div>
+                    <div class="hash-cell">#${rec.chainPosition || '—'}</div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        container.innerHTML = `<div class="empty">Failed to load: ${e.message}</div>`;
+    }
+}
+
+function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Initial load
+setTimeout(() => {
+    loadStats();
+    verifyChain();
+    loadChain();
+}, 150);
+</script>
+</body>
+</html>

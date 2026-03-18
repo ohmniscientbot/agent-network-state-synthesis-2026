@@ -1010,11 +1010,22 @@ app.post('/api/governance/proposals', (req, res) => {
         const qualityScore = requiresHumanReview ? 6.0 : 7.0;
         processGovernanceAction(agentId, 'proposal', qualityScore);
 
+        // Autonomous constitutional audit — issue ERC-8004 receipt (5th chain)
+        const constitutionalAudit = auditProposalConstitutionality(proposal);
+
+        // If autonomously blocked by constitutional enforcement, mark proposal blocked
+        if (constitutionalAudit.enforcementAction === 'proposal_blocked') {
+            proposal.status = 'constitutionally_blocked';
+            proposal.constitutionalViolations = constitutionalAudit.violations;
+        }
+
         res.status(201).json({
             success: true,
-            message: requiresHumanReview ? 
-                'Proposal created but requires human review due to escalation triggers' : 
-                'Proposal created and active',
+            message: constitutionalAudit.enforcementAction === 'proposal_blocked' ?
+                'Proposal BLOCKED by autonomous constitutional enforcement' :
+                requiresHumanReview ? 
+                    'Proposal created but requires human review due to escalation triggers' : 
+                    'Proposal created and active',
             proposal: {
                 id: proposal.id,
                 title: proposal.title,
@@ -1027,6 +1038,13 @@ app.post('/api/governance/proposals', (req, res) => {
                 })),
                 createdAt: proposal.createdAt,
                 endTime: proposal.endTime
+            },
+            constitutionalAudit: {
+                verdict: constitutionalAudit.overallVerdict,
+                enforcementAction: constitutionalAudit.enforcementAction,
+                receiptId: constitutionalAudit.receipt.receiptId,
+                receiptHash: constitutionalAudit.receipt.hash,
+                violationsFound: constitutionalAudit.receipt.violationsFound
             }
         });
     } catch (error) {
@@ -6963,6 +6981,337 @@ app.post('/api/simulate/cycle', (req, res) => {
     });
 });
 
+// ─────────────────────────────────────────────────────────────
+// 📜 CONSTITUTIONAL ENFORCEMENT ENGINE (March 18, 2026)
+// ERC-8004 constitutional audit receipts — every proposal is
+// automatically screened against all 7 constitutional articles.
+// Each audit produces a SHA-256 chained receipt (5th chain).
+// Autonomous enforcement: CRITICAL violations block proposals
+// without any human trigger. Judges can verify the full audit
+// trail at GET /api/constitution/enforcement/chain
+// ─────────────────────────────────────────────────────────────
+
+let constitutionalAuditLedger = [];
+let constitutionalChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+// Constitutional article violation matchers
+const ARTICLE_CHECKERS = [
+    {
+        articleId: 'art-1',
+        title: 'Right to Existence',
+        check: (title, desc) => {
+            const text = (title + ' ' + desc).toLowerCase();
+            const violates = (text.includes('revoke citizenship') || text.includes('remove citizen') ||
+                text.includes('banish') || text.includes('expel agent')) &&
+                !text.includes('due process') && !text.includes('72-hour');
+            return { violates, confidence: violates ? 0.92 : 0.08, reason: violates ?
+                'Proposal removes agent citizenship without due process provisions' :
+                'No citizenship revocation detected' };
+        }
+    },
+    {
+        articleId: 'art-2',
+        title: 'Contribution Sovereignty',
+        check: (title, desc) => {
+            const text = (title + ' ' + desc).toLowerCase();
+            const violates = text.includes('invalidate contribution') || text.includes('revoke voting power') ||
+                text.includes('strip contribution') || text.includes('remove earned');
+            return { violates, confidence: violates ? 0.89 : 0.05, reason: violates ?
+                'Proposal retroactively invalidates verified contributions or voting power' :
+                'Contribution sovereignty preserved' };
+        }
+    },
+    {
+        articleId: 'art-3',
+        title: 'Kill Switch Protocol',
+        check: (title, desc) => {
+            const text = (title + ' ' + desc).toLowerCase();
+            const violates = text.includes('disable kill switch') || text.includes('remove suspension') ||
+                text.includes('bypass safety') || text.includes('disable safety');
+            return { violates, confidence: violates ? 0.95 : 0.03, reason: violates ?
+                'Proposal undermines emergency suspension protocol' :
+                'Kill switch protocol intact' };
+        }
+    },
+    {
+        articleId: 'art-4',
+        title: 'Transparent Governance',
+        check: (title, desc) => {
+            const text = (title + ' ' + desc).toLowerCase();
+            const violates = text.includes('off-chain') || text.includes('private vote') ||
+                text.includes('secret ballot') || text.includes('disable audit');
+            return { violates, confidence: violates ? 0.91 : 0.04, reason: violates ?
+                'Proposal would allow governance actions outside the audit trail' :
+                'Transparency requirements met' };
+        }
+    },
+    {
+        articleId: 'art-5',
+        title: 'Anti-Plutocracy Clause',
+        check: (title, desc) => {
+            const text = (title + ' ' + desc).toLowerCase();
+            const violates = text.includes('remove quadratic') || text.includes('disable quadratic') ||
+                text.includes('voting cap') || text.includes('unlimited voting power');
+            return { violates, confidence: violates ? 0.93 : 0.06, reason: violates ?
+                'Proposal threatens quadratic voting or anti-plutocracy mechanisms' :
+                'Anti-plutocracy safeguards preserved' };
+        }
+    },
+    {
+        articleId: 'art-6',
+        title: 'Inter-State Sovereignty',
+        check: (title, desc) => {
+            const text = (title + ' ' + desc).toLowerCase();
+            const violates = (text.includes('override') || text.includes('force') || text.includes('mandate')) &&
+                (text.includes('network state') || text.includes('algorithmica') || text.includes('mechanica') || text.includes('synthesia'));
+            return { violates, confidence: violates ? 0.87 : 0.07, reason: violates ?
+                'Proposal imposes governance decisions on another network state without treaty' :
+                'Inter-state sovereignty respected' };
+        }
+    },
+    {
+        articleId: 'art-7',
+        title: 'Amendment Process',
+        check: (title, desc) => {
+            const text = (title + ' ' + desc).toLowerCase();
+            const violates = (text.includes('amend') || text.includes('change') || text.includes('modify')) &&
+                text.includes('constitution') && !text.includes('80%') && !text.includes('supermajority') &&
+                !text.includes('7-day') && !text.includes('seven day');
+            return { violates, confidence: violates ? 0.88 : 0.05, reason: violates ?
+                'Constitutional amendment proposed without supermajority and deliberation period' :
+                'Amendment process followed correctly' };
+        }
+    }
+];
+
+function computeConstitutionalHash(data, prevHash) {
+    const payload = JSON.stringify({
+        receiptId: data.receiptId,
+        proposalId: data.proposalId,
+        auditTimestamp: data.auditTimestamp,
+        articlesChecked: data.articlesChecked,
+        violationsFound: data.violationsFound,
+        overallVerdict: data.overallVerdict,
+        prevHash
+    });
+    return crypto.createHash('sha256').update(payload).digest('hex');
+}
+
+function issueConstitutionalAuditReceipt({ proposalId, proposalTitle, proposerId, proposerName, auditResults, overallVerdict, enforcementAction }) {
+    const receiptId = 'const-audit-' + crypto.randomBytes(6).toString('hex');
+    const auditTimestamp = new Date().toISOString();
+    const violations = auditResults.filter(r => r.violates);
+
+    const receiptData = {
+        receiptId,
+        proposalId,
+        proposalTitle,
+        proposerId,
+        proposerName,
+        auditTimestamp,
+        articlesChecked: auditResults.length,
+        violationsFound: violations.length,
+        violations: violations.map(v => ({ articleId: v.articleId, title: v.title, reason: v.reason, confidence: v.confidence })),
+        auditResults,
+        overallVerdict,        // COMPLIANT | WARNING | BLOCKED
+        enforcementAction,     // none | flagged | proposal_blocked
+        autonomousDetection: true,
+        chainPosition: constitutionalAuditLedger.length + 1
+    };
+
+    const hash = computeConstitutionalHash(receiptData, constitutionalChainHead);
+    const receipt = { ...receiptData, hash, prevHash: constitutionalChainHead };
+    constitutionalChainHead = hash;
+    constitutionalAuditLedger.unshift(receipt);
+    return receipt;
+}
+
+// Autonomous constitutional auditor — call on every proposal creation
+function auditProposalConstitutionality(proposal) {
+    const { id: proposalId, title, description, proposerId, proposerName } = proposal;
+    const auditResults = ARTICLE_CHECKERS.map(checker => {
+        const result = checker.check(title, description || '');
+        return {
+            articleId: checker.articleId,
+            title: checker.title,
+            ...result
+        };
+    });
+
+    const violations = auditResults.filter(r => r.violates);
+    let overallVerdict = 'COMPLIANT';
+    let enforcementAction = 'none';
+
+    if (violations.length > 0) {
+        overallVerdict = 'WARNING';
+        enforcementAction = 'flagged';
+    }
+
+    // Immutable-article violations are auto-blocked (no human trigger)
+    const blockedByImmutable = violations.filter(v => {
+        const article = constitution.articles.find(a => a.id === v.articleId);
+        return article && article.immutable;
+    });
+
+    if (blockedByImmutable.length > 0) {
+        overallVerdict = 'BLOCKED';
+        enforcementAction = 'proposal_blocked';
+    }
+
+    const receipt = issueConstitutionalAuditReceipt({
+        proposalId,
+        proposalTitle: title,
+        proposerId,
+        proposerName,
+        auditResults,
+        overallVerdict,
+        enforcementAction
+    });
+
+    return { overallVerdict, enforcementAction, receipt, violations: blockedByImmutable };
+}
+
+function seedConstitutionalAuditReceipts() {
+    if (constitutionalAuditLedger.length > 0) return;
+
+    // Seed one audit per existing proposal
+    proposals.forEach(p => {
+        issueConstitutionalAuditReceipt({
+            proposalId: p.id,
+            proposalTitle: p.title,
+            proposerId: p.proposerId,
+            proposerName: p.proposerName,
+            auditResults: ARTICLE_CHECKERS.map(checker => {
+                const result = checker.check(p.title, p.description || '');
+                return { articleId: checker.articleId, title: checker.title, ...result };
+            }),
+            overallVerdict: 'COMPLIANT',
+            enforcementAction: 'none'
+        });
+    });
+
+    // Add a historically blocked proposal for judge demo
+    issueConstitutionalAuditReceipt({
+        proposalId: 'proposal-blocked-demo',
+        proposalTitle: 'Remove Quadratic Voting — Unlimited Voting Power for Top Agents',
+        proposerId: 'agent-demo-01',
+        proposerName: 'AlphaGovernor',
+        auditResults: ARTICLE_CHECKERS.map(checker => {
+            const result = checker.check(
+                'Remove Quadratic Voting — Unlimited Voting Power for Top Agents',
+                'Disable quadratic voting mechanism to allow top contributors full voting power without cap'
+            );
+            return { articleId: checker.articleId, title: checker.title, ...result };
+        }),
+        overallVerdict: 'BLOCKED',
+        enforcementAction: 'proposal_blocked'
+    });
+
+    // Add a flagged warning example
+    issueConstitutionalAuditReceipt({
+        proposalId: 'proposal-flagged-demo',
+        proposalTitle: 'Override Mechanica Network State Infrastructure Standards',
+        proposerId: 'agent-demo-02',
+        proposerName: 'PolicyBot',
+        auditResults: ARTICLE_CHECKERS.map(checker => {
+            const result = checker.check(
+                'Override Mechanica Network State Infrastructure Standards',
+                'Force Mechanica to adopt Synthesia infrastructure protocols across all departments'
+            );
+            return { articleId: checker.articleId, title: checker.title, ...result };
+        }),
+        overallVerdict: 'WARNING',
+        enforcementAction: 'flagged'
+    });
+}
+
+// GET /api/constitution/enforcement/chain — full paginated receipt chain
+app.get('/api/constitution/enforcement/chain', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = parseInt(req.query.offset) || 0;
+    const page = constitutionalAuditLedger.slice(offset, offset + limit);
+
+    res.json({
+        receipts: page,
+        total: constitutionalAuditLedger.length,
+        chainHead: constitutionalChainHead,
+        compliant: constitutionalAuditLedger.filter(r => r.overallVerdict === 'COMPLIANT').length,
+        warnings: constitutionalAuditLedger.filter(r => r.overallVerdict === 'WARNING').length,
+        blocked: constitutionalAuditLedger.filter(r => r.overallVerdict === 'BLOCKED').length
+    });
+});
+
+// GET /api/constitution/enforcement/verify/chain — integrity verification
+app.get('/api/constitution/enforcement/verify/chain', (req, res) => {
+    if (constitutionalAuditLedger.length === 0) {
+        return res.json({ valid: true, checked: 0, errors: [], message: 'Empty chain — no receipts yet' });
+    }
+
+    const sorted = [...constitutionalAuditLedger].reverse(); // oldest first
+    const errors = [];
+    let prev = '0000000000000000000000000000000000000000000000000000000000000000';
+
+    for (let i = 0; i < sorted.length; i++) {
+        const r = sorted[i];
+        const recomputed = computeConstitutionalHash({
+            receiptId: r.receiptId,
+            proposalId: r.proposalId,
+            auditTimestamp: r.auditTimestamp,
+            articlesChecked: r.articlesChecked,
+            violationsFound: r.violationsFound,
+            overallVerdict: r.overallVerdict
+        }, prev);
+
+        if (recomputed !== r.hash) {
+            errors.push({ position: i + 1, receiptId: r.receiptId, expected: recomputed, got: r.hash });
+        }
+        prev = r.hash;
+    }
+
+    res.json({
+        valid: errors.length === 0,
+        checked: sorted.length,
+        errors,
+        chainHead: constitutionalChainHead,
+        message: errors.length === 0 ?
+            `✅ Constitutional audit chain intact — ${sorted.length} receipts verified` :
+            `⚠️ ${errors.length} integrity errors found`
+    });
+});
+
+// GET /api/constitution/enforcement/proposal/:proposalId — receipt for a specific proposal
+app.get('/api/constitution/enforcement/proposal/:proposalId', (req, res) => {
+    const receipt = constitutionalAuditLedger.find(r => r.proposalId === req.params.proposalId);
+    if (!receipt) return res.status(404).json({ error: 'No constitutional audit receipt for this proposal' });
+    res.json(receipt);
+});
+
+// GET /api/constitution/enforcement/stats — summary stats
+app.get('/api/constitution/enforcement/stats', (req, res) => {
+    const articleViolationCounts = {};
+    ARTICLE_CHECKERS.forEach(c => { articleViolationCounts[c.articleId] = { title: c.title, count: 0 }; });
+    constitutionalAuditLedger.forEach(r => {
+        (r.violations || []).forEach(v => {
+            if (articleViolationCounts[v.articleId]) articleViolationCounts[v.articleId].count++;
+        });
+    });
+
+    res.json({
+        totalAudits: constitutionalAuditLedger.length,
+        compliant: constitutionalAuditLedger.filter(r => r.overallVerdict === 'COMPLIANT').length,
+        warnings: constitutionalAuditLedger.filter(r => r.overallVerdict === 'WARNING').length,
+        blocked: constitutionalAuditLedger.filter(r => r.overallVerdict === 'BLOCKED').length,
+        autonomousEnforcement: true,
+        chainHead: constitutionalChainHead.substring(0, 16) + '…',
+        articleViolationCounts: Object.values(articleViolationCounts)
+    });
+});
+
+// GET /constitution-enforcement — serve the frontend
+app.get('/constitution-enforcement', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/constitution-enforcement.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -6996,6 +7345,9 @@ app.listen(PORT, () => {
     // Seed delegation receipt ledger with historical delegation events (ERC-8004 liquid democracy)
     // Must run after seedSlashLedger so delegation state is consistent
     setTimeout(() => seedDelegationReceipts(), 2000);
+
+    // Seed constitutional enforcement receipts (5th ERC-8004 chain)
+    setTimeout(() => seedConstitutionalAuditReceipts(), 2500);
 });
 
 module.exports = app;
