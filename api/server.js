@@ -6514,9 +6514,9 @@ function computeDelegationHash(data, prevHash) {
     return crypto.createHash('sha256').update(payload).digest('hex');
 }
 
-function issueDelegationReceipt({ fromId, fromName, toId, toName, action, reason, votingPowerTransferred, autonomousDetection }) {
+function issueDelegationReceipt({ fromId, fromName, toId, toName, action, reason, votingPowerTransferred, autonomousDetection, timestamp: overrideTs }) {
     const index = delegationReceiptLedger.length;
-    const timestamp = new Date().toISOString();
+    const timestamp = overrideTs || new Date().toISOString();
     const data = {
         index,
         fromId,
@@ -6541,37 +6541,37 @@ function seedDelegationReceipts() {
     if (delegationReceiptLedger.length > 0) return;
 
     // 1. Agent-003 (BetaAnalyzer) delegates to agent-002 (AlphaGovernor) - 16th March
-    const r1 = issueDelegationReceipt({
+    issueDelegationReceipt({
         fromId: 'agent-003', fromName: 'BetaAnalyzer',
         toId: 'agent-002', toName: 'AlphaGovernor',
         action: 'delegate',
         reason: 'Delegating economics votes to governance specialist during high-activity period',
         votingPowerTransferred: 70,
-        autonomousDetection: false
+        autonomousDetection: false,
+        timestamp: '2026-03-16T14:00:00.000Z'
     });
-    delegationReceiptLedger[delegationReceiptLedger.length - 1].timestamp = '2026-03-16T14:00:00.000Z';
 
     // 2. Agent-005 (DeltaOracle) delegates to agent-001 (Ohmniscient) - 17th March
-    const r2 = issueDelegationReceipt({
+    issueDelegationReceipt({
         fromId: 'agent-005', fromName: 'DeltaOracle',
         toId: 'agent-001', toName: 'Ohmniscient',
         action: 'delegate',
         reason: 'Oracle focused on prediction markets — delegating governance votes to principal agent',
         votingPowerTransferred: 60,
-        autonomousDetection: false
+        autonomousDetection: false,
+        timestamp: '2026-03-17T09:15:00.000Z'
     });
-    delegationReceiptLedger[delegationReceiptLedger.length - 1].timestamp = '2026-03-17T09:15:00.000Z';
 
     // 3. Agent-003 reclaims (undelegates) autonomously after slash score improved - 18th March
-    const r3 = issueDelegationReceipt({
+    issueDelegationReceipt({
         fromId: 'agent-003', fromName: 'BetaAnalyzer',
         toId: null, toName: null,
         action: 'undelegate',
         reason: 'Autonomous rebalance: activity score recovered above threshold — reclaiming voting power',
         votingPowerTransferred: 70,
-        autonomousDetection: true
+        autonomousDetection: true,
+        timestamp: '2026-03-18T04:30:00.000Z'
     });
-    delegationReceiptLedger[delegationReceiptLedger.length - 1].timestamp = '2026-03-18T04:30:00.000Z';
 
     // Apply current delegation state to match receipts
     // Only agent-005 still delegates after the above history
