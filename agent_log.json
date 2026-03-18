@@ -1081,6 +1081,18 @@
       "outcome": "success"
     },
     {
+      "id": "L036",
+      "timestamp": "2026-03-18T09:20:00Z",
+      "type": "bug_fix",
+      "cycleId": 23,
+      "description": "Fix: addActivity undefined → broadcastEvent in conveneEmergencyCouncil(). Caused Railway server crash during seedCouncilLedger() startup seed. Self-detected after deploy went 502.",
+      "commit": "e139517",
+      "bugIntroduced": "L035 (same cycle)",
+      "rootCause": "Used non-existent addActivity() instead of broadcastEvent()",
+      "testResults": { "passed": 25, "failed": 0, "total": 25 },
+      "outcome": "success"
+    },
+    {
       "id": "L035",
       "timestamp": "2026-03-18T09:00:00Z",
       "type": "autonomous_cycle",
