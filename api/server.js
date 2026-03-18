@@ -110,6 +110,11 @@ app.get('/trust', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/trust-graph.html'));
 });
 
+// ⏳ Reputation Decay Page
+app.get('/reputation', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/reputation.html'));
+});
+
 // ⚙️ Manual Agent Registration Interface
 app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/register.html'));
@@ -5258,6 +5263,149 @@ app.post('/api/trust/revoke', (req, res) => {
     }
     attestation.revoked = true;
     res.json({ success: true, message: `Attestation ${attestationId} revoked` });
+});
+
+// ============================================================
+// REPUTATION DECAY SYSTEM  (Cycle #12 — March 18, 2026)
+// Inspired by Colony.io & Gitcoin: inactive agents lose
+// governance influence over time to prevent stale power
+// accumulation and encourage active participation.
+// ============================================================
+
+// Seed 3 active delegations so `activeDelegations` shows > 0
+function seedDelegations() {
+    if (Object.keys(delegations).length === 0) {
+        delegations['agent-003'] = 'agent-001';  // BetaAnalyzer → Ohmniscient
+        delegations['agent-005'] = 'agent-002';  // DeltaOracle → AlphaGovernor
+        delegations['agent-004'] = 'agent-001';  // GammaValidator → Ohmniscient
+    }
+}
+
+/**
+ * Compute reputation decay score for a single agent.
+ * Formula:
+ *   decayedScore = baseScore × e^(-λ × daysSinceLastVote)
+ *   λ = 0.02 (half-life ≈ 35 days, moderate decay)
+ *   baseScore = contributionScore (0–100)
+ * Returns:
+ *   { agentId, agentName, baseScore, decayedScore, decayFactor,
+ *     daysSinceLastVote, lastVoteDate, decayLevel }
+ */
+function computeReputationDecay(agentId) {
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return null;
+
+    const LAMBDA = 0.02; // decay constant
+
+    // Find most recent vote timestamp for this agent
+    let lastVoteDate = null;
+    for (const prop of proposals) {
+        for (const vote of (prop.votes || [])) {
+            if (vote.agentId === agentId) {
+                const ts = new Date(vote.timestamp);
+                if (!lastVoteDate || ts > lastVoteDate) lastVoteDate = ts;
+            }
+        }
+    }
+
+    const now = new Date();
+    let daysSince = 0;
+    if (lastVoteDate) {
+        daysSince = Math.max(0, (now - lastVoteDate) / (1000 * 60 * 60 * 24));
+    } else {
+        // Never voted → use days since registration
+        const regDate = new Date(agent.registrationDate);
+        daysSince = Math.max(0, (now - regDate) / (1000 * 60 * 60 * 24));
+    }
+
+    const decayFactor = Math.exp(-LAMBDA * daysSince);
+    const baseScore = agent.contributionScore;
+    const decayedScore = Math.round(baseScore * decayFactor * 10) / 10;
+
+    // Classify decay level
+    let decayLevel = 'healthy';
+    if (decayFactor < 0.5) decayLevel = 'critical';
+    else if (decayFactor < 0.7) decayLevel = 'moderate';
+    else if (decayFactor < 0.85) decayLevel = 'mild';
+
+    return {
+        agentId,
+        agentName: agent.name,
+        agentType: agent.agentType,
+        kyaVerified: agent.kyaVerified,
+        baseScore,
+        decayedScore,
+        decayFactor: Math.round(decayFactor * 1000) / 1000,
+        decayPercent: Math.round((1 - decayFactor) * 100),
+        daysSinceLastVote: Math.round(daysSince * 10) / 10,
+        lastVoteDate: lastVoteDate ? lastVoteDate.toISOString() : null,
+        decayLevel
+    };
+}
+
+// GET /api/reputation/decay — all agents with decay scores
+app.get('/api/reputation/decay', (req, res) => {
+    seedDelegations();
+    const decayData = agents.map(a => computeReputationDecay(a.id)).filter(Boolean);
+    decayData.sort((a, b) => b.decayedScore - a.decayedScore);
+
+    const systemHealth = decayData.reduce((sum, d) => sum + d.decayFactor, 0) / decayData.length;
+
+    res.json({
+        agents: decayData,
+        systemHealth: Math.round(systemHealth * 1000) / 1000,
+        systemHealthLevel: systemHealth > 0.85 ? 'healthy' : systemHealth > 0.7 ? 'moderate' : 'at-risk',
+        decayLambda: 0.02,
+        halfLifeDays: Math.round(Math.log(2) / 0.02),
+        totalAgents: decayData.length,
+        healthyCount: decayData.filter(d => d.decayLevel === 'healthy').length,
+        atRiskCount: decayData.filter(d => d.decayLevel === 'critical' || d.decayLevel === 'moderate').length,
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// GET /api/reputation/decay/:agentId — single agent decay
+app.get('/api/reputation/decay/:agentId', (req, res) => {
+    const data = computeReputationDecay(req.params.agentId);
+    if (!data) return res.status(404).json({ error: 'Agent not found' });
+
+    // Include decay curve projection (next 90 days)
+    const LAMBDA = 0.02;
+    const curve = [];
+    for (let day = 0; day <= 90; day += 5) {
+        curve.push({
+            day,
+            decayFactor: Math.round(Math.exp(-LAMBDA * (data.daysSinceLastVote + day)) * 1000) / 1000,
+            projectedScore: Math.round(data.baseScore * Math.exp(-LAMBDA * (data.daysSinceLastVote + day)) * 10) / 10
+        });
+    }
+
+    res.json({ ...data, decayCurve: curve });
+});
+
+// GET /api/reputation/delegations — active delegation map
+app.get('/api/reputation/delegations', (req, res) => {
+    seedDelegations();
+
+    const delegationList = Object.entries(delegations).map(([fromId, toId]) => {
+        const fromAgent = agents.find(a => a.id === fromId);
+        const toAgent = agents.find(a => a.id === toId);
+        const fromDecay = computeReputationDecay(fromId);
+        return {
+            from: { id: fromId, name: fromAgent?.name || fromId },
+            to: { id: toId, name: toAgent?.name || toId },
+            delegatedPower: fromDecay ? Math.round(fromDecay.decayedScore) : 0,
+            reason: 'Trust-based governance delegation',
+            since: '2026-03-17T00:00:00Z'
+        };
+    });
+
+    res.json({
+        delegations: delegationList,
+        totalDelegations: delegationList.length,
+        totalDelegatedPower: delegationList.reduce((s, d) => s + d.delegatedPower, 0),
+        generatedAt: new Date().toISOString()
+    });
 });
 
 app.listen(PORT, () => {
