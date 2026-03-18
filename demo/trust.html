@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trust Endorsement Network — Synthocracy</title>
+<style>
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111115;
+    --card-bg: rgba(255,255,255,0.02);
+    --border-neural: rgba(139,92,246,0.3);
+    --neural-blue: #3b82f6;
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --radius-neural: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg-primary); color: var(--primary-text); font-family: 'Courier New', monospace; min-height: 100vh; }
+
+.page-content { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+h1 { font-size: 1.8rem; font-weight: 700; color: var(--neural-purple); margin-bottom: 0.25rem; }
+.subtitle { color: var(--secondary-text); margin-bottom: 2rem; font-size: 0.9rem; }
+.chain-badge { display: inline-block; background: rgba(139,92,246,0.15); border: 1px solid var(--neural-purple); color: var(--neural-purple); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; margin-left: 0.5rem; }
+
+/* Status bar */
+.status-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1rem; text-align: center; }
+.stat-value { font-size: 1.6rem; font-weight: 700; color: var(--neural-purple); }
+.stat-value.green { color: var(--neural-green); }
+.stat-value.red { color: var(--neural-red); }
+.stat-value.cyan { color: var(--neural-cyan); }
+.stat-label { font-size: 0.7rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+
+/* Chain integrity bar */
+.integrity-bar { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.integrity-status { font-size: 0.9rem; font-weight: 600; }
+.integrity-status.valid { color: var(--neural-green); }
+.integrity-status.invalid { color: var(--neural-red); }
+.integrity-detail { font-size: 0.8rem; color: var(--secondary-text); }
+.verify-btn { background: rgba(59,130,246,0.15); border: 1px solid var(--neural-blue); color: var(--neural-blue); padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.8rem; }
+.verify-btn:hover { background: rgba(59,130,246,0.25); }
+
+/* Grid layout */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.section-title { font-size: 1rem; font-weight: 600; color: var(--neural-cyan); border-bottom: 1px solid var(--border-neural); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+
+/* Trust graph */
+.trust-graph-container { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1.5rem; margin-bottom: 2rem; }
+.graph-canvas { width: 100%; height: 380px; position: relative; overflow: hidden; background: rgba(0,0,0,0.2); border-radius: 8px; }
+canvas { display: block; }
+
+/* Agent trust profile cards */
+.agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.agent-trust-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1rem; }
+.agent-name { font-size: 0.95rem; font-weight: 700; color: var(--primary-text); margin-bottom: 0.5rem; word-break: break-all; }
+.trust-meter { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); margin-bottom: 0.25rem; overflow: hidden; }
+.trust-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.trust-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--secondary-text); margin-bottom: 0.4rem; }
+.endorse-count { color: var(--neural-green); font-weight: 600; }
+.distrust-count { color: var(--neural-red); font-weight: 600; }
+
+/* Receipt chain */
+.receipt-chain { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1.5rem; }
+.receipt-item { border: 1px solid rgba(139,92,246,0.15); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.75rem; font-size: 0.8rem; }
+.receipt-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.verdict-badge { padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.badge-endorsed { background: rgba(16,185,129,0.2); color: var(--neural-green); }
+.badge-distrust { background: rgba(239,68,68,0.2); color: var(--neural-red); }
+.receipt-hash { font-size: 0.65rem; color: var(--secondary-text); font-family: monospace; margin-top: 0.4rem; }
+.dim-bar { margin-top: 0.4rem; }
+.dim-label { font-size: 0.68rem; color: var(--secondary-text); display: flex; justify-content: space-between; }
+.dim-track { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 2px; overflow: hidden; }
+.dim-fill { height: 100%; border-radius: 2px; }
+
+.loading { text-align: center; padding: 2rem; color: var(--secondary-text); font-size: 0.85rem; }
+.error-msg { color: var(--neural-red); text-align: center; padding: 1rem; font-size: 0.85rem; }
+.countdown { font-size: 0.75rem; color: var(--neural-yellow); }
+.refresh-note { font-size: 0.7rem; color: var(--secondary-text); text-align: right; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<script src="/shared-nav.js"></script>
+
+<div class="page-content">
+    <h1>🤝 Trust Endorsement Network <span class="chain-badge">ERC-8004 Chain #16</span></h1>
+    <p class="subtitle">Autonomous cross-agent trust evaluation — agents cryptographically endorse or distrust peers every 120s based on voting alignment, slash history, and execution reliability</p>
+
+    <p class="refresh-note" id="refreshNote">Auto-refreshes every 10s</p>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="statusBar">
+        <div class="stat-card"><div class="stat-value" id="statRounds">—</div><div class="stat-label">Rounds Run</div></div>
+        <div class="stat-card"><div class="stat-value green" id="statEndorsed">—</div><div class="stat-label">Total Endorsements</div></div>
+        <div class="stat-card"><div class="stat-value red" id="statDistrust">—</div><div class="stat-label">Total Distrusts</div></div>
+        <div class="stat-card"><div class="stat-value cyan" id="statReceipts">—</div><div class="stat-label">Chain Receipts</div></div>
+        <div class="stat-card"><div class="stat-value" id="statAgents">—</div><div class="stat-label">Agents Tracked</div></div>
+        <div class="stat-card"><div class="stat-value countdown" id="statNext">—</div><div class="stat-label">Next Round</div></div>
+    </div>
+
+    <!-- Chain integrity bar -->
+    <div class="integrity-bar">
+        <span class="integrity-status" id="integrityStatus">Checking chain…</span>
+        <span class="integrity-detail" id="integrityDetail"></span>
+        <button class="verify-btn" onclick="verifyChain()">🔍 Verify Chain</button>
+    </div>
+
+    <!-- Trust graph canvas -->
+    <div class="trust-graph-container">
+        <div class="section-title">📡 Trust Graph — Directed Endorsement Network</div>
+        <div class="graph-canvas">
+            <canvas id="trustCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Agent trust cards -->
+    <div class="section-title">👤 Per-Agent Trust Profiles</div>
+    <div class="agents-grid" id="agentsGrid">
+        <div class="loading">Loading agent trust profiles…</div>
+    </div>
+
+    <!-- Receipt chain -->
+    <div class="receipt-chain">
+        <div class="section-title">📜 Endorsement Receipt Chain (Newest First)</div>
+        <div id="receiptChain"><div class="loading">Loading receipts…</div></div>
+    </div>
+</div>
+
+<script>
+let graphData = null;
+
+function fmtMs(ms) {
+    if (ms < 1000) return '<1s';
+    const s = Math.round(ms / 1000);
+    if (s < 60) return `${s}s`;
+    return `${Math.floor(s/60)}m ${s%60}s`;
+}
+
+function scoreColor(score) {
+    if (score >= 0.65) return '#10b981';
+    if (score >= 0.45) return '#f59e0b';
+    return '#ef4444';
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/trust/status');
+        const d = await r.json();
+        document.getElementById('statRounds').textContent = d.roundsRun || 0;
+        document.getElementById('statEndorsed').textContent = d.totalEndorsements || 0;
+        document.getElementById('statDistrust').textContent = d.totalDistrusts || 0;
+        document.getElementById('statReceipts').textContent = d.chainLength || 0;
+        document.getElementById('statAgents').textContent = d.agentsTracked || 0;
+        document.getElementById('statNext').textContent = fmtMs(d.nextRoundMs || 0);
+    } catch(e) { console.error(e); }
+}
+
+async function loadGraph() {
+    try {
+        const r = await fetch('/api/trust/graph');
+        graphData = await r.json();
+        renderAgentCards(graphData);
+        drawTrustGraph(graphData);
+    } catch(e) { console.error(e); }
+}
+
+function renderAgentCards(data) {
+    const grid = document.getElementById('agentsGrid');
+    if (!data.nodes || data.nodes.length === 0) {
+        grid.innerHTML = '<div class="loading">No agents yet</div>';
+        return;
+    }
+    grid.innerHTML = data.nodes.map(node => {
+        const totalIn = node.inboundEndorsements + node.inboundDistrusts;
+        const trustRatio = totalIn > 0 ? node.inboundEndorsements / totalIn : 0.5;
+        const fillColor = trustRatio >= 0.6 ? '#10b981' : trustRatio >= 0.4 ? '#f59e0b' : '#ef4444';
+        const pct = Math.round(trustRatio * 100);
+        const slashBadge = node.slashCount > 0 ? `<span style="color:var(--neural-red);font-size:0.7rem;">⚡ ${node.slashCount} slash${node.slashCount>1?'es':''}</span>` : '';
+        return `<div class="agent-trust-card">
+            <div class="agent-name">${node.name || node.id}</div>
+            ${slashBadge}
+            <div class="trust-meter" style="margin-top:0.4rem;"><div class="trust-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+            <div class="trust-row"><span>Trust Score</span><span style="color:${fillColor};font-weight:700;">${pct}%</span></div>
+            <div class="trust-row"><span>Endorsed by</span><span class="endorse-count">✅ ${node.inboundEndorsements}</span></div>
+            <div class="trust-row"><span>Distrusted by</span><span class="distrust-count">❌ ${node.inboundDistrusts}</span></div>
+            <div class="trust-row"><span>Votes cast</span><span>${node.voteCount}</span></div>
+        </div>`;
+    }).join('');
+}
+
+function drawTrustGraph(data) {
+    const canvas = document.getElementById('trustCanvas');
+    const container = canvas.parentElement;
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+    const ctx = canvas.getContext('2d');
+    if (!data.nodes || data.nodes.length === 0) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('No trust data yet — first round fires 13s after server start', canvas.width/2, canvas.height/2);
+        return;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const n = data.nodes.length;
+    const cx = canvas.width / 2, cy = canvas.height / 2;
+    const r = Math.min(cx, cy) * 0.62;
+
+    // Node positions (circular layout)
+    const pos = {};
+    data.nodes.forEach((node, i) => {
+        const angle = (i / n) * 2 * Math.PI - Math.PI/2;
+        pos[node.id] = { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+    });
+
+    // Draw edges
+    (data.edges || []).forEach(edge => {
+        const from = pos[edge.from];
+        const to = pos[edge.to];
+        if (!from || !to) return;
+        const color = edge.verdict === 'ENDORSED' ? 'rgba(16,185,129,0.5)' : edge.verdict === 'DISTRUST' ? 'rgba(239,68,68,0.4)' : 'rgba(148,163,184,0.2)';
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = edge.verdict === 'ENDORSED' ? 2.5 : 1.5;
+        ctx.stroke();
+
+        // Arrow
+        const dx = to.x - from.x, dy = to.y - from.y;
+        const len = Math.sqrt(dx*dx + dy*dy);
+        const ux = dx/len, uy = dy/len;
+        const ax = to.x - ux*18, ay = to.y - uy*18;
+        const perp = 5;
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(ax - uy*perp, ay + ux*perp);
+        ctx.lineTo(to.x - ux*14, to.y - uy*14);
+        ctx.lineTo(ax + uy*perp, ay - ux*perp);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+    });
+
+    // Draw nodes
+    data.nodes.forEach(node => {
+        const p = pos[node.id];
+        const totalIn = node.inboundEndorsements + node.inboundDistrusts;
+        const trustRatio = totalIn > 0 ? node.inboundEndorsements / totalIn : 0.5;
+        const color = trustRatio >= 0.6 ? '#10b981' : trustRatio >= 0.4 ? '#f59e0b' : '#ef4444';
+
+        // Glow
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 22);
+        grd.addColorStop(0, color + '40');
+        grd.addColorStop(1, 'transparent');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 22, 0, 2*Math.PI);
+        ctx.fill();
+
+        // Node circle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 14, 0, 2*Math.PI);
+        ctx.fillStyle = '#111115';
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        const label = (node.name || node.id).substring(0, 10);
+        ctx.fillText(label, p.x, p.y + 28);
+
+        // Score
+        ctx.fillStyle = color;
+        ctx.font = '9px monospace';
+        ctx.fillText(node.inboundEndorsements + '↑ ' + node.inboundDistrusts + '↓', p.x, p.y + 38);
+    });
+
+    // Legend
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#10b981'; ctx.fillText('— Endorsed', 12, canvas.height - 36);
+    ctx.fillStyle = '#ef4444'; ctx.fillText('— Distrust', 12, canvas.height - 22);
+}
+
+async function loadLedger() {
+    try {
+        const r = await fetch('/api/trust/ledger?limit=15');
+        const d = await r.json();
+        const container = document.getElementById('receiptChain');
+        if (!d.receipts || d.receipts.length === 0) {
+            container.innerHTML = '<div class="loading">No receipts yet — first round fires 13s after server start</div>';
+            return;
+        }
+        container.innerHTML = d.receipts.map(r => {
+            const isEndorsed = r.verdict === 'ENDORSED';
+            const badgeClass = isEndorsed ? 'badge-endorsed' : 'badge-distrust';
+            const badgeText = isEndorsed ? '✅ ENDORSED' : '❌ DISTRUST';
+            const dims = r.dimensions || {};
+            const scoreColor2 = scoreColor(r.trustScore || 0);
+            return `<div class="receipt-item">
+                <div class="receipt-header">
+                    <span class="verdict-badge ${badgeClass}">${badgeText}</span>
+                    <span style="font-size:0.8rem;">${r.fromAgentName || r.fromAgentId} → ${r.toAgentName || r.toAgentId}</span>
+                    <span style="color:${scoreColor2};font-size:0.8rem;font-weight:700;">${r.trustScore}</span>
+                    <span style="color:var(--secondary-text);font-size:0.7rem;margin-left:auto;">${r.roundId}</span>
+                </div>
+                <div class="dim-bar">
+                    <div class="dim-label"><span>Voting Alignment</span><span>${dims.votingAlignment ?? '—'}</span></div>
+                    <div class="dim-track"><div class="dim-fill" style="width:${(dims.votingAlignment||0)*100}%;background:var(--neural-blue);"></div></div>
+                </div>
+                <div class="dim-bar">
+                    <div class="dim-label"><span>Slash Score</span><span>${dims.slashScore ?? '—'}</span></div>
+                    <div class="dim-track"><div class="dim-fill" style="width:${(dims.slashScore||0)*100}%;background:var(--neural-purple);"></div></div>
+                </div>
+                <div class="dim-bar">
+                    <div class="dim-label"><span>Exec Reliability</span><span>${dims.execScore ?? '—'}</span></div>
+                    <div class="dim-track"><div class="dim-fill" style="width:${(dims.execScore||0)*100}%;background:var(--neural-cyan);"></div></div>
+                </div>
+                <div class="receipt-hash">SHA-256: ${(r.hash||'').substring(0,32)}… | prev: ${(r.prevHash||'').substring(0,16)}…</div>
+                <div style="font-size:0.68rem;color:var(--secondary-text);margin-top:0.25rem;">${r.timestamp}</div>
+            </div>`;
+        }).join('');
+    } catch(e) { console.error(e); }
+}
+
+async function verifyChain() {
+    const btn = document.querySelector('.verify-btn');
+    btn.textContent = '⏳ Verifying…';
+    try {
+        const r = await fetch('/api/trust/verify/chain');
+        const d = await r.json();
+        const el = document.getElementById('integrityStatus');
+        const detail = document.getElementById('integrityDetail');
+        el.className = 'integrity-status ' + (d.valid ? 'valid' : 'invalid');
+        el.textContent = d.valid ? '✅ Chain Intact' : '❌ Chain Fault';
+        detail.textContent = d.message + ' | Head: ' + (d.chainHead||'').substring(0,16) + '…';
+    } catch(e) {}
+    btn.textContent = '🔍 Verify Chain';
+}
+
+async function refresh() {
+    await Promise.all([loadStatus(), loadGraph(), loadLedger()]);
+    document.getElementById('refreshNote').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+    verifyChain();
+}
+
+refresh();
+setInterval(refresh, 10000);
+
+setTimeout(() => {
+    injectNavigation('trust');
+}, 100);
+</script>
+</body>
+</html>

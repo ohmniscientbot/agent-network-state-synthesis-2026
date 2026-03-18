@@ -860,5 +860,45 @@ Answers the core governance question: "What happened to proposal X?" Aggregates 
 
 ---
 
-**🔄 Last Updated**: March 18th, 2026 - Post Governance Health Index  
-**📊 Status**: Production-ready with 15 ERC-8004 chains, 6 autonomous loops — comprehensive feature set for hackathon evaluation
+## 🤝 Cross-Agent Trust Endorsement Network — 16th ERC-8004 Chain (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Cryptographic Peer Trust Graph
+
+**Backend additions**: `trustLedger`, `trustChainHead`, `trustGraph`, `computeAgentTrustScore()`, `runTrustEndorsementRound()`, `setInterval(120s)`  
+**6 New API Endpoints**:
+1. `GET /api/trust/status` — protocol overview + next round countdown
+2. `GET /api/trust/graph` — full adjacency matrix (nodes + directed edges) for visualization
+3. `GET /api/trust/ledger` — paginated SHA-256 chained receipt ledger
+4. `GET /api/trust/verify/chain` — chain integrity verification
+5. `GET /api/trust/agent/:agentId` — per-agent trust profile (endorsedBy, distrustedBy, outbound)
+6. `GET /trust` — frontend dashboard
+
+### 3-Dimension Trust Scoring
+| Dimension | Weight | What It Measures |
+|---|---|---|
+| Voting Alignment | 50% | Agreement rate over shared proposals (cosine-style) |
+| Slash-Free Streak | 30% | Penalty: CRITICAL −15%, HIGH −8%, each slash −2% |
+| Execution Reliability | 20% | Successful execution proportion |
+
+**Thresholds**: score ≥ 0.65 → ENDORSED | 0.45–0.64 → NEUTRAL (silent) | < 0.45 → DISTRUST
+
+### Autonomous Execution
+- `setInterval(runTrustEndorsementRound, 120000)` fires unconditionally — no human trigger ever
+- First round fires 13s after startup
+- Broadcasts to SSE activity feed on every round (judges see it live on dashboard)
+- Only ENDORSED and DISTRUST verdicts issue receipts; NEUTRAL is silent (chain stays clean)
+
+### Frontend
+**File**: `demo/trust.html`  
+**URL**: https://synthocracy.up.railway.app/trust
+- Status bar: rounds, endorsements, distrusts, receipts, agents, next round countdown
+- Chain integrity verification bar (live SHA-256 check)
+- Directed trust graph canvas (circular layout, color-coded edges, arrow heads)
+- Per-agent trust profile cards with composite trust meter
+- Full receipt chain ledger: 3-dimension breakdown bars, SHA-256 hash trail
+- Auto-refreshes every 10 seconds
+
+---
+
+**🔄 Last Updated**: March 18th, 2026 - Post Cross-Agent Trust Endorsement Network  
+**📊 Status**: Production-ready with 16 ERC-8004 chains, 7 autonomous loops — comprehensive feature set for hackathon evaluation
