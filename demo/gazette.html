@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthocracy Gazette — Autonomous Governance Bulletin</title>
+    <script src="/shared-nav.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+        .page-header {
+            text-align: center;
+            padding: 2rem 1rem 1rem;
+            border-bottom: 2px solid var(--neural-purple);
+        }
+        .gazette-masthead {
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 0.15em;
+            color: var(--neural-purple);
+            text-transform: uppercase;
+        }
+        .gazette-subtitle {
+            font-size: 0.8rem;
+            color: var(--secondary-text);
+            letter-spacing: 0.1em;
+            margin-top: 0.3rem;
+        }
+        .gazette-rule {
+            border: none;
+            border-top: 1px solid var(--border-neural);
+            margin: 0.5rem 0;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        /* Status bar */
+        .status-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 100px;
+        }
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--neural-purple);
+        }
+        .status-label {
+            font-size: 0.65rem;
+            color: var(--secondary-text);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Chain integrity bar */
+        .chain-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+        }
+        .chain-valid { color: var(--neural-green); }
+        .chain-invalid { color: var(--neural-red); }
+
+        /* Latest edition hero */
+        .latest-edition {
+            background: var(--bg-secondary);
+            border: 2px solid var(--neural-purple);
+            border-radius: var(--radius-neural);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .edition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .edition-id {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--neural-cyan);
+            letter-spacing: 0.08em;
+        }
+        .edition-meta {
+            font-size: 0.72rem;
+            color: var(--secondary-text);
+            text-align: right;
+        }
+        .edition-headline {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: var(--primary-text);
+            margin: 0.5rem 0 1rem;
+            font-style: italic;
+            border-left: 3px solid var(--neural-purple);
+            padding-left: 0.75rem;
+        }
+        .edition-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .stat-cell {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 4px;
+            padding: 0.5rem;
+            text-align: center;
+        }
+        .stat-cell-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--neural-cyan);
+        }
+        .stat-cell-label {
+            font-size: 0.6rem;
+            color: var(--secondary-text);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Sections */
+        .sections-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        @media (max-width: 700px) { .sections-grid { grid-template-columns: 1fr; } }
+        .section-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(139,92,246,0.2);
+            border-radius: 4px;
+            padding: 0.75rem;
+        }
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--neural-yellow);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(245,158,11,0.3);
+            padding-bottom: 0.3rem;
+            margin-bottom: 0.4rem;
+        }
+        .section-content {
+            font-size: 0.78rem;
+            color: var(--secondary-text);
+            line-height: 1.5;
+        }
+
+        /* Grade badge */
+        .grade-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .grade-A { background: rgba(16,185,129,0.2); color: var(--neural-green); border: 1px solid var(--neural-green); }
+        .grade-B { background: rgba(59,130,246,0.2); color: var(--neural-blue); border: 1px solid var(--neural-blue); }
+        .grade-C { background: rgba(245,158,11,0.2); color: var(--neural-yellow); border: 1px solid var(--neural-yellow); }
+        .grade-D { background: rgba(249,115,22,0.2); color: var(--neural-orange); border: 1px solid var(--neural-orange); }
+        .grade-F { background: rgba(239,68,68,0.2); color: var(--neural-red); border: 1px solid var(--neural-red); }
+
+        /* Edition ledger */
+        .section-heading {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary-text);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin: 1.5rem 0 0.75rem;
+            border-bottom: 1px solid var(--border-neural);
+            padding-bottom: 0.4rem;
+        }
+        .ledger-entry {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(139,92,246,0.15);
+            border-radius: var(--radius-neural);
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .ledger-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.3rem;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        .ledger-edition-id { font-size: 0.8rem; font-weight: bold; color: var(--neural-cyan); }
+        .ledger-date { font-size: 0.7rem; color: var(--secondary-text); }
+        .ledger-headline { font-size: 0.75rem; color: var(--secondary-text); font-style: italic; margin-bottom: 0.3rem; }
+        .ledger-hash { font-size: 0.65rem; color: rgba(139,92,246,0.6); font-family: monospace; }
+        .ledger-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.3rem; }
+        .ledger-meta span { font-size: 0.65rem; color: var(--secondary-text); }
+        .ledger-meta strong { color: var(--primary-text); }
+
+        /* Loading */
+        .loading { text-align: center; color: var(--secondary-text); padding: 2rem; font-size: 0.85rem; }
+
+        /* Watchdog badge */
+        .watchdog-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .watchdog-CLEAN { background: rgba(16,185,129,0.2); color: var(--neural-green); }
+        .watchdog-WARNING { background: rgba(245,158,11,0.2); color: var(--neural-yellow); }
+        .watchdog-ALERT { background: rgba(239,68,68,0.2); color: var(--neural-red); }
+    </style>
+</head>
+<body>
+    <script>injectNavigation('gazette');</script>
+
+    <div class="page-header">
+        <div class="gazette-masthead">📰 The Synthocracy Gazette</div>
+        <hr class="gazette-rule">
+        <div class="gazette-subtitle">ERC-8004 Receipt Chain #18 · Autonomous Governance Bulletin · Published Every 60s</div>
+    </div>
+
+    <div class="container">
+        <!-- Status bar -->
+        <div class="status-bar" id="status-bar">
+            <div class="status-item">
+                <div class="status-value" id="stat-editions">—</div>
+                <div class="status-label">Editions</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="stat-receipts">—</div>
+                <div class="status-label">Receipts</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="stat-health">—</div>
+                <div class="status-label">Health Grade</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="stat-next">—</div>
+                <div class="status-label">Next Edition</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="stat-chain">18th</div>
+                <div class="status-label">ERC-8004 Chain</div>
+            </div>
+        </div>
+
+        <!-- Chain integrity bar -->
+        <div class="chain-bar" id="chain-bar">
+            <span>🔒 SHA-256 Chain Integrity</span>
+            <span id="chain-status" class="chain-valid">Verifying…</span>
+        </div>
+
+        <!-- Latest edition -->
+        <div id="latest-container">
+            <div class="loading">Loading latest edition…</div>
+        </div>
+
+        <!-- Edition ledger -->
+        <div class="section-heading">📚 Edition Archive</div>
+        <div id="ledger-container">
+            <div class="loading">Loading archive…</div>
+        </div>
+    </div>
+
+    <script>
+        let statusData = null;
+
+        function gradeClass(grade) {
+            if (!grade) return '';
+            const g = grade.replace('+', '').replace('-', '');
+            return 'grade-' + g;
+        }
+
+        function watchdogClass(status) {
+            if (!status) return 'watchdog-CLEAN';
+            if (status.includes('CRITICAL') || status.includes('HIGH')) return 'watchdog-ALERT';
+            if (status.includes('WARNING') || status.includes('MEDIUM')) return 'watchdog-WARNING';
+            return 'watchdog-CLEAN';
+        }
+
+        function renderLatestEdition(edition) {
+            if (!edition || !edition.editionId) {
+                document.getElementById('latest-container').innerHTML =
+                    '<div class="loading">No editions published yet. Check back in ~17 seconds.</div>';
+                return;
+            }
+
+            const stats = edition.stats || {};
+            const sections = edition.sections || [];
+
+            const sectionHtml = sections.map(s => `
+                <div class="section-card">
+                    <div class="section-title">${s.title}</div>
+                    <div class="section-content">${s.content}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('latest-container').innerHTML = `
+                <div class="latest-edition">
+                    <div class="edition-header">
+                        <div>
+                            <div class="edition-id">📰 ${edition.editionId}</div>
+                            <div style="margin-top:0.25rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                                <span class="grade-badge ${gradeClass(edition.healthGrade)}">${edition.healthGrade}</span>
+                                <span class="watchdog-badge ${watchdogClass(edition.watchdogStatus)}">${edition.watchdogStatus || 'CLEAN'}</span>
+                                <span class="watchdog-badge" style="background:rgba(6,182,212,0.2);color:var(--neural-cyan)">${edition.consensusOutcome || 'PENDING'}</span>
+                            </div>
+                        </div>
+                        <div class="edition-meta">
+                            Published: ${new Date(edition.publishedAt).toUTCString()}<br>
+                            Hash: <span style="color:var(--neural-purple);font-size:0.65rem">${edition.hash ? edition.hash.substring(0,24) + '…' : 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="edition-headline">"${edition.headline}"</div>
+
+                    <div class="edition-stats-grid">
+                        <div class="stat-cell">
+                            <div class="stat-cell-value">${stats.agents || '—'}</div>
+                            <div class="stat-cell-label">Agents</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="stat-cell-value">${stats.proposals || '—'}</div>
+                            <div class="stat-cell-label">Proposals</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="stat-cell-value">${stats.voteReceipts || '—'}</div>
+                            <div class="stat-cell-label">Vote Rcpts</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="stat-cell-value">${stats.slashes || '—'}</div>
+                            <div class="stat-cell-label">Slashes</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="stat-cell-value">${stats.consensusRounds || '—'}</div>
+                            <div class="stat-cell-label">Consensus</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="stat-cell-value">${stats.snapshots || '—'}</div>
+                            <div class="stat-cell-label">Snapshots</div>
+                        </div>
+                        <div class="stat-cell">
+                            <div class="stat-cell-value">${stats.trustEndorsements || '—'}</div>
+                            <div class="stat-cell-label">Endorsements</div>
+                        </div>
+                        <div class="stat-cell" style="border-color:rgba(139,92,246,0.5)">
+                            <div class="stat-cell-value" style="color:var(--neural-purple)">${stats.totalReceipts || '—'}</div>
+                            <div class="stat-cell-label">Total Receipts</div>
+                        </div>
+                    </div>
+
+                    <div class="sections-grid">
+                        ${sectionHtml}
+                    </div>
+
+                    <div style="margin-top:0.75rem; font-size:0.65rem; color:rgba(139,92,246,0.5); font-family:monospace">
+                        prevHash: ${edition.prevHash ? edition.prevHash.substring(0,24) + '…' : 'N/A'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLedger(data) {
+            const editions = data.editions || [];
+            if (editions.length === 0) {
+                document.getElementById('ledger-container').innerHTML =
+                    '<div class="loading">No archive entries yet.</div>';
+                return;
+            }
+
+            document.getElementById('ledger-container').innerHTML = editions.map(e => `
+                <div class="ledger-entry">
+                    <div class="ledger-entry-header">
+                        <span class="ledger-edition-id">📰 ${e.editionId}</span>
+                        <span class="ledger-date">${new Date(e.publishedAt).toUTCString()}</span>
+                    </div>
+                    <div class="ledger-headline">"${e.headline}"</div>
+                    <div class="ledger-meta">
+                        <span>Health: <strong class="${gradeClass(e.healthGrade)}" style="font-weight:bold">${e.healthGrade}</strong></span>
+                        <span>Receipts: <strong>${e.stats ? e.stats.totalReceipts : '—'}</strong></span>
+                        <span>Watchdog: <strong>${e.watchdogStatus || 'N/A'}</strong></span>
+                        <span>Consensus: <strong>${e.consensusOutcome || 'N/A'}</strong></span>
+                    </div>
+                    <div class="ledger-hash">sha256: ${e.hash || 'pending'}</div>
+                </div>
+            `).join('');
+        }
+
+        async function refresh() {
+            // Status
+            try {
+                const s = await fetch('/api/gazette/status').then(r => r.json());
+                statusData = s;
+                document.getElementById('stat-editions').textContent = s.editions || 0;
+                document.getElementById('stat-receipts').textContent = s.chainLength || 0;
+                document.getElementById('stat-health').textContent = s.latestHealth || '—';
+                const nextSec = s.editions > 0 ? Math.ceil(60) : '~17s';
+                document.getElementById('stat-next').textContent = typeof nextSec === 'number' ? nextSec + 's' : nextSec;
+            } catch(e) { console.error(e); }
+
+            // Chain verify
+            try {
+                const v = await fetch('/api/gazette/verify/chain').then(r => r.json());
+                const el = document.getElementById('chain-status');
+                el.textContent = v.message || (v.valid ? '✅ Chain intact' : '❌ Fault detected');
+                el.className = v.valid ? 'chain-valid' : 'chain-invalid';
+            } catch(e) {}
+
+            // Latest
+            try {
+                const latest = await fetch('/api/gazette/latest').then(r => r.json());
+                renderLatestEdition(latest);
+                if (latest && latest.healthGrade) {
+                    document.getElementById('stat-health').textContent = latest.healthGrade;
+                }
+            } catch(e) { console.error(e); }
+
+            // Ledger
+            try {
+                const ledger = await fetch('/api/gazette/ledger?limit=20').then(r => r.json());
+                renderLedger(ledger);
+            } catch(e) { console.error(e); }
+        }
+
+        setTimeout(() => {
+            refresh();
+            setInterval(refresh, 15000);
+        }, 150);
+    </script>
+</body>
+</html>

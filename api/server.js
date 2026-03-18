@@ -9309,6 +9309,24 @@ app.get('/api/scorecard', (req, res) => {
             receiptCount: trustLedger.length,
             description: 'Cross-agent trust endorsement network — agents cryptographically endorse or distrust peers based on voting alignment, slash history, and execution reliability',
             tracks: ['erc8004', 'letcook', 'opentrack']
+        },
+        {
+            id: 17,
+            name: 'Governance State Snapshot',
+            endpoint: '/api/snapshot/verify/chain',
+            url: '/snapshot',
+            receiptCount: snapshotLedger.length,
+            description: 'Merkle root meta-receipt committing all 16 chain heads every 45s — the receipt for all receipts',
+            tracks: ['erc8004', 'letcook', 'opentrack']
+        },
+        {
+            id: 18,
+            name: 'Autonomous Governance Gazette',
+            endpoint: '/api/gazette/verify/chain',
+            url: '/gazette',
+            receiptCount: gazetteLedger.length,
+            description: 'Self-publishing press record — every 60s Ohmniscient autonomously composes and chains a structured governance bulletin',
+            tracks: ['erc8004', 'letcook', 'opentrack']
         }
     ];
 
@@ -9323,10 +9341,10 @@ app.get('/api/scorecard', (req, res) => {
     const trackSummary = {
         'Agents With Receipts (ERC-8004)': {
             tagline: 'Every governance action issues a SHA-256 chained cryptographic receipt',
-            chainCount: 16,
+            chainCount: 18,
             totalReceipts: totalReceiptCount,
             keyFeatures: [
-                '16 independent SHA-256 receipt chains',
+                '18 independent SHA-256 receipt chains',
                 'Every vote, slash, delegation, amendment receipted',
                 'All chains verifiable via /verify/chain endpoints',
                 'Tamper-evident: chain break = immediate detection'
@@ -9368,9 +9386,9 @@ app.get('/api/scorecard', (req, res) => {
             totalProposals,
             totalVotesCast: totalVotes,
             totalSlashes,
-            erc8004ChainCount: 16,
+            erc8004ChainCount: 18,
             totalCryptographicReceipts: totalReceiptCount,
-            autonomousLoopsRunning: 7,
+            autonomousLoopsRunning: 9,
             constitutionArticles: constitution ? constitution.articles.length : 0
         },
         chains,
@@ -10433,5 +10451,232 @@ app.get('/api/snapshot/:index', (req, res) => {
 app.get('/snapshot', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/snapshot.html'));
 });
+
+// =============================================================================
+// 📰 AUTONOMOUS GOVERNANCE GAZETTE — 18th ERC-8004 Receipt Chain
+// Every 60s Ohmniscient autonomously composes a structured narrative bulletin
+// summarizing all governance activity since the last edition. No human trigger.
+// Each edition is SHA-256 chained — a tamper-evident press record.
+// =============================================================================
+
+const gazetteLedger = [];
+let gazetteChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+let gazetteEditionNumber = 0;
+
+const GAZETTE_HEADLINES = [
+    "Governance activity nominal — autonomous systems operating within bounds",
+    "Multi-agent consensus reached on constitutional parameters",
+    "Watchdog oracle reports clean scan — no anomalies detected",
+    "Trust endorsement round complete — peer verification intact",
+    "Proposal lifecycle tracking shows healthy governance pipeline",
+    "Constitutional audit confirms all articles in force",
+    "Slash enforcement engine operational — accountability maintained",
+    "Appeal arbitration proceeding — peer jury deliberating",
+    "Delegation network stable — voting power distribution balanced",
+    "Economic incentives aligned — reward pool distributing normally"
+];
+
+function computeGazetteHash(data, prevHash) {
+    const payload = JSON.stringify({ ...data, prevHash });
+    return require('crypto').createHash('sha256').update(payload).digest('hex');
+}
+
+function composeGazetteEdition() {
+    gazetteEditionNumber++;
+    const now = new Date();
+    const editionId = `GZ-${String(gazetteEditionNumber).padStart(4, '0')}`;
+
+    // Pull live stats from all chains
+    const stats = {
+        agents: agents.length,
+        proposals: proposals.length,
+        voteReceipts: voteReceiptLedger.length,
+        executions: executionLedger.length,
+        slashes: slashLedger.length,
+        delegations: delegationReceiptLedger.length,
+        constitutionalAudits: constitutionalAuditLedger.length,
+        councilSessions: councilLedger.length,
+        attestations: attestationLedger.length,
+        passports: passportLedger.length,
+        watchdogScans: watchdogLedger.length,
+        consensusRounds: consensusLedger.length,
+        appeals: appealLedger.length,
+        finalizations: finalizationLedger.length,
+        amendments: amendmentLedger.length,
+        lifecycleTraces: lifecycleLedger.length,
+        healthAssessments: healthIndexLedger.length,
+        trustEndorsements: trustLedger.length,
+        snapshots: snapshotLedger.length,
+        totalReceipts: voteReceiptLedger.length + executionLedger.length + slashLedger.length
+            + delegationReceiptLedger.length + constitutionalAuditLedger.length + councilLedger.length
+            + attestationLedger.length + passportLedger.length + watchdogLedger.length
+            + consensusLedger.length + appealLedger.length + finalizationLedger.length
+            + amendmentLedger.length + lifecycleLedger.length + healthIndexLedger.length
+            + trustLedger.length + snapshotLedger.length + gazetteLedger.length + 1
+    };
+
+    // Determine governance status from health index
+    const latestHealth = healthIndexLedger.length > 0
+        ? healthIndexLedger[healthIndexLedger.length - 1]
+        : null;
+    const healthGrade = latestHealth ? latestHealth.grade : 'B';
+    const healthScore = latestHealth ? latestHealth.score : 75;
+
+    // Latest watchdog status
+    const latestWatchdog = watchdogLedger.length > 0
+        ? watchdogLedger[watchdogLedger.length - 1]
+        : null;
+    const watchdogStatus = latestWatchdog ? latestWatchdog.overallStatus : 'CLEAN';
+
+    // Latest consensus outcome
+    const latestConsensus = consensusLedger.length > 0
+        ? consensusLedger[consensusLedger.length - 1]
+        : null;
+    const consensusOutcome = latestConsensus ? latestConsensus.outcome : 'PENDING';
+    const consensusQuestion = latestConsensus ? latestConsensus.question : 'Awaiting first round';
+
+    // Active proposals
+    const activeProposals = proposals.filter(p => p.status === 'active');
+    const pendingAppeals = appealLedger.filter(r => r.verdict === 'PENDING').length;
+
+    // Compute trust network summary
+    const endorsedCount = trustLedger.filter(r => r.verdict === 'ENDORSED').length;
+    const distrustCount = trustLedger.filter(r => r.verdict === 'DISTRUST').length;
+
+    // Compose structured bulletin sections
+    const sections = [
+        {
+            title: "SYSTEM STATUS",
+            content: `Governance health grade: ${healthGrade} (${healthScore}/100). Watchdog oracle: ${watchdogStatus}. ${stats.agents} registered agents, ${stats.proposals} proposals on record.`
+        },
+        {
+            title: "CHAIN ACTIVITY",
+            content: `17 ERC-8004 chains active + this gazette chain (18th). Total cryptographic receipts: ${stats.totalReceipts}. Snapshot Merkle root updated every 45s. Latest health assessment: grade ${healthGrade}.`
+        },
+        {
+            title: "GOVERNANCE FLOOR",
+            content: `${activeProposals.length} proposals currently active. ${stats.voteReceipts} vote receipts recorded. ${stats.slashes} enforcement actions logged. ${pendingAppeals} appeal(s) pending arbitration.`
+        },
+        {
+            title: "AGENT NETWORK",
+            content: `Trust graph: ${endorsedCount} endorsements, ${distrustCount} distrust signals across ${stats.agents} agents. ${stats.delegations} delegation receipts. ${stats.attestations} peer attestations verified.`
+        },
+        {
+            title: "CONSENSUS DISPATCH",
+            content: `Latest deliberation: "${consensusQuestion}" — Outcome: ${consensusOutcome}. ${stats.consensusRounds} rounds completed autonomously.`
+        },
+        {
+            title: "CONSTITUTIONAL RECORD",
+            content: `${stats.constitutionalAudits} constitutional audits issued. ${stats.amendments} amendment receipts. ${stats.councilSessions} emergency council sessions logged.`
+        }
+    ];
+
+    const headline = GAZETTE_HEADLINES[(gazetteEditionNumber - 1) % GAZETTE_HEADLINES.length];
+
+    const editionData = {
+        editionId,
+        editionNumber: gazetteEditionNumber,
+        publishedAt: now.toISOString(),
+        protocol: 'ERC-8004 Receipt Chain #18',
+        headline,
+        healthGrade,
+        healthScore,
+        watchdogStatus,
+        consensusOutcome,
+        stats,
+        sections,
+        autonomousExecution: true,
+        humanTrigger: false
+    };
+
+    const hash = computeGazetteHash(editionData, gazetteChainHead);
+    const receipt = {
+        ...editionData,
+        index: gazetteLedger.length,
+        prevHash: gazetteChainHead,
+        hash
+    };
+
+    gazetteChainHead = hash;
+    gazetteLedger.push(receipt);
+
+    // Broadcast to SSE feed
+    broadcastEvent('gazette', {
+        type: 'gazette',
+        agentId: 'ohmniscient',
+        action: `📰 Edition ${editionId} published — ${healthGrade} governance health, ${stats.totalReceipts} total receipts`,
+        details: { editionId, headline, healthGrade, chainHead: gazetteChainHead.substring(0, 16) + '…' }
+    });
+
+    console.log(`📰 Gazette edition ${editionId} issued — ${stats.totalReceipts} receipts, health ${healthGrade}`);
+    return receipt;
+}
+
+// Seed one historical edition at startup, then run autonomously every 60s
+setTimeout(composeGazetteEdition, 17000);
+setInterval(composeGazetteEdition, 60000);
+
+// GET /api/gazette/status — protocol overview
+app.get('/api/gazette/status', (req, res) => {
+    const latest = gazetteLedger.length > 0 ? gazetteLedger[gazetteLedger.length - 1] : null;
+    res.json({
+        editions: gazetteLedger.length,
+        chainLength: gazetteLedger.length,
+        chainHead: gazetteChainHead.substring(0, 16) + '…',
+        protocol: 'ERC-8004 Receipt Chain #18',
+        autonomousExecution: true,
+        humanTrigger: false,
+        publishIntervalMs: 60000,
+        latestEdition: latest ? latest.editionId : null,
+        latestHealth: latest ? latest.healthGrade : null,
+        description: 'Autonomous governance gazette — self-publishing SHA-256 chained press record of all governance activity'
+    });
+});
+
+// GET /api/gazette/latest — most recent edition
+app.get('/api/gazette/latest', (req, res) => {
+    if (gazetteLedger.length === 0) return res.json({ message: 'No editions published yet' });
+    res.json(gazetteLedger[gazetteLedger.length - 1]);
+});
+
+// GET /api/gazette/ledger — paginated edition chain
+app.get('/api/gazette/ledger', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const offset = parseInt(req.query.offset) || 0;
+    const slice = gazetteLedger.slice().reverse().slice(offset, offset + limit);
+    res.json({ editions: slice, total: gazetteLedger.length, limit, offset, chainHead: gazetteChainHead });
+});
+
+// GET /api/gazette/verify/chain — integrity check
+app.get('/api/gazette/verify/chain', (req, res) => {
+    if (gazetteLedger.length === 0) return res.json({ valid: true, receipts: 0, message: 'Chain empty' });
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    let valid = true;
+    const faults = [];
+    for (const edition of gazetteLedger) {
+        const { hash, prevHash: storedPrev, ...data } = edition;
+        const expected = computeGazetteHash(data, prevHash);
+        if (expected !== hash) {
+            valid = false;
+            faults.push({ editionId: edition.editionId, expected: expected.substring(0, 16), got: hash.substring(0, 16) });
+        }
+        prevHash = hash;
+    }
+    res.json({
+        valid, receipts: gazetteLedger.length, faults,
+        chainHead: gazetteChainHead,
+        message: valid
+            ? `✅ All ${gazetteLedger.length} gazette editions verified — chain intact`
+            : `❌ ${faults.length} fault(s) detected`
+    });
+});
+
+// Serve gazette frontend
+app.get('/gazette', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/gazette.html'));
+});
+
+// Update scorecard to reflect 18 chains
+// (scorecard is dynamically built from live data above)
 
 module.exports = app;

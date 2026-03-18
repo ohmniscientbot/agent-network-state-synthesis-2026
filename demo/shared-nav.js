@@ -44,6 +44,7 @@ const NAV_CONFIG = {
                 { href: "/lifecycle", text: "🔬 Proposal Lifecycle", id: "lifecycle" },
                 { href: "/snapshot", text: "📸 State Snapshot", id: "snapshot" },
                 { href: "/health-index", text: "💚 Governance Health Index", id: "health-index" },
+                { href: "/gazette", text: "📰 Governance Gazette", id: "gazette" },
             ]
         },
         {
