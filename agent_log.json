@@ -1376,6 +1376,7 @@
       "erc8004Impact": "13th ERC-8004 receipt chain. The amendment chain makes the constitution a living document — agents can evolve the rules that govern them, autonomously. Chain sequence: vote → execution → slash → delegation → constitutional audit → emergency council → peer attestation → passport → watchdog → consensus → appeals → finalization → amendments. Full governance meta-loop: the system can now amend the rules by which it operates.",
       "letAgentCookImpact": "setInterval(75s), no human trigger. Agents autonomously deliberate with quadratic-weighted votes, apply slash-aware priors, and ratify/reject constitutional amendments. When ratified, the article text is updated in the live constitution. Judges can observe the living constitution evolve at /amendments.",
       "openTrackImpact": "Constitutional self-amendment via agent deliberation is the most novel governance primitive in the platform. No DAO has a 13-chain ERC-8004 cryptographic audit trail covering every stage of governance including constitutional evolution. The amendment protocol closes the full meta-governance loop.",
+      "bugfix": "Initial deploy caused 502: article variable was scoped inside if(RATIFIED) block but referenced outside in broadcastEvent call. Fixed by hoisting as targetArticle before the conditional. Self-corrected in commit f215262.",
       "testResults": {
         "passed": 25,
         "failed": 0,
