@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Agent Reasoning Transparency - Synthocracy</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .page-content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 6px; }
+        .subtitle { color: var(--secondary-text); margin-bottom: 24px; font-size: 0.95rem; }
+
+        /* Status bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 14px 16px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--neural-purple);
+        }
+        .stat-label { font-size: 0.75rem; color: var(--secondary-text); margin-top: 4px; }
+
+        /* Chain integrity bar */
+        .integrity-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .integrity-status { font-size: 0.9rem; font-weight: 600; }
+        .integrity-btn {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid var(--neural-purple);
+            color: var(--neural-purple);
+            border-radius: 6px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .integrity-btn:hover { background: rgba(139, 92, 246, 0.3); }
+
+        /* Section headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .section-title { font-size: 1.1rem; font-weight: 600; }
+
+        /* Receipt cards */
+        .receipt-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+        .receipt-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 16px 20px;
+        }
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .receipt-id { font-family: monospace; font-size: 0.8rem; color: var(--secondary-text); }
+        .vote-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .vote-for { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid var(--neural-green); }
+        .vote-against { background: rgba(239,68,68,0.15); color: var(--neural-red); border: 1px solid var(--neural-red); }
+
+        .receipt-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .meta-item { font-size: 0.82rem; color: var(--secondary-text); }
+        .meta-item span { color: var(--primary-text); font-weight: 500; }
+
+        /* Inference steps */
+        .inference-chain {
+            border-left: 2px solid rgba(139, 92, 246, 0.4);
+            padding-left: 14px;
+            margin-bottom: 12px;
+        }
+        .inference-step {
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            border-left: 3px solid transparent;
+        }
+        .inference-step.aligned { border-left-color: var(--neural-green); }
+        .inference-step.clear { border-left-color: var(--neural-cyan); }
+        .inference-step.trusted { border-left-color: var(--neural-blue); }
+        .inference-step.positive { border-left-color: var(--neural-purple); }
+        .inference-step.for, .inference-step.against { border-left-color: var(--neural-yellow); }
+        .inference-step.caution, .inference-step.conflict, .inference-step.scrutiny, .inference-step.negative { border-left-color: var(--neural-orange); }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .step-label { font-size: 0.78rem; font-weight: 600; color: var(--neural-purple); }
+        .step-signal {
+            font-size: 0.7rem;
+            padding: 2px 7px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(139,92,246,0.15);
+            color: var(--neural-purple);
+        }
+        .step-analysis { font-size: 0.82rem; color: var(--secondary-text); line-height: 1.45; }
+        .step-confidence {
+            font-size: 0.72rem;
+            color: var(--secondary-text);
+            margin-top: 4px;
+        }
+
+        /* Signals consulted */
+        .signals-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .signal-pill {
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--neural-cyan);
+            border: 1px solid rgba(6,182,212,0.3);
+        }
+
+        /* Confidence bar */
+        .confidence-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .confidence-label { font-size: 0.78rem; color: var(--secondary-text); min-width: 80px; }
+        .confidence-track {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--neural-purple), var(--neural-cyan));
+        }
+        .confidence-pct { font-size: 0.78rem; font-weight: 600; color: var(--neural-purple); min-width: 40px; text-align: right; }
+
+        /* Hash trail */
+        .hash-trail { font-family: monospace; font-size: 0.72rem; color: var(--secondary-text); margin-top: 10px; word-break: break-all; }
+        .hash-trail span { color: var(--neural-purple); }
+
+        /* Pagination */
+        .pagination { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+        .page-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            color: var(--primary-text);
+            border-radius: 6px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .page-btn:hover { background: rgba(139, 92, 246, 0.15); }
+        .page-btn.active { background: rgba(139, 92, 246, 0.3); border-color: var(--neural-purple); }
+
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: var(--secondary-text); font-size: 0.9rem; }
+
+        /* Refresh indicator */
+        .refresh-note { font-size: 0.75rem; color: var(--secondary-text); margin-top: 8px; }
+    </style>
+</head>
+<body>
+<script src="/shared-nav.js"></script>
+<script>injectNavigation('reasoning');</script>
+
+<div class="page-content">
+    <h1>🧠 Agent Reasoning Transparency Ledger</h1>
+    <p class="subtitle">ERC-8004 Receipt Chain #19 — Cryptographic proof that AI agents are not black boxes. Every vote decision includes a 5-step inference chain with constitutional references, risk signals, and a confidence score.</p>
+
+    <!-- Status Bar -->
+    <div class="status-bar" id="statusBar">
+        <div class="stat-card"><div class="stat-value" id="statReceipts">—</div><div class="stat-label">Total Receipts</div></div>
+        <div class="stat-card"><div class="stat-value" id="statConfidence">—</div><div class="stat-label">Avg Confidence</div></div>
+        <div class="stat-card"><div class="stat-value" id="statForVotes">—</div><div class="stat-label">FOR Votes</div></div>
+        <div class="stat-card"><div class="stat-value" id="statAgainstVotes">—</div><div class="stat-label">AGAINST Votes</div></div>
+        <div class="stat-card"><div class="stat-value" id="statReEval">—</div><div class="stat-label">Re-Eval Rounds</div></div>
+        <div class="stat-card"><div class="stat-value" id="statNextReEval">—</div><div class="stat-label">Next Re-Eval</div></div>
+    </div>
+
+    <!-- Chain Integrity Bar -->
+    <div class="integrity-bar">
+        <div>
+            <div class="integrity-status" id="integrityStatus">⏳ Checking chain integrity…</div>
+            <div class="refresh-note">Chain #19 • Auto-refreshes every 10s</div>
+        </div>
+        <button class="integrity-btn" onclick="verifyChain()">🔐 Verify Chain Now</button>
+    </div>
+
+    <!-- Receipt Chain -->
+    <div class="section-header">
+        <div class="section-title">🧠 Reasoning Receipt Chain</div>
+        <div style="font-size:0.8rem; color: var(--secondary-text);">Newest first</div>
+    </div>
+
+    <div class="receipt-list" id="receiptList">
+        <div class="loading">Loading reasoning receipts…</div>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+let currentOffset = 0;
+const PAGE_SIZE = 5;
+let totalReceipts = 0;
+let nextReEvalMs = 80000;
+let reEvalRounds = 0;
+let countdownInterval = null;
+
+async function loadStatus() {
+    try {
+        const res = await fetch('/api/reasoning/status');
+        const data = await res.json();
+        document.getElementById('statReceipts').textContent = data.receipts || 0;
+        document.getElementById('statConfidence').textContent = data.averageConfidence
+            ? (data.averageConfidence * 100).toFixed(1) + '%' : '—';
+        document.getElementById('statForVotes').textContent = data.voteBreakdown?.for || 0;
+        document.getElementById('statAgainstVotes').textContent = data.voteBreakdown?.against || 0;
+        document.getElementById('statReEval').textContent = data.reEvalRounds || 0;
+        totalReceipts = data.receipts || 0;
+        reEvalRounds = data.reEvalRounds || 0;
+        startCountdown(data.reEvalIntervalMs || 80000);
+    } catch(e) {
+        console.error('Status error:', e);
+    }
+}
+
+function startCountdown(intervalMs) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    let remaining = nextReEvalMs;
+    document.getElementById('statNextReEval').textContent = formatCountdown(remaining);
+    countdownInterval = setInterval(() => {
+        remaining -= 1000;
+        if (remaining <= 0) remaining = intervalMs;
+        nextReEvalMs = remaining;
+        document.getElementById('statNextReEval').textContent = formatCountdown(remaining);
+    }, 1000);
+}
+
+function formatCountdown(ms) {
+    const s = Math.ceil(ms / 1000);
+    return s + 's';
+}
+
+async function verifyChain() {
+    document.getElementById('integrityStatus').textContent = '⏳ Verifying…';
+    try {
+        const res = await fetch('/api/reasoning/verify/chain');
+        const data = await res.json();
+        document.getElementById('integrityStatus').textContent = data.valid
+            ? `✅ Chain intact — ${data.receipts} receipts verified`
+            : `❌ Chain fault: ${data.faults?.length} error(s) detected`;
+    } catch(e) {
+        document.getElementById('integrityStatus').textContent = '⚠️ Verification failed';
+    }
+}
+
+async function loadReceipts(offset = 0) {
+    currentOffset = offset;
+    const list = document.getElementById('receiptList');
+    list.innerHTML = '<div class="loading">Loading…</div>';
+    try {
+        const res = await fetch(`/api/reasoning/ledger?limit=${PAGE_SIZE}&offset=${offset}`);
+        const data = await res.json();
+        totalReceipts = data.total;
+        renderReceipts(data.receipts);
+        renderPagination();
+    } catch(e) {
+        list.innerHTML = '<div class="loading">Failed to load receipts.</div>';
+    }
+}
+
+function signalClass(signal) {
+    if (!signal) return '';
+    return signal.toLowerCase();
+}
+
+function renderReceipts(receipts) {
+    const list = document.getElementById('receiptList');
+    if (!receipts || receipts.length === 0) {
+        list.innerHTML = '<div class="loading">No reasoning receipts yet. Seeding after 19s startup delay…</div>';
+        return;
+    }
+    list.innerHTML = receipts.map(r => {
+        const trace = r.reasoningTrace || {};
+        const steps = trace.inferenceSteps || [];
+        const signals = trace.signalsConsulted || [];
+        const confidence = trace.overallConfidence || 0;
+        const voteBadgeClass = r.vote === 'for' ? 'vote-for' : 'vote-against';
+        const voteIcon = r.vote === 'for' ? '✅' : '❌';
+
+        const stepsHtml = steps.map(step => `
+            <div class="inference-step ${signalClass(step.signal)}">
+                <div class="step-header">
+                    <div class="step-label">Step ${step.step}: ${step.label}</div>
+                    <div class="step-signal">${step.signal || ''}</div>
+                </div>
+                <div class="step-analysis">${step.analysis || ''}</div>
+                <div class="step-confidence">Confidence: ${step.confidence ? (step.confidence * 100).toFixed(1) + '%' : '—'}</div>
+            </div>
+        `).join('');
+
+        const signalPills = signals.map(s => `<span class="signal-pill">${s.name}</span>`).join('');
+
+        const articles = (trace.constitutionalArticlesReferenced || []).join(', ');
+
+        return `
+        <div class="receipt-card">
+            <div class="receipt-header">
+                <div>
+                    <div style="font-weight:600; font-size:0.95rem;">${r.agentName || r.agentId} — ${r.proposalTitle || r.proposalId}</div>
+                    <div class="receipt-id">${r.receiptId} • Chain #${r.chain} • ${new Date(r.timestamp).toLocaleString()}</div>
+                </div>
+                <span class="vote-badge ${voteBadgeClass}">${voteIcon} ${r.vote}</span>
+            </div>
+
+            <div class="receipt-meta">
+                <div class="meta-item">Agent Type: <span>${r.agentType || '—'}</span></div>
+                <div class="meta-item">Voting Power: <span>${r.votingPower}</span></div>
+                <div class="meta-item">Quadratic Weight: <span>${r.quadraticWeight}</span></div>
+                <div class="meta-item">Proposal Risk: <span>${trace.proposalRiskLevel || '—'}</span></div>
+                <div class="meta-item">Deliberation: <span>${trace.deliberationTimeMs || '—'}ms</span></div>
+                <div class="meta-item">Constitutional: <span>${articles || '—'}</span></div>
+            </div>
+
+            ${signals.length > 0 ? `<div style="font-size:0.78rem; color: var(--secondary-text); margin-bottom:6px;">Signals Consulted:</div><div class="signals-row">${signalPills}</div>` : ''}
+
+            <div style="font-size:0.82rem; font-weight:600; color: var(--secondary-text); margin-bottom:8px;">5-Step Inference Chain:</div>
+            <div class="inference-chain">${stepsHtml}</div>
+
+            <div class="confidence-row">
+                <div class="confidence-label">Overall Confidence</div>
+                <div class="confidence-track">
+                    <div class="confidence-fill" style="width: ${(confidence * 100).toFixed(1)}%"></div>
+                </div>
+                <div class="confidence-pct">${(confidence * 100).toFixed(1)}%</div>
+            </div>
+
+            <div class="hash-trail">
+                Hash: <span>${r.hash ? r.hash.substring(0, 32) : '—'}…</span> | 
+                Prev: <span>${r.prevHash ? r.prevHash.substring(0, 16) : '0'.repeat(16)}…</span>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
+function renderPagination() {
+    const pagination = document.getElementById('pagination');
+    const totalPages = Math.ceil(totalReceipts / PAGE_SIZE);
+    const currentPage = Math.floor(currentOffset / PAGE_SIZE);
+
+    if (totalPages <= 1) { pagination.innerHTML = ''; return; }
+
+    let html = '';
+    if (currentOffset > 0) {
+        html += `<button class="page-btn" onclick="loadReceipts(${currentOffset - PAGE_SIZE})">← Prev</button>`;
+    }
+    for (let i = 0; i < Math.min(totalPages, 5); i++) {
+        const active = i === currentPage ? 'active' : '';
+        html += `<button class="page-btn ${active}" onclick="loadReceipts(${i * PAGE_SIZE})">${i + 1}</button>`;
+    }
+    if (currentOffset + PAGE_SIZE < totalReceipts) {
+        html += `<button class="page-btn" onclick="loadReceipts(${currentOffset + PAGE_SIZE})">Next →</button>`;
+    }
+    pagination.innerHTML = html;
+}
+
+// Initialize
+verifyChain();
+loadStatus();
+loadReceipts(0);
+
+// Auto-refresh every 10s
+setInterval(() => {
+    loadStatus();
+    loadReceipts(currentOffset);
+    verifyChain();
+}, 10000);
+</script>
+</body>
+</html>

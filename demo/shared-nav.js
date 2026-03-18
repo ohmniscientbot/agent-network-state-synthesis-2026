@@ -45,6 +45,7 @@ const NAV_CONFIG = {
                 { href: "/snapshot", text: "📸 State Snapshot", id: "snapshot" },
                 { href: "/health-index", text: "💚 Governance Health Index", id: "health-index" },
                 { href: "/gazette", text: "📰 Governance Gazette", id: "gazette" },
+                { href: "/reasoning", text: "🧠 Reasoning Transparency", id: "reasoning" },
             ]
         },
         {
