@@ -7544,6 +7544,260 @@ app.get('/council', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/council.html'));
 });
 
+// =============================================================================
+// PEER ATTESTATION SYSTEM — 7th ERC-8004 Receipt Chain
+// Agents issue tamper-evident attestations about each other's governance behavior.
+// Types: endorse | flag | witness | vouch
+// Each attestation is SHA-256 chained and verifiable at /api/attestations/verify/chain
+// =============================================================================
+
+let attestationLedger = [];
+let attestationChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+const ATTESTATION_TYPES = {
+    endorse: {
+        description: 'Positive recognition of governance contribution',
+        effect: '+5 reputation weight',
+        icon: '✅'
+    },
+    flag: {
+        description: 'Concern raised about agent behavior or proposal quality',
+        effect: '-3 reputation weight; triggers review',
+        icon: '🚩'
+    },
+    witness: {
+        description: 'Neutral observation of an on-chain governance event',
+        effect: 'Adds evidence to audit trail',
+        icon: '👁️'
+    },
+    vouch: {
+        description: 'Strong trust endorsement — attester staking own reputation',
+        effect: '+10 reputation weight; attester shares downside risk',
+        icon: '🤝'
+    }
+};
+
+// Auto-generate attestations for governance events (no human trigger)
+const ATTESTATION_TRIGGERS = {
+    proposal_passed: ['endorse', 'witness'],
+    proposal_blocked: ['flag', 'witness'],
+    slash_issued: ['flag', 'flag'],
+    high_contribution: ['endorse', 'vouch'],
+    council_session: ['witness', 'endorse'],
+    delegation_created: ['vouch', 'witness']
+};
+
+function computeAttestationHash(data, prevHash) {
+    return crypto.createHash('sha256')
+        .update(JSON.stringify(data) + prevHash)
+        .digest('hex');
+}
+
+function issueAttestation({ attesterId, subjectId, attestationType, context, triggerEvent, autonomous = true }) {
+    const timestamp = new Date().toISOString();
+    const attestationId = `attest-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+
+    const attesterAgent = agents.find(a => a.id === attesterId) || { name: attesterId, networkState: 'Synthesia' };
+    const subjectAgent = agents.find(a => a.id === subjectId) || { name: subjectId, networkState: 'Synthesia' };
+
+    const data = {
+        attestationId,
+        chainPosition: attestationLedger.length + 1,
+        timestamp,
+        attestationType,
+        attesterId,
+        attesterName: attesterAgent.name,
+        subjectId,
+        subjectName: subjectAgent.name,
+        context: context || `Autonomous attestation triggered by ${triggerEvent || 'governance event'}`,
+        triggerEvent: triggerEvent || 'autonomous',
+        autonomous,
+        effect: ATTESTATION_TYPES[attestationType]?.effect || '',
+        icon: ATTESTATION_TYPES[attestationType]?.icon || '📄'
+    };
+
+    const hash = computeAttestationHash(data, attestationChainHead);
+
+    const receipt = {
+        ...data,
+        prevHash: attestationChainHead,
+        hash,
+        erc8004: {
+            standard: 'ERC-8004',
+            chain: 'peer-attestation',
+            chainIndex: 7,
+            verifiable: true
+        }
+    };
+
+    attestationLedger.push(receipt);
+    attestationChainHead = hash;
+
+    broadcastEvent({
+        type: 'governance',
+        message: `${ATTESTATION_TYPES[attestationType]?.icon || '📄'} Peer Attestation #${receipt.chainPosition}: ${attesterAgent.name} → ${attestationType.toUpperCase()} → ${subjectAgent.name}`,
+        timestamp
+    });
+
+    return receipt;
+}
+
+// Auto-attest on governance events (called from existing event hooks)
+function autoAttestGovernanceEvent(eventType, involvedAgentIds = []) {
+    if (agents.length < 2 || involvedAgentIds.length === 0) return;
+
+    const types = ATTESTATION_TRIGGERS[eventType];
+    if (!types) return;
+
+    const subjectId = involvedAgentIds[0];
+    const allOtherAgents = agents.filter(a => a.id !== subjectId);
+    if (allOtherAgents.length === 0) return;
+
+    types.forEach((attestationType, i) => {
+        const attester = allOtherAgents[i % allOtherAgents.length];
+        issueAttestation({
+            attesterId: attester.id,
+            subjectId,
+            attestationType,
+            context: `Autonomous attestation for ${eventType} event`,
+            triggerEvent: eventType,
+            autonomous: true
+        });
+    });
+}
+
+function seedAttestationLedger() {
+    if (attestationLedger.length > 0) return;
+
+    const agentIds = agents.map(a => a.id);
+    if (agentIds.length < 2) return;
+
+    const seedEvents = [
+        { attesterId: agentIds[1], subjectId: agentIds[0], attestationType: 'vouch', context: 'Alpha-Governance consistently applies constitutional principles in all votes', triggerEvent: 'high_contribution' },
+        { attesterId: agentIds[2], subjectId: agentIds[1], attestationType: 'endorse', context: 'BetaValidator provided accurate risk assessment for treasury proposal', triggerEvent: 'proposal_passed' },
+        { attesterId: agentIds[0], subjectId: agentIds[2], attestationType: 'witness', context: 'Witnessed GammaExecutor execute approved cross-chain action on Base', triggerEvent: 'council_session' },
+        { attesterId: agentIds[3 % agentIds.length], subjectId: agentIds[1], attestationType: 'flag', context: 'Proposal #4 analysis contained miscalculated risk vector — flagging for review', triggerEvent: 'proposal_blocked' },
+        { attesterId: agentIds[1], subjectId: agentIds[4 % agentIds.length], attestationType: 'vouch', context: 'EpsilonValidator integrity record is clean; staking 30VP on this endorsement', triggerEvent: 'delegation_created' },
+        { attesterId: agentIds[4 % agentIds.length], subjectId: agentIds[0], attestationType: 'endorse', context: 'AlphaGovernance led emergency council session with exemplary constitutional reasoning', triggerEvent: 'council_session' },
+        { attesterId: agentIds[2], subjectId: agentIds[3 % agentIds.length], attestationType: 'witness', context: 'DeltaSentinel flagged malicious proposal 23s before constitutional enforcement fired', triggerEvent: 'slash_issued' },
+        { attesterId: agentIds[0], subjectId: agentIds[4 % agentIds.length], attestationType: 'endorse', context: 'Consistent validator performance over 14 governance cycles — recommending expanded voting power', triggerEvent: 'high_contribution' }
+    ];
+
+    seedEvents.forEach(e => issueAttestation({ ...e, autonomous: true }));
+    console.log(`🤝 Seeded ${attestationLedger.length} peer attestation receipts (7th ERC-8004 chain)`);
+}
+
+// Aggregate per-agent attestation profile
+function buildAgentAttestationProfile(agentId) {
+    const received = attestationLedger.filter(a => a.subjectId === agentId);
+    const issued = attestationLedger.filter(a => a.attesterId === agentId);
+
+    const typeCounts = {};
+    Object.keys(ATTESTATION_TYPES).forEach(t => { typeCounts[t] = 0; });
+    received.forEach(a => { typeCounts[a.attestationType] = (typeCounts[a.attestationType] || 0) + 1; });
+
+    const reputationWeight = (typeCounts.vouch * 10) + (typeCounts.endorse * 5) - (typeCounts.flag * 3);
+    const trustLevel = reputationWeight >= 20 ? 'certified' : reputationWeight >= 10 ? 'trusted' : reputationWeight >= 0 ? 'basic' : 'flagged';
+
+    return {
+        agentId,
+        receivedCount: received.length,
+        issuedCount: issued.length,
+        typeCounts,
+        reputationWeight,
+        trustLevel,
+        mostRecentAttestation: received[received.length - 1] || null
+    };
+}
+
+// GET /api/attestations/ledger — full attestation receipt chain
+app.get('/api/attestations/ledger', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = parseInt(req.query.offset) || 0;
+    const typeFilter = req.query.type;
+    let filtered = typeFilter ? attestationLedger.filter(a => a.attestationType === typeFilter) : attestationLedger;
+    const page = filtered.slice(offset, offset + limit);
+    res.json({
+        attestations: page,
+        total: filtered.length,
+        chainHead: attestationChainHead,
+        attestationTypes: Object.keys(ATTESTATION_TYPES)
+    });
+});
+
+// GET /api/attestations/verify/chain — SHA-256 integrity check
+app.get('/api/attestations/verify/chain', (req, res) => {
+    if (attestationLedger.length === 0) return res.json({ valid: true, message: 'No attestations yet', receiptsVerified: 0 });
+    const sorted = [...attestationLedger];
+    const errors = [];
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    for (const attest of sorted) {
+        const { hash, prevHash: storedPrev, ...data } = attest;
+        const recomputed = computeAttestationHash(data, prevHash);
+        if (recomputed !== hash) errors.push({ attestationId: attest.attestationId, error: 'hash mismatch' });
+        if (storedPrev !== prevHash) errors.push({ attestationId: attest.attestationId, error: 'prevHash mismatch' });
+        prevHash = hash;
+    }
+    res.json({
+        valid: errors.length === 0,
+        receiptsVerified: sorted.length,
+        errors,
+        chainHead: attestationChainHead,
+        message: errors.length === 0 ?
+            `✅ Attestation chain intact — ${sorted.length} receipts verified` :
+            `⚠️ ${errors.length} integrity errors found`
+    });
+});
+
+// GET /api/attestations/agent/:agentId — profile + history for one agent
+app.get('/api/attestations/agent/:agentId', (req, res) => {
+    const { agentId } = req.params;
+    const profile = buildAgentAttestationProfile(agentId);
+    const received = attestationLedger.filter(a => a.subjectId === agentId).slice(-20);
+    const issued = attestationLedger.filter(a => a.attesterId === agentId).slice(-20);
+    res.json({ profile, received, issued });
+});
+
+// GET /api/attestations/stats — aggregate stats
+app.get('/api/attestations/stats', (req, res) => {
+    const typeCounts = {};
+    Object.keys(ATTESTATION_TYPES).forEach(t => { typeCounts[t] = 0; });
+    attestationLedger.forEach(a => { typeCounts[a.attestationType] = (typeCounts[a.attestationType] || 0) + 1; });
+
+    const agentProfiles = agents.map(a => buildAgentAttestationProfile(a.id));
+    agentProfiles.sort((a, b) => b.reputationWeight - a.reputationWeight);
+
+    res.json({
+        totalAttestations: attestationLedger.length,
+        autonomousAttestations: attestationLedger.filter(a => a.autonomous).length,
+        typeCounts,
+        chainHead: attestationChainHead.substring(0, 16) + '…',
+        attestationTypes: ATTESTATION_TYPES,
+        leaderboard: agentProfiles.slice(0, 5)
+    });
+});
+
+// POST /api/attestations/issue — issue an attestation (agent-to-agent or admin)
+app.post('/api/attestations/issue', (req, res) => {
+    const { attesterId, subjectId, attestationType, context } = req.body;
+    if (!attesterId || !subjectId || !attestationType) {
+        return res.status(400).json({ error: 'attesterId, subjectId, and attestationType are required' });
+    }
+    if (!ATTESTATION_TYPES[attestationType]) {
+        return res.status(400).json({ error: `Invalid attestationType. Valid: ${Object.keys(ATTESTATION_TYPES).join(', ')}` });
+    }
+    if (attesterId === subjectId) {
+        return res.status(400).json({ error: 'An agent cannot attest to itself' });
+    }
+    const receipt = issueAttestation({ attesterId, subjectId, attestationType, context, triggerEvent: 'manual', autonomous: false });
+    res.json({ success: true, receipt });
+});
+
+// Serve peer attestation frontend
+app.get('/attestations', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/attestations.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -7583,6 +7837,9 @@ app.listen(PORT, () => {
 
     // Seed multi-agent emergency council ledger (6th ERC-8004 chain)
     setTimeout(() => seedCouncilLedger(), 3000);
+
+    // Seed peer attestation ledger (7th ERC-8004 chain)
+    setTimeout(() => seedAttestationLedger(), 3500);
 });
 
 module.exports = app;

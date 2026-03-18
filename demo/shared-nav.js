@@ -23,7 +23,8 @@ const NAV_CONFIG = {
         { href: "/alignment", text: "⚖️ Alignment", mobileText: "⚖️ Incentive Alignment", id: "alignment" },
         { href: "/delegation", text: "🗳️ Delegation", mobileText: "🗳️ Liquid Democracy", id: "delegation" },
         { href: "/constitution-enforcement", text: "🛡️ Enforcement", mobileText: "🛡️ Constitutional Enforcement", id: "constitution-enforcement" },
-        { href: "/council", text: "🏛️ Council", mobileText: "🏛️ Emergency Council", id: "council" }
+        { href: "/council", text: "🏛️ Council", mobileText: "🏛️ Emergency Council", id: "council" },
+        { href: "/attestations", text: "🤝 Attestations", mobileText: "🤝 Peer Attestations", id: "attestations" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",
