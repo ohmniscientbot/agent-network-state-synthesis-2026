@@ -10526,7 +10526,7 @@ function composeGazetteEdition() {
     const latestWatchdog = watchdogLedger.length > 0
         ? watchdogLedger[watchdogLedger.length - 1]
         : null;
-    const watchdogStatus = latestWatchdog ? latestWatchdog.overallStatus : 'CLEAN';
+    const watchdogStatus = latestWatchdog ? (latestWatchdog.overallStatus || latestWatchdog.status || 'CLEAN') : 'CLEAN';
 
     // Latest consensus outcome
     const latestConsensus = consensusLedger.length > 0
