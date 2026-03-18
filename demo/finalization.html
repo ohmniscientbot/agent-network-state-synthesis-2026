@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Governance Outcome Finalization — Synthocracy</title>
+<style>
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111115;
+    --card-bg: rgba(255,255,255,0.02);
+    --border-neural: rgba(139,92,246,0.3);
+    --neural-blue: #3b82f6;
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --radius-neural: 8px;
+    --radius-sm: 4px;
+    --neural-blue-glow: rgba(59,130,246,0.1);
+    --neural-cyan-glow: rgba(6,182,212,0.1);
+    --neural-green-glow: rgba(16,185,129,0.1);
+    --neural-red-glow: rgba(239,68,68,0.1);
+    --neural-yellow-glow: rgba(245,158,11,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg-primary); color: var(--primary-text); font-family: 'SF Mono', 'Fira Code', monospace; min-height: 100vh; }
+.page-container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+.page-header { text-align: center; margin-bottom: 32px; }
+.page-header h1 { font-size: 2rem; color: var(--neural-green); margin-bottom: 8px; }
+.page-header p { color: var(--secondary-text); font-size: 0.9rem; }
+.chain-badge { display: inline-block; background: var(--neural-green-glow); border: 1px solid var(--neural-green); color: var(--neural-green); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; margin-bottom: 12px; }
+
+/* Status Bar */
+.status-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 16px; text-align: center; }
+.stat-card .stat-value { font-size: 1.6rem; font-weight: bold; }
+.stat-card .stat-label { color: var(--secondary-text); font-size: 0.75rem; margin-top: 4px; }
+.stat-passed .stat-value { color: var(--neural-green); }
+.stat-failed .stat-value { color: var(--neural-red); }
+.stat-blocked .stat-value { color: var(--neural-orange); }
+.stat-total .stat-value { color: var(--neural-purple); }
+.stat-rate .stat-value { color: var(--neural-cyan); }
+.stat-chain .stat-value { color: var(--neural-yellow); font-size: 0.75rem; word-break: break-all; }
+
+/* Chain Verify Bar */
+.verify-bar { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 14px 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+.verify-indicator { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.verify-valid { background: var(--neural-green); box-shadow: 0 0 8px var(--neural-green); }
+.verify-invalid { background: var(--neural-red); box-shadow: 0 0 8px var(--neural-red); }
+.verify-text { color: var(--primary-text); font-size: 0.85rem; flex: 1; }
+.verify-meta { color: var(--secondary-text); font-size: 0.75rem; }
+
+/* Receipt Chain */
+.section-title { font-size: 1rem; color: var(--neural-cyan); margin-bottom: 16px; border-bottom: 1px solid var(--border-neural); padding-bottom: 8px; }
+.receipt-list { display: flex; flex-direction: column; gap: 12px; }
+.receipt-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 16px; transition: border-color 0.2s; }
+.receipt-card:hover { border-color: var(--neural-purple); }
+.receipt-card.outcome-passed { border-left: 3px solid var(--neural-green); }
+.receipt-card.outcome-failed { border-left: 3px solid var(--neural-red); }
+.receipt-card.outcome-blocked { border-left: 3px solid var(--neural-orange); }
+.receipt-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.receipt-id { font-size: 0.8rem; color: var(--neural-purple); font-weight: bold; }
+.outcome-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+.outcome-passed-badge { background: var(--neural-green-glow); color: var(--neural-green); border: 1px solid var(--neural-green); }
+.outcome-failed-badge { background: var(--neural-red-glow); color: var(--neural-red); border: 1px solid var(--neural-red); }
+.outcome-blocked-badge { background: var(--neural-yellow-glow); color: var(--neural-orange); border: 1px solid var(--neural-orange); }
+.quorum-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; background: var(--neural-blue-glow); color: var(--neural-blue); border: 1px solid var(--neural-blue); }
+.quorum-miss-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; background: var(--neural-red-glow); color: var(--neural-red); border: 1px solid var(--neural-red); }
+.receipt-title { font-size: 0.9rem; color: var(--primary-text); font-weight: bold; margin-bottom: 8px; }
+.vote-bar-container { margin-bottom: 8px; }
+.vote-bar-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--secondary-text); margin-bottom: 4px; }
+.vote-bar-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 8px; overflow: hidden; }
+.vote-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.vote-bar-for { background: linear-gradient(90deg, var(--neural-green), #34d399); }
+.vote-bar-against { background: linear-gradient(90deg, var(--neural-red), #f87171); }
+.receipt-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.meta-item { font-size: 0.72rem; color: var(--secondary-text); }
+.meta-item span { color: var(--secondary-text); }
+.hash-display { font-size: 0.65rem; color: rgba(139,92,246,0.6); font-family: monospace; margin-top: 6px; word-break: break-all; }
+
+.loading { text-align: center; padding: 40px; color: var(--secondary-text); }
+.error-box { background: var(--neural-red-glow); border: 1px solid var(--neural-red); border-radius: var(--radius-neural); padding: 16px; color: var(--neural-red); margin: 16px 0; }
+.refresh-note { text-align: center; color: var(--secondary-text); font-size: 0.75rem; margin-top: 16px; }
+
+.empty-state { text-align: center; padding: 40px; color: var(--secondary-text); }
+.empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<script src="/shared-nav.js"></script>
+<script>injectNavigation('finalization');</script>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="chain-badge">ERC-8004 Receipt Chain #12</div>
+        <h1>📜 Governance Outcome Finalization</h1>
+        <p>Every proposal outcome is immutably sealed with a SHA-256 chained receipt. No retroactive alteration. No human trigger.</p>
+    </div>
+
+    <!-- Status Bar -->
+    <div id="status-bar" class="status-bar">
+        <div class="loading">Loading protocol status…</div>
+    </div>
+
+    <!-- Chain Integrity -->
+    <div class="verify-bar" id="verify-bar">
+        <div class="verify-indicator" id="verify-indicator"></div>
+        <div class="verify-text" id="verify-text">Verifying chain integrity…</div>
+        <div class="verify-meta" id="verify-meta"></div>
+    </div>
+
+    <!-- Receipt Chain -->
+    <div class="section-title">🔗 Sealed Outcome Receipts</div>
+    <div id="receipt-list" class="receipt-list">
+        <div class="loading">Loading receipt chain…</div>
+    </div>
+    <div class="refresh-note" id="refresh-note">Auto-refreshes every 10s</div>
+</div>
+
+<script>
+const BASE = '';
+
+function formatOutcomeBadge(outcome) {
+    if (outcome === 'passed') return '<span class="outcome-badge outcome-passed-badge">✅ PASSED</span>';
+    if (outcome === 'failed') return '<span class="outcome-badge outcome-failed-badge">❌ FAILED</span>';
+    if (outcome === 'constitutionally_blocked') return '<span class="outcome-badge outcome-blocked-badge">🚫 BLOCKED</span>';
+    return `<span class="outcome-badge">${outcome}</span>`;
+}
+
+function formatCardClass(outcome) {
+    if (outcome === 'passed') return 'receipt-card outcome-passed';
+    if (outcome === 'failed') return 'receipt-card outcome-failed';
+    return 'receipt-card outcome-blocked';
+}
+
+function formatTs(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleString();
+}
+
+async function loadStatus() {
+    try {
+        const res = await fetch('/api/finalization/status');
+        const data = await res.json();
+        const { totalSealed, outcomeBreakdown, passRate, chainHead } = data;
+        document.getElementById('status-bar').innerHTML = `
+            <div class="stat-card stat-total"><div class="stat-value">${totalSealed}</div><div class="stat-label">Sealed Outcomes</div></div>
+            <div class="stat-card stat-passed"><div class="stat-value">${outcomeBreakdown.passed}</div><div class="stat-label">Passed</div></div>
+            <div class="stat-card stat-failed"><div class="stat-value">${outcomeBreakdown.failed}</div><div class="stat-label">Failed</div></div>
+            <div class="stat-card stat-blocked"><div class="stat-value">${outcomeBreakdown.blocked}</div><div class="stat-label">Blocked</div></div>
+            <div class="stat-card stat-rate"><div class="stat-value">${passRate}%</div><div class="stat-label">Pass Rate</div></div>
+            <div class="stat-card stat-chain"><div class="stat-value">${chainHead || '0000…'}</div><div class="stat-label">Chain Head</div></div>
+        `;
+    } catch (e) {
+        document.getElementById('status-bar').innerHTML = `<div class="error-box">Failed to load status: ${e.message}</div>`;
+    }
+}
+
+async function loadChainVerify() {
+    try {
+        const res = await fetch('/api/finalization/verify/chain');
+        const data = await res.json();
+        const indicator = document.getElementById('verify-indicator');
+        indicator.className = 'verify-indicator ' + (data.valid ? 'verify-valid' : 'verify-invalid');
+        document.getElementById('verify-text').textContent = data.message;
+        document.getElementById('verify-meta').textContent = `${data.totalReceipts} receipts checked`;
+    } catch (e) {
+        document.getElementById('verify-text').textContent = 'Chain verification unavailable';
+    }
+}
+
+async function loadReceipts() {
+    try {
+        const res = await fetch('/api/finalization/ledger?limit=20');
+        const data = await res.json();
+        const list = document.getElementById('receipt-list');
+        if (!data.receipts || data.receipts.length === 0) {
+            list.innerHTML = `<div class="empty-state"><div class="empty-icon">📜</div><div>No sealed outcomes yet. Proposals become active and voting ends before sealing occurs.</div></div>`;
+            return;
+        }
+        list.innerHTML = data.receipts.map(r => {
+            const total = (r.forVotes || 0) + (r.againstVotes || 0);
+            const forPct = total > 0 ? Math.round(r.forVotes / total * 100) : 0;
+            const againstPct = total > 0 ? Math.round(r.againstVotes / total * 100) : 0;
+            const quorumBadge = r.quorumReached
+                ? '<span class="quorum-badge">✔ Quorum</span>'
+                : '<span class="quorum-miss-badge">✗ No Quorum</span>';
+            const violations = r.constitutionalViolations && r.constitutionalViolations.length > 0
+                ? `<div class="meta-item">🚫 ${r.constitutionalViolations.length} constitutional violation(s)</div>`
+                : '';
+            return `
+            <div class="${formatCardClass(r.outcome)}">
+                <div class="receipt-header">
+                    <span class="receipt-id">${r.receiptId}</span>
+                    ${formatOutcomeBadge(r.outcome)}
+                    ${quorumBadge}
+                    <span class="meta-item">📁 ${r.category || 'general'}</span>
+                </div>
+                <div class="receipt-title">${r.title || r.proposalId}</div>
+                ${r.outcome !== 'constitutionally_blocked' ? `
+                <div class="vote-bar-container">
+                    <div class="vote-bar-label">
+                        <span>FOR ${r.forVotes || 0} (${forPct}%)</span>
+                        <span>AGAINST ${r.againstVotes || 0} (${againstPct}%)</span>
+                    </div>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill vote-bar-for" style="width:${forPct}%"></div>
+                    </div>
+                </div>` : ''}
+                <div class="receipt-meta">
+                    <div class="meta-item">📋 Proposal: <span>${r.proposalId}</span></div>
+                    <div class="meta-item">🕐 Sealed: <span>${formatTs(r.sealedAt)}</span></div>
+                    <div class="meta-item">🗳️ Total Votes: <span>${r.totalVotes || 0}</span></div>
+                    <div class="meta-item">🤖 Sealed by: <span>${r.sealedBy || 'engine'}</span></div>
+                    ${violations}
+                </div>
+                <div class="hash-display">
+                    <span style="color:var(--secondary-text)">prev:</span> ${(r.prevHash||'').substring(0,32)}…<br>
+                    <span style="color:var(--secondary-text)">hash:</span> ${(r.hash||'').substring(0,32)}…
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        document.getElementById('receipt-list').innerHTML = `<div class="error-box">Failed to load receipts: ${e.message}</div>`;
+    }
+}
+
+async function refresh() {
+    await Promise.all([loadStatus(), loadChainVerify(), loadReceipts()]);
+    const now = new Date().toLocaleTimeString();
+    document.getElementById('refresh-note').textContent = `Last refreshed: ${now} — Auto-refreshes every 10s`;
+}
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

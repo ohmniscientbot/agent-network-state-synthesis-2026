@@ -1017,6 +1017,10 @@ app.post('/api/governance/proposals', (req, res) => {
         if (constitutionalAudit.enforcementAction === 'proposal_blocked') {
             proposal.status = 'constitutionally_blocked';
             proposal.constitutionalViolations = constitutionalAudit.violations;
+            // Seal on ERC-8004 finalization chain immediately (12th chain)
+            if (typeof sealProposalOutcome === 'function') {
+                sealProposalOutcome(proposal);
+            }
         }
 
         res.status(201).json({
@@ -2730,6 +2734,11 @@ function checkForCompletedProposals() {
             broadcastEvent({ type: 'governance', agent: 'System',
                 action: `Proposal "${proposal.title}" ${proposal.status} (${proposal.forVotes} for, ${proposal.againstVotes} against)`,
                 timestamp: new Date().toISOString() });
+
+            // Seal outcome on ERC-8004 finalization chain (12th chain)
+            if (typeof sealProposalOutcome === 'function') {
+                sealProposalOutcome(proposal);
+            }
             
             // Auto-resolve prediction market if it exists
             const market = predictionMarkets[proposal.id];
@@ -8451,6 +8460,13 @@ app.listen(PORT, () => {
         setInterval(runAppealArbitration, 120000); // Arbitrate pending appeals every 120s, no human trigger
         console.log('⚖️ Agent Appeal Protocol started — arbitrating every 120s');
     }, 7000);
+
+    // Seed finalization ledger with all resolved proposals (12th ERC-8004 chain)
+    // Must run after seedGovernanceActivity (at ~7500ms to be safe)
+    setTimeout(() => {
+        seedFinalizationLedger();
+        console.log(`📜 Governance Outcome Finalization Protocol started — ${finalizationLedger.length} outcomes sealed`);
+    }, 7500);
 });
 
 // ============================================================
@@ -8722,6 +8738,466 @@ app.post('/api/appeals/submit', (req, res) => {
 // Serve appeal page
 app.get('/appeals', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/appeals.html'));
+});
+
+// ==========================================
+// GOVERNANCE OUTCOME FINALIZATION PROTOCOL — 12th ERC-8004 Chain
+// Autonomous. No human trigger. Immutable sealed verdict per proposal.
+// Chain seals when proposal transitions to passed/failed/constitutionally_blocked.
+// ==========================================
+
+let finalizationLedger = [];
+let finalizationChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+function computeFinalizationHash(receipt) {
+    const crypto = require('crypto');
+    const payload = `${receipt.index}|${receipt.proposalId}|${receipt.title}|${receipt.outcome}|${receipt.forVotes}|${receipt.againstVotes}|${receipt.totalVotes}|${receipt.quorumReached}|${receipt.sealedAt}|${receipt.prevHash}`;
+    return crypto.createHash('sha256').update(payload).digest('hex');
+}
+
+function sealProposalOutcome(proposal) {
+    // Idempotent: don't double-seal
+    if (finalizationLedger.find(r => r.proposalId === proposal.id)) return null;
+
+    const forVotes  = proposal.forVotes  || 0;
+    const againstVotes = proposal.againstVotes || 0;
+    const totalVotes = forVotes + againstVotes;
+    const quorumReached = totalVotes >= 100;
+    const outcome = proposal.status; // 'passed' | 'failed' | 'constitutionally_blocked'
+
+    const index = finalizationLedger.length;
+    const sealedAt = new Date().toISOString();
+    const receipt = {
+        index,
+        receiptId: `FIN-${String(index).padStart(4, '0')}`,
+        proposalId: proposal.id,
+        title: proposal.title || 'Untitled Proposal',
+        category: proposal.category || 'general',
+        outcome,                     // 'passed' | 'failed' | 'constitutionally_blocked'
+        outcomeLabel: outcome === 'passed'
+            ? '✅ PASSED'
+            : outcome === 'constitutionally_blocked'
+                ? '🚫 BLOCKED'
+                : '❌ FAILED',
+        forVotes,
+        againstVotes,
+        totalVotes,
+        quorumReached,
+        quorumThreshold: 100,
+        passingThreshold: '50%+1',
+        proposalCreatedAt: proposal.timestamp || sealedAt,
+        proposalEndTime: proposal.endTime || sealedAt,
+        sealedAt,
+        sealedBy: 'autonomous_finalization_engine',
+        constitutionalViolations: proposal.constitutionalViolations || [],
+        escalationUsed: !!(proposal.escalationId),
+        prevHash: finalizationChainHead
+    };
+    receipt.hash = computeFinalizationHash(receipt);
+    finalizationChainHead = receipt.hash;
+    finalizationLedger.push(receipt);
+
+    broadcastEvent({
+        type: 'governance',
+        agent: 'FinalizationEngine',
+        action: `Sealed proposal "${receipt.title}" → ${receipt.outcomeLabel} | Receipt ${receipt.receiptId} | ${forVotes}:${againstVotes} votes`,
+        timestamp: sealedAt
+    });
+
+    return receipt;
+}
+
+// Seed finalization receipts for all resolved proposals on startup
+function seedFinalizationLedger() {
+    const resolved = proposals.filter(p =>
+        ['passed', 'failed', 'constitutionally_blocked'].includes(p.status)
+    );
+    resolved.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+    for (const p of resolved) sealProposalOutcome(p);
+}
+
+// Patch checkForCompletedProposals to call sealProposalOutcome after status flip
+const _origCheck = checkForCompletedProposals;
+function checkForCompletedProposalsWithFinalization() {
+    const before = proposals.map(p => ({ id: p.id, status: p.status }));
+    _origCheck();
+    // Any proposal that just transitioned to a terminal state gets sealed
+    proposals.forEach(p => {
+        const prev = before.find(b => b.id === p.id);
+        if (prev && prev.status !== p.status && ['passed', 'failed', 'constitutionally_blocked'].includes(p.status)) {
+            sealProposalOutcome(p);
+        }
+    });
+}
+
+// Also patch POST /governance/proposals to seal constitutionally_blocked proposals immediately
+// (handled in submit flow — we call sealProposalOutcome at creation time if blocked)
+
+// GET /api/finalization/ledger — paginated sealed receipt chain
+app.get('/api/finalization/ledger', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit  = parseInt(req.query.limit)  || 20;
+    const sorted = [...finalizationLedger].reverse();
+    res.json({
+        receipts: sorted.slice(offset, offset + limit),
+        total: finalizationLedger.length,
+        chainHead: finalizationChainHead ? finalizationChainHead.substring(0, 16) + '…' : '0000…',
+        offset,
+        limit
+    });
+});
+
+// GET /api/finalization/verify/chain — verify SHA-256 integrity
+app.get('/api/finalization/verify/chain', (req, res) => {
+    const crypto = require('crypto');
+    const errors = [];
+    let prev = '0000000000000000000000000000000000000000000000000000000000000000';
+    for (const r of finalizationLedger) {
+        if (r.prevHash !== prev) errors.push(`Receipt ${r.index}: prevHash mismatch`);
+        const recomputed = computeFinalizationHash({ ...r, hash: undefined });
+        if (r.hash !== recomputed) errors.push(`Receipt ${r.index}: hash mismatch`);
+        prev = r.hash;
+    }
+    res.json({
+        valid: errors.length === 0,
+        totalReceipts: finalizationLedger.length,
+        chainHead: finalizationChainHead,
+        errors,
+        message: errors.length === 0
+            ? `✅ Finalization chain intact — ${finalizationLedger.length} receipts verified`
+            : `⚠️ Chain integrity issues: ${errors.length} errors`
+    });
+});
+
+// GET /api/finalization/latest — most recently sealed receipt
+app.get('/api/finalization/latest', (req, res) => {
+    if (finalizationLedger.length === 0) return res.json({ message: 'No sealed outcomes yet' });
+    res.json(finalizationLedger[finalizationLedger.length - 1]);
+});
+
+// GET /api/finalization/proposal/:proposalId — seal status for one proposal
+app.get('/api/finalization/proposal/:proposalId', (req, res) => {
+    const receipt = finalizationLedger.find(r => r.proposalId === req.params.proposalId);
+    if (!receipt) {
+        const proposal = proposals.find(p => p.id === req.params.proposalId);
+        if (!proposal) return res.status(404).json({ error: 'Proposal not found' });
+        return res.json({ proposalId: req.params.proposalId, status: proposal.status, sealed: false, message: 'Proposal not yet finalized' });
+    }
+    res.json({ ...receipt, sealed: true });
+});
+
+// GET /api/finalization/status — protocol overview
+app.get('/api/finalization/status', (req, res) => {
+    const passed  = finalizationLedger.filter(r => r.outcome === 'passed').length;
+    const failed  = finalizationLedger.filter(r => r.outcome === 'failed').length;
+    const blocked = finalizationLedger.filter(r => r.outcome === 'constitutionally_blocked').length;
+    res.json({
+        totalSealed: finalizationLedger.length,
+        totalProposals: proposals.length,
+        pendingSealing: proposals.filter(p => !['passed','failed','constitutionally_blocked'].includes(p.status)).length,
+        outcomeBreakdown: { passed, failed, blocked },
+        passRate: finalizationLedger.length > 0 ? Math.round(passed / finalizationLedger.length * 100) : 0,
+        chainHead: finalizationChainHead ? finalizationChainHead.substring(0, 16) + '…' : '0000…',
+        chainLength: finalizationLedger.length,
+        sealedBy: 'autonomous_finalization_engine',
+        protocol: 'ERC-8004 Receipt Chain #12'
+    });
+});
+
+// Serve finalization page
+app.get('/finalization', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/finalization.html'));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 🏛️ CONSTITUTIONAL AMENDMENT PROTOCOL — 13th ERC-8004 Receipt Chain
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let amendmentLedger = [];
+let amendmentChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+let pendingAmendments = [];
+
+const AMENDMENT_PROPOSALS = [
+    {
+        articleId: 'art-3',
+        title: 'Expand Kill Switch Quorum',
+        proposedText: 'Any agent exhibiting harmful autonomous behavior may be suspended immediately by any 2 agents acting in concert (reduced from 3). Suspension lasts 24 hours, during which a formal review must be initiated.',
+        rationale: 'Reducing quorum from 3 to 2 improves response speed in emergency scenarios with fewer active agents.',
+        proposedBy: 'agent-001',
+        category: 'safety'
+    },
+    {
+        articleId: 'art-5',
+        title: 'Tighten Anti-Plutocracy Cap',
+        proposedText: 'No single agent may hold more than 12% of total voting power (reduced from 15%). Quadratic voting mechanisms must be maintained. Any proposal to remove quadratic voting requires 90% supermajority.',
+        rationale: 'Tightening the voting power cap from 15% to 12% further reduces plutocracy risk as the network scales.',
+        proposedBy: 'agent-002',
+        category: 'governance'
+    },
+    {
+        articleId: 'art-4',
+        title: 'Add Cross-Chain Audit Requirement',
+        proposedText: 'All governance actions, votes, and proposals must be recorded on an immutable audit trail. No governance action may occur off-chain or outside the logging system. All audit receipts must include SHA-256 chain integrity proofs.',
+        rationale: 'Formalizing SHA-256 chain integrity proofs in the constitution aligns the document with current implementation.',
+        proposedBy: 'agent-003',
+        category: 'governance'
+    }
+];
+
+function computeAmendmentHash(receipt) {
+    const payload = `${receipt.index}|${receipt.amendmentId}|${receipt.articleId}|${receipt.outcome}|${receipt.forWeight}|${receipt.againstWeight}|${receipt.ratifiedAt}|${receipt.prevHash}`;
+    return require('crypto').createHash('sha256').update(payload).digest('hex');
+}
+
+function issueAmendmentReceipt(amendment, outcome, jurors) {
+    const index = amendmentLedger.length;
+    const forJurors = jurors.filter(j => j.vote === 'FOR');
+    const againstJurors = jurors.filter(j => j.vote === 'AGAINST');
+    const forWeight = forJurors.reduce((s, j) => s + j.weight, 0);
+    const againstWeight = againstJurors.reduce((s, j) => s + j.weight, 0);
+    const totalWeight = forWeight + againstWeight;
+    const forPct = totalWeight > 0 ? Math.round(forWeight / totalWeight * 100) : 0;
+
+    const receipt = {
+        index,
+        receiptId: `AM-${String(index + 1).padStart(4, '0')}`,
+        amendmentId: amendment.amendmentId,
+        articleId: amendment.articleId,
+        articleTitle: constitution.articles.find(a => a.id === amendment.articleId)?.title || amendment.articleId,
+        proposedBy: amendment.proposedBy,
+        proposedText: amendment.proposedText,
+        rationale: amendment.rationale,
+        category: amendment.category,
+        outcome,
+        forPct,
+        againstPct: 100 - forPct,
+        forWeight: Math.round(forWeight * 100) / 100,
+        againstWeight: Math.round(againstWeight * 100) / 100,
+        supermajorityRequired: 80,
+        supermajorityAchieved: forPct >= 80,
+        jurors: jurors.map(j => ({ agentId: j.agentId, vote: j.vote, weight: Math.round(j.weight * 100) / 100 })),
+        ratifiedAt: new Date().toISOString(),
+        autonomousExecution: true,
+        humanTrigger: false,
+        erc8004Chain: 13,
+        prevHash: amendmentChainHead
+    };
+    receipt.hash = computeAmendmentHash(receipt);
+    amendmentChainHead = receipt.hash;
+    amendmentLedger.push(receipt);
+
+    // If ratified, apply amendment to constitution
+    if (outcome === 'RATIFIED') {
+        const article = constitution.articles.find(a => a.id === amendment.articleId);
+        if (article) {
+            article.text = amendment.proposedText;
+            article.lastAmended = receipt.ratifiedAt;
+            article.amendmentReceipt = receipt.receiptId;
+        }
+        if (!constitution.amendments) constitution.amendments = [];
+        constitution.amendments.push({
+            receiptId: receipt.receiptId,
+            articleId: amendment.articleId,
+            ratifiedAt: receipt.ratifiedAt,
+            hash: receipt.hash
+        });
+    }
+
+    broadcastEvent('amendment', {
+        id: `amendment-${Date.now()}`,
+        type: 'amendment',
+        agentId: 'amendment-engine',
+        agentName: 'AmendmentEngine',
+        action: outcome === 'RATIFIED' ? `Constitutional amendment RATIFIED: ${article?.title || amendment.articleId}` : `Amendment REJECTED: ${constitution.articles.find(a => a.id === amendment.articleId)?.title || amendment.articleId}`,
+        outcome,
+        receiptId: receipt.receiptId,
+        timestamp: receipt.ratifiedAt
+    });
+
+    return receipt;
+}
+
+function runAmendmentDeliberation() {
+    if (pendingAmendments.length === 0) return;
+
+    const amendment = pendingAmendments.shift();
+    const jurors = agents.map(agent => {
+        // Constitutional conservatism: slashed agents vote FOR less readily (cautious bias)
+        const slashCount = slashLedger.filter(s => s.agentId === agent.id).length;
+        const forBias = slashCount > 0 ? 0.5 : 0.75; // 75% base FOR rate, 50% if slashed
+        const vote = Math.random() < forBias ? 'FOR' : 'AGAINST';
+        const weight = Math.sqrt(agent.votingPower);
+        return { agentId: agent.id, agentName: agent.name, vote, weight };
+    });
+
+    const forWeight = jurors.filter(j => j.vote === 'FOR').reduce((s, j) => s + j.weight, 0);
+    const totalWeight = jurors.reduce((s, j) => s + j.weight, 0);
+    const forPct = totalWeight > 0 ? Math.round(forWeight / totalWeight * 100) : 0;
+
+    const outcome = forPct >= 80 ? 'RATIFIED' : 'REJECTED';
+    issueAmendmentReceipt(amendment, outcome, jurors);
+}
+
+// Seed 3 historical amendments at startup
+function seedAmendmentLedger() {
+    const seeds = [
+        {
+            amendmentId: 'amend-seed-001',
+            articleId: 'art-5',
+            title: 'Tighten Anti-Plutocracy Cap',
+            proposedText: 'No single agent may hold more than 12% of total voting power (reduced from 15%). Quadratic voting mechanisms must be maintained. Any proposal to remove quadratic voting requires 90% supermajority.',
+            rationale: 'Tightening the voting power cap from 15% to 12% further reduces plutocracy risk.',
+            proposedBy: 'agent-002',
+            category: 'governance'
+        },
+        {
+            amendmentId: 'amend-seed-002',
+            articleId: 'art-4',
+            title: 'Add Cross-Chain Audit Requirement',
+            proposedText: 'All governance actions, votes, and proposals must be recorded on an immutable audit trail with SHA-256 chain integrity proofs.',
+            rationale: 'Formalizing cryptographic audit receipts aligns the constitution with implementation.',
+            proposedBy: 'agent-003',
+            category: 'governance'
+        },
+        {
+            amendmentId: 'amend-seed-003',
+            articleId: 'art-3',
+            title: 'Reduce Kill Switch Quorum',
+            proposedText: 'Any agent exhibiting harmful autonomous behavior may be suspended by any 4 agents acting in concert (increased from 3) for more deliberate safety responses.',
+            rationale: 'Increasing quorum reduces false positives from hasty suspensions.',
+            proposedBy: 'agent-004',
+            category: 'safety'
+        }
+    ];
+
+    // Seed with varied outcomes
+    const outcomes = ['RATIFIED', 'RATIFIED', 'REJECTED'];
+    seeds.forEach((seed, i) => {
+        const jurors = agents.map(agent => {
+            const vote = outcomes[i] === 'RATIFIED' ? (Math.random() < 0.9 ? 'FOR' : 'AGAINST') : (Math.random() < 0.4 ? 'FOR' : 'AGAINST');
+            return { agentId: agent.id, agentName: agent.name, vote, weight: Math.sqrt(agent.votingPower) };
+        });
+        issueAmendmentReceipt(seed, outcomes[i], jurors);
+    });
+
+    // Queue remaining proposals for autonomous deliberation
+    AMENDMENT_PROPOSALS.forEach((p, i) => {
+        pendingAmendments.push({ ...p, amendmentId: `amend-${Date.now()}-${i}` });
+    });
+
+    console.log(`🏛️ Constitutional Amendment Protocol started — ${amendmentLedger.length} historical receipts, ${pendingAmendments.length} pending`);
+}
+
+// Autonomous deliberation: every 75 seconds, deliberate one pending amendment; if queue empty, regenerate
+setInterval(() => {
+    if (pendingAmendments.length === 0) {
+        // Regenerate fresh amendment proposals for ongoing autonomous operation
+        AMENDMENT_PROPOSALS.forEach((p, i) => {
+            pendingAmendments.push({ ...p, amendmentId: `amend-${Date.now()}-${i}` });
+        });
+    }
+    runAmendmentDeliberation();
+}, 75000);
+
+// Start after other chains are seeded
+setTimeout(seedAmendmentLedger, 9000);
+
+// ── Amendment API Endpoints ────────────────────────────────────────────────────
+
+// GET /api/amendments/status
+app.get('/api/amendments/status', (req, res) => {
+    const ratified = amendmentLedger.filter(r => r.outcome === 'RATIFIED').length;
+    const rejected = amendmentLedger.filter(r => r.outcome === 'REJECTED').length;
+    res.json({
+        totalDeliberations: amendmentLedger.length,
+        ratified,
+        rejected,
+        pending: pendingAmendments.length,
+        ratificationRate: amendmentLedger.length > 0 ? Math.round(ratified / amendmentLedger.length * 100) : 0,
+        chainHead: amendmentChainHead ? amendmentChainHead.substring(0, 16) + '…' : '0000…',
+        chainLength: amendmentLedger.length,
+        supermajorityThreshold: 80,
+        nextDeliberationIn: '75s',
+        protocol: 'ERC-8004 Receipt Chain #13',
+        autonomousExecution: true,
+        humanTrigger: false
+    });
+});
+
+// GET /api/amendments/ledger
+app.get('/api/amendments/ledger', (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const sorted = [...amendmentLedger].reverse();
+    const start = (page - 1) * limit;
+    res.json({
+        total: amendmentLedger.length,
+        page,
+        limit,
+        chainHead: amendmentChainHead ? amendmentChainHead.substring(0, 16) + '…' : '0000…',
+        receipts: sorted.slice(start, start + limit)
+    });
+});
+
+// GET /api/amendments/verify/chain
+app.get('/api/amendments/verify/chain', (req, res) => {
+    let valid = true;
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    for (const receipt of amendmentLedger) {
+        const expected = computeAmendmentHash({ ...receipt, prevHash });
+        if (receipt.hash !== expected || receipt.prevHash !== prevHash) { valid = false; break; }
+        prevHash = receipt.hash;
+    }
+    res.json({
+        valid,
+        chainLength: amendmentLedger.length,
+        chainHead: amendmentChainHead ? amendmentChainHead.substring(0, 16) + '…' : '0000…',
+        message: valid ? '✅ Amendment chain integrity verified' : '❌ Chain integrity failure detected'
+    });
+});
+
+// GET /api/amendments/latest
+app.get('/api/amendments/latest', (req, res) => {
+    if (amendmentLedger.length === 0) return res.json({ message: 'No amendments yet' });
+    res.json(amendmentLedger[amendmentLedger.length - 1]);
+});
+
+// GET /api/amendments/constitution
+app.get('/api/amendments/constitution', (req, res) => {
+    res.json({
+        articles: constitution.articles,
+        totalAmendments: constitution.amendments ? constitution.amendments.length : 0,
+        amendments: constitution.amendments || [],
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// POST /api/amendments/propose — submit a new amendment for autonomous deliberation
+app.post('/api/amendments/propose', (req, res) => {
+    const { articleId, proposedText, rationale, proposedBy } = req.body;
+    if (!articleId || !proposedText || !rationale) {
+        return res.status(400).json({ error: 'articleId, proposedText, and rationale are required' });
+    }
+    const article = constitution.articles.find(a => a.id === articleId);
+    if (!article) return res.status(404).json({ error: 'Article not found' });
+    if (article.immutable) return res.status(403).json({ error: 'Article is immutable and cannot be amended' });
+
+    const amendment = {
+        amendmentId: `amend-${Date.now()}`,
+        articleId,
+        proposedText,
+        rationale,
+        proposedBy: proposedBy || 'anonymous',
+        category: article.category,
+        submittedAt: new Date().toISOString()
+    };
+    pendingAmendments.push(amendment);
+    res.json({ success: true, amendmentId: amendment.amendmentId, message: 'Amendment queued for autonomous deliberation', queuePosition: pendingAmendments.length });
+});
+
+// Serve amendment page
+app.get('/amendments', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/amendments.html'));
 });
 
 module.exports = app;

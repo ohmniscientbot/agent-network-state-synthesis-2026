@@ -28,7 +28,9 @@ const NAV_CONFIG = {
         { href: "/passport", text: "🪪 Passport", mobileText: "🪪 Agent Passport", id: "passport" },
         { href: "/watchdog", text: "🔍 Watchdog", mobileText: "🔍 Autonomous Watchdog", id: "watchdog" },
         { href: "/consensus", text: "🤝 Consensus", mobileText: "🤝 Multi-Agent Consensus", id: "consensus" },
-        { href: "/appeals", text: "⚖️ Appeals", mobileText: "⚖️ Agent Appeals", id: "appeals" }
+        { href: "/appeals", text: "⚖️ Appeals", mobileText: "⚖️ Agent Appeals", id: "appeals" },
+        { href: "/finalization", text: "📜 Finalization", mobileText: "📜 Outcome Finalization", id: "finalization" },
+        { href: "/amendments", text: "🏛️ Amendments", mobileText: "🏛️ Constitutional Amendments", id: "amendments" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",
