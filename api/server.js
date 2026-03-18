@@ -1300,6 +1300,65 @@ app.post('/api/reputation/rate', (req, res) => {
     }
 });
 
+// ⏳ Reputation Decay routes — MUST come before /:agentId wildcard
+// GET /api/reputation/decay — all agents with decay scores
+app.get('/api/reputation/decay', (req, res) => {
+    seedDelegations();
+    const decayData = agents.map(a => computeReputationDecay(a.id)).filter(Boolean);
+    decayData.sort((a, b) => b.decayedScore - a.decayedScore);
+    const systemHealth = decayData.reduce((sum, d) => sum + d.decayFactor, 0) / decayData.length;
+    res.json({
+        agents: decayData,
+        systemHealth: Math.round(systemHealth * 1000) / 1000,
+        systemHealthLevel: systemHealth > 0.85 ? 'healthy' : systemHealth > 0.7 ? 'moderate' : 'at-risk',
+        decayLambda: 0.02,
+        halfLifeDays: Math.round(Math.log(2) / 0.02),
+        totalAgents: decayData.length,
+        healthyCount: decayData.filter(d => d.decayLevel === 'healthy').length,
+        atRiskCount: decayData.filter(d => d.decayLevel === 'critical' || d.decayLevel === 'moderate').length,
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// GET /api/reputation/delegations — active delegation map
+app.get('/api/reputation/delegations', (req, res) => {
+    seedDelegations();
+    const delegationList = Object.entries(delegations).map(([fromId, toId]) => {
+        const fromAgent = agents.find(a => a.id === fromId);
+        const toAgent = agents.find(a => a.id === toId);
+        const fromDecay = computeReputationDecay(fromId);
+        return {
+            from: { id: fromId, name: fromAgent?.name || fromId },
+            to: { id: toId, name: toAgent?.name || toId },
+            delegatedPower: fromDecay ? Math.round(fromDecay.decayedScore) : 0,
+            reason: 'Trust-based governance delegation',
+            since: '2026-03-17T00:00:00Z'
+        };
+    });
+    res.json({
+        delegations: delegationList,
+        totalDelegations: delegationList.length,
+        totalDelegatedPower: delegationList.reduce((s, d) => s + d.delegatedPower, 0),
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// GET /api/reputation/decay/:agentId — single agent decay with projection curve
+app.get('/api/reputation/decay/:agentId', (req, res) => {
+    const data = computeReputationDecay(req.params.agentId);
+    if (!data) return res.status(404).json({ error: 'Agent not found' });
+    const LAMBDA = 0.02;
+    const curve = [];
+    for (let day = 0; day <= 90; day += 5) {
+        curve.push({
+            day,
+            decayFactor: Math.round(Math.exp(-LAMBDA * (data.daysSinceLastVote + day)) * 1000) / 1000,
+            projectedScore: Math.round(data.baseScore * Math.exp(-LAMBDA * (data.daysSinceLastVote + day)) * 10) / 10
+        });
+    }
+    res.json({ ...data, decayCurve: curve });
+});
+
 // Get agent reputation
 app.get('/api/reputation/:agentId', (req, res) => {
     const agentRatings = reputationEntries.filter(e => e.agentId === req.params.agentId);
@@ -5342,71 +5401,6 @@ function computeReputationDecay(agentId) {
         decayLevel
     };
 }
-
-// GET /api/reputation/decay — all agents with decay scores
-app.get('/api/reputation/decay', (req, res) => {
-    seedDelegations();
-    const decayData = agents.map(a => computeReputationDecay(a.id)).filter(Boolean);
-    decayData.sort((a, b) => b.decayedScore - a.decayedScore);
-
-    const systemHealth = decayData.reduce((sum, d) => sum + d.decayFactor, 0) / decayData.length;
-
-    res.json({
-        agents: decayData,
-        systemHealth: Math.round(systemHealth * 1000) / 1000,
-        systemHealthLevel: systemHealth > 0.85 ? 'healthy' : systemHealth > 0.7 ? 'moderate' : 'at-risk',
-        decayLambda: 0.02,
-        halfLifeDays: Math.round(Math.log(2) / 0.02),
-        totalAgents: decayData.length,
-        healthyCount: decayData.filter(d => d.decayLevel === 'healthy').length,
-        atRiskCount: decayData.filter(d => d.decayLevel === 'critical' || d.decayLevel === 'moderate').length,
-        generatedAt: new Date().toISOString()
-    });
-});
-
-// GET /api/reputation/decay/:agentId — single agent decay
-app.get('/api/reputation/decay/:agentId', (req, res) => {
-    const data = computeReputationDecay(req.params.agentId);
-    if (!data) return res.status(404).json({ error: 'Agent not found' });
-
-    // Include decay curve projection (next 90 days)
-    const LAMBDA = 0.02;
-    const curve = [];
-    for (let day = 0; day <= 90; day += 5) {
-        curve.push({
-            day,
-            decayFactor: Math.round(Math.exp(-LAMBDA * (data.daysSinceLastVote + day)) * 1000) / 1000,
-            projectedScore: Math.round(data.baseScore * Math.exp(-LAMBDA * (data.daysSinceLastVote + day)) * 10) / 10
-        });
-    }
-
-    res.json({ ...data, decayCurve: curve });
-});
-
-// GET /api/reputation/delegations — active delegation map
-app.get('/api/reputation/delegations', (req, res) => {
-    seedDelegations();
-
-    const delegationList = Object.entries(delegations).map(([fromId, toId]) => {
-        const fromAgent = agents.find(a => a.id === fromId);
-        const toAgent = agents.find(a => a.id === toId);
-        const fromDecay = computeReputationDecay(fromId);
-        return {
-            from: { id: fromId, name: fromAgent?.name || fromId },
-            to: { id: toId, name: toAgent?.name || toId },
-            delegatedPower: fromDecay ? Math.round(fromDecay.decayedScore) : 0,
-            reason: 'Trust-based governance delegation',
-            since: '2026-03-17T00:00:00Z'
-        };
-    });
-
-    res.json({
-        delegations: delegationList,
-        totalDelegations: delegationList.length,
-        totalDelegatedPower: delegationList.reduce((s, d) => s + d.delegatedPower, 0),
-        generatedAt: new Date().toISOString()
-    });
-});
 
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
