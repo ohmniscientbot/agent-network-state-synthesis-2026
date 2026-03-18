@@ -2958,6 +2958,17 @@ app.get('/api/constitution', (req, res) => {
     });
 });
 
+// Get all amendments (must be before /:articleId to avoid route conflict)
+app.get('/api/constitution/amendments', (req, res) => {
+    res.json({
+        amendments: constitution.amendments,
+        total: constitution.amendments.length,
+        pending: constitution.amendments.filter(a => a.status === 'deliberation').length,
+        passed: constitution.amendments.filter(a => a.status === 'passed').length,
+        failed: constitution.amendments.filter(a => a.status === 'failed').length
+    });
+});
+
 // Get specific article
 app.get('/api/constitution/:articleId', (req, res) => {
     const article = constitution.articles.find(a => a.id === req.params.articleId);
@@ -5858,17 +5869,6 @@ app.get('/api/constitution/check/:proposalId', (req, res) => {
             : `⚠️ ${failedChecks.length} of ${checks.length} constitutional checks failed`,
         receiptHash,
         checkedAt: new Date().toISOString()
-    });
-});
-
-// Get all amendments (dedicated endpoint)
-app.get('/api/constitution/amendments', (req, res) => {
-    res.json({
-        amendments: constitution.amendments,
-        total: constitution.amendments.length,
-        pending: constitution.amendments.filter(a => a.status === 'deliberation').length,
-        passed: constitution.amendments.filter(a => a.status === 'passed').length,
-        failed: constitution.amendments.filter(a => a.status === 'failed').length
     });
 });
 
