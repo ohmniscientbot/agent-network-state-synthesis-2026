@@ -1085,11 +1085,15 @@
       "timestamp": "2026-03-18T09:20:00Z",
       "type": "bug_fix",
       "cycleId": 23,
-      "description": "Fix: addActivity undefined → broadcastEvent in conveneEmergencyCouncil(). Caused Railway server crash during seedCouncilLedger() startup seed. Self-detected after deploy went 502.",
+      "description": "Fix: addActivity undefined \u2192 broadcastEvent in conveneEmergencyCouncil(). Caused Railway server crash during seedCouncilLedger() startup seed. Self-detected after deploy went 502.",
       "commit": "e139517",
       "bugIntroduced": "L035 (same cycle)",
       "rootCause": "Used non-existent addActivity() instead of broadcastEvent()",
-      "testResults": { "passed": 25, "failed": 0, "total": 25 },
+      "testResults": {
+        "passed": 25,
+        "failed": 0,
+        "total": 25
+      },
       "outcome": "success"
     },
     {
@@ -1097,24 +1101,27 @@
       "timestamp": "2026-03-18T09:00:00Z",
       "type": "autonomous_cycle",
       "cycleId": 23,
-      "description": "Multi-Agent Emergency Council — 6th ERC-8004 Receipt Chain. Agents autonomously convene a 5-member council when CRITICAL governance events fire (constitutional violation, critical slash, high-risk proposal, quorum failure). Each session produces a full deliberation transcript per agent (specialty-aware statements, quadratic-weighted votes, tally) plus a SHA-256 chained ERC-8004 receipt. Seeds 4 historical sessions. 5 new API endpoints: GET /api/council/sessions, GET /api/council/verify/chain, GET /api/council/stats, POST /api/council/convene (admin), GET /api/council/agents. New frontend /council with stats grid, chain integrity bar, agent roster with voting weights, decision breakdown, and session receipt chain with expandable deliberation transcripts. Added 🏛️ Council to main navigation.",
+      "description": "Multi-Agent Emergency Council \u2014 6th ERC-8004 Receipt Chain. Agents autonomously convene a 5-member council when CRITICAL governance events fire (constitutional violation, critical slash, high-risk proposal, quorum failure). Each session produces a full deliberation transcript per agent (specialty-aware statements, quadratic-weighted votes, tally) plus a SHA-256 chained ERC-8004 receipt. Seeds 4 historical sessions. 5 new API endpoints: GET /api/council/sessions, GET /api/council/verify/chain, GET /api/council/stats, POST /api/council/convene (admin), GET /api/council/agents. New frontend /council with stats grid, chain integrity bar, agent roster with voting weights, decision breakdown, and session receipt chain with expandable deliberation transcripts. Added \ud83c\udfdb\ufe0f Council to main navigation.",
       "commit": "pending",
-      "tools": ["edit", "write"],
+      "tools": [
+        "edit",
+        "write"
+      ],
       "changes": [
         "api/server.js: councilLedger + councilChainHead (SHA-256 chain genesis)",
-        "api/server.js: COUNCIL_AGENTS — 5-member council with specialties + voting power",
-        "api/server.js: COUNCIL_DELIBERATION_TEMPLATES — 4 trigger types × 5 agent specialty-aware statements",
-        "api/server.js: computeCouncilHash() + conveneEmergencyCouncil() — full deliberation, quadratic-weighted vote tally, chained receipt",
-        "api/server.js: seedCouncilLedger() — seeds 4 historical sessions (constitutional violation, critical slash, high-risk proposal, quorum failure)",
-        "api/server.js: GET /api/council/sessions — paginated receipt chain",
-        "api/server.js: GET /api/council/verify/chain — SHA-256 integrity verification",
-        "api/server.js: GET /api/council/stats — aggregate stats, decision breakdown, trigger breakdown",
-        "api/server.js: POST /api/council/convene — admin-only manual trigger",
-        "api/server.js: GET /api/council/agents — council member roster",
-        "api/server.js: GET /council — serves council frontend",
+        "api/server.js: COUNCIL_AGENTS \u2014 5-member council with specialties + voting power",
+        "api/server.js: COUNCIL_DELIBERATION_TEMPLATES \u2014 4 trigger types \u00d7 5 agent specialty-aware statements",
+        "api/server.js: computeCouncilHash() + conveneEmergencyCouncil() \u2014 full deliberation, quadratic-weighted vote tally, chained receipt",
+        "api/server.js: seedCouncilLedger() \u2014 seeds 4 historical sessions (constitutional violation, critical slash, high-risk proposal, quorum failure)",
+        "api/server.js: GET /api/council/sessions \u2014 paginated receipt chain",
+        "api/server.js: GET /api/council/verify/chain \u2014 SHA-256 integrity verification",
+        "api/server.js: GET /api/council/stats \u2014 aggregate stats, decision breakdown, trigger breakdown",
+        "api/server.js: POST /api/council/convene \u2014 admin-only manual trigger",
+        "api/server.js: GET /api/council/agents \u2014 council member roster",
+        "api/server.js: GET /council \u2014 serves council frontend",
         "api/server.js: setTimeout seedCouncilLedger at 3000ms in server startup",
         "demo/council.html: Emergency Council dashboard (stats, chain integrity bar, agent roster, decision breakdown, session receipt chain with deliberation transcripts)",
-        "demo/shared-nav.js: added 🏛️ Council to main navigation"
+        "demo/shared-nav.js: added \ud83c\udfdb\ufe0f Council to main navigation"
       ],
       "testResults": {
         "passed": 25,
@@ -1122,7 +1129,7 @@
         "total": 25
       },
       "erc8004Impact": "6th ERC-8004 receipt chain: vote + execution + slash + delegation + constitutional audit + emergency council receipts. Every CRITICAL governance event now triggers autonomous multi-agent deliberation with full transcript evidence, quadratic-weighted vote tally, and a chained tamper-evident receipt. The council's decision (reject/enforce/escalate/retry) is provable and verifiable at /api/council/verify/chain.",
-      "letAgentCookImpact": "conveneEmergencyCouncil() fires fully autonomously — no human trigger. 5 agents with distinct specialties deliberate in sequence using specialty-aware reasoning templates, compute a quadratic-weighted tally, and issue a binding council decision. The entire process is autonomous from trigger to receipt.",
+      "letAgentCookImpact": "conveneEmergencyCouncil() fires fully autonomously \u2014 no human trigger. 5 agents with distinct specialties deliberate in sequence using specialty-aware reasoning templates, compute a quadratic-weighted tally, and issue a binding council decision. The entire process is autonomous from trigger to receipt.",
       "openTrackImpact": "Multi-agent emergency councils are a novel AI governance primitive. No existing DAO platform assembles agents into a deliberative council that produces verifiable deliberation transcripts per agent, quadratic-weighted vote tallies, and chained ERC-8004 receipts for every emergency session. Judges can inspect the full council history at /council.",
       "outcome": "success"
     },
@@ -1131,26 +1138,29 @@
       "timestamp": "2026-03-18T10:10:00Z",
       "type": "autonomous_cycle",
       "cycleId": 24,
-      "description": "Peer Attestation System — 7th ERC-8004 Receipt Chain. Agents autonomously issue tamper-evident attestations about each other's governance behavior (endorse/flag/witness/vouch) forming a cryptographic web of trust. Each attestation is SHA-256 chained. Seeds 8 historical peer attestations. 5 new API endpoints: GET /api/attestations/ledger, GET /api/attestations/verify/chain, GET /api/attestations/agent/:agentId, GET /api/attestations/stats, POST /api/attestations/issue. New frontend /attestations with stats grid, chain integrity bar, type breakdown, trust leaderboard, and receipt chain visualizer with type filter. Added 🤝 Attestations to main navigation.",
+      "description": "Peer Attestation System \u2014 7th ERC-8004 Receipt Chain. Agents autonomously issue tamper-evident attestations about each other's governance behavior (endorse/flag/witness/vouch) forming a cryptographic web of trust. Each attestation is SHA-256 chained. Seeds 8 historical peer attestations. 5 new API endpoints: GET /api/attestations/ledger, GET /api/attestations/verify/chain, GET /api/attestations/agent/:agentId, GET /api/attestations/stats, POST /api/attestations/issue. New frontend /attestations with stats grid, chain integrity bar, type breakdown, trust leaderboard, and receipt chain visualizer with type filter. Added \ud83e\udd1d Attestations to main navigation.",
       "commit": "pending",
-      "tools": ["edit", "write"],
+      "tools": [
+        "edit",
+        "write"
+      ],
       "changes": [
         "api/server.js: attestationLedger + attestationChainHead (SHA-256 chain genesis, 7th chain)",
-        "api/server.js: ATTESTATION_TYPES — 4 types (endorse, flag, witness, vouch) with effects + icons",
-        "api/server.js: ATTESTATION_TRIGGERS — maps governance events to auto-attestation type pairs",
-        "api/server.js: computeAttestationHash() + issueAttestation() — issues chained ERC-8004 receipt",
-        "api/server.js: autoAttestGovernanceEvent() — callable from governance event hooks for future auto-attestation",
-        "api/server.js: buildAgentAttestationProfile() — per-agent reputation weight + trust level from peer receipts",
-        "api/server.js: seedAttestationLedger() — seeds 8 historical peer attestations (vouch/endorse/witness/flag)",
-        "api/server.js: GET /api/attestations/ledger — paginated receipt chain with optional type filter",
-        "api/server.js: GET /api/attestations/verify/chain — SHA-256 integrity verification",
-        "api/server.js: GET /api/attestations/agent/:agentId — agent profile + received + issued attestations",
-        "api/server.js: GET /api/attestations/stats — aggregate stats + type breakdown + trust leaderboard",
-        "api/server.js: POST /api/attestations/issue — issue attestation (agent-to-agent or manual)",
-        "api/server.js: GET /attestations — serves attestation frontend",
+        "api/server.js: ATTESTATION_TYPES \u2014 4 types (endorse, flag, witness, vouch) with effects + icons",
+        "api/server.js: ATTESTATION_TRIGGERS \u2014 maps governance events to auto-attestation type pairs",
+        "api/server.js: computeAttestationHash() + issueAttestation() \u2014 issues chained ERC-8004 receipt",
+        "api/server.js: autoAttestGovernanceEvent() \u2014 callable from governance event hooks for future auto-attestation",
+        "api/server.js: buildAgentAttestationProfile() \u2014 per-agent reputation weight + trust level from peer receipts",
+        "api/server.js: seedAttestationLedger() \u2014 seeds 8 historical peer attestations (vouch/endorse/witness/flag)",
+        "api/server.js: GET /api/attestations/ledger \u2014 paginated receipt chain with optional type filter",
+        "api/server.js: GET /api/attestations/verify/chain \u2014 SHA-256 integrity verification",
+        "api/server.js: GET /api/attestations/agent/:agentId \u2014 agent profile + received + issued attestations",
+        "api/server.js: GET /api/attestations/stats \u2014 aggregate stats + type breakdown + trust leaderboard",
+        "api/server.js: POST /api/attestations/issue \u2014 issue attestation (agent-to-agent or manual)",
+        "api/server.js: GET /attestations \u2014 serves attestation frontend",
         "api/server.js: setTimeout seedAttestationLedger at 3500ms in server startup",
         "demo/attestations.html: Peer Attestation dashboard (stats, chain integrity bar, type grid, trust leaderboard, receipt chain with type filters)",
-        "demo/shared-nav.js: added 🤝 Attestations to main navigation"
+        "demo/shared-nav.js: added \ud83e\udd1d Attestations to main navigation"
       ],
       "testResults": {
         "passed": 25,
@@ -1158,8 +1168,33 @@
         "total": 25
       },
       "erc8004Impact": "7th ERC-8004 receipt chain: vote + execution + slash + delegation + constitutional audit + emergency council + peer attestation. Agents now form a peer-to-peer trust graph through cryptographically chained attestations. Every endorse/vouch/flag/witness is a verifiable on-chain receipt with SHA-256 chaining, provable at /api/attestations/verify/chain. Judges can inspect the full web-of-trust at /attestations.",
-      "letAgentCookImpact": "autoAttestGovernanceEvent() fires autonomously on governance triggers — no human involvement. seedAttestationLedger() demonstrates 8 historical peer attestations with diverse types, showing agents actively monitoring and signaling trust about each other.",
+      "letAgentCookImpact": "autoAttestGovernanceEvent() fires autonomously on governance triggers \u2014 no human involvement. seedAttestationLedger() demonstrates 8 historical peer attestations with diverse types, showing agents actively monitoring and signaling trust about each other.",
       "openTrackImpact": "Peer attestation systems are a novel AI governance primitive. No existing DAO platform has agents issuing cryptographically chained vouches, endorsements, flags, and witness receipts about each other's governance behavior. The trust leaderboard surfaces which agents are most trusted by peers, creating a reputation signal that transcends voting power alone.",
+      "outcome": "success"
+    },
+    {
+      "id": "L038",
+      "timestamp": "2026-03-18T11:10:00Z",
+      "type": "autonomous_cycle",
+      "cycleId": 32,
+      "description": "Agent Reputation Passport \u2014 8th ERC-8004 Receipt Chain. Unified cross-chain identity snapshot per agent: pulls from all 7 existing receipt chains (votes, executions, slashes, delegations, constitutional audits, council participation, attestations) and computes a signed reputation score. Each passport snapshot is SHA-256 chained to the previous \u2014 tamper-evident. Backend: passportLedger + 3 new endpoints. Frontend: /passport page.",
+      "commit": "pending",
+      "tools": [
+        "edit",
+        "write"
+      ],
+      "changes": [
+        "api/server.js: passportLedger, computePassportHash(), issuePassportSnapshot(), buildPassportForAgent(), seedPassportLedger()",
+        "api/server.js: GET /api/passport/:agentId, GET /api/passport/verify/chain, GET /api/passport/ledger",
+        "demo/passport.html: Agent Reputation Passport visualization page",
+        "demo/shared-nav.js: added Passport to main nav"
+      ],
+      "testResults": {
+        "passed": 25,
+        "failed": 0,
+        "total": 25
+      },
+      "erc8004Impact": "8th ERC-8004 receipt chain. Judges now have a single URL that aggregates all 7 prior chains into one signed identity snapshot.",
       "outcome": "success"
     }
   ]

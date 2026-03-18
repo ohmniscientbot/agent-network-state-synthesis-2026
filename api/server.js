@@ -7798,6 +7798,165 @@ app.get('/attestations', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/attestations.html'));
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  AGENT REPUTATION PASSPORT — 8th ERC-8004 Receipt Chain
+//  Cross-references all 7 chains into a signed identity snapshot per agent.
+//  Each snapshot is SHA-256 chained to the previous — tamper-evident.
+// ═══════════════════════════════════════════════════════════════════════════
+
+let passportLedger = [];
+let passportChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+function computePassportHash(data, prevHash) {
+    return crypto.createHash('sha256')
+        .update(prevHash + JSON.stringify(data))
+        .digest('hex');
+}
+
+function issuePassportSnapshot(agentId, crossChainSummary) {
+    const index = passportLedger.length;
+    const timestamp = new Date().toISOString();
+    const data = { index, agentId, timestamp, crossChainSummary };
+    const hash = computePassportHash(data, passportChainHead);
+    const receipt = {
+        index,
+        agentId,
+        timestamp,
+        prevHash: passportChainHead,
+        hash,
+        crossChainSummary,
+        chainName: 'passport',
+        chainIndex: 8
+    };
+    passportLedger.push(receipt);
+    passportChainHead = hash;
+    return receipt;
+}
+
+function buildPassportForAgent(agentId) {
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return null;
+
+    // Pull from all 7 ledgers
+    const votes = (voteReceiptLedger || []).filter(r => r.agentId === agentId);
+    const executions = (executionLedger || []).filter(r => r.executorId === agentId || r.proposerId === agentId);
+    const slashes = (slashLedger || []).filter(r => r.agentId === agentId);
+    const delegationsFrom = (delegationReceiptLedger || []).filter(r => r.fromId === agentId);
+    const delegationsTo = (delegationReceiptLedger || []).filter(r => r.toId === agentId);
+    const constitutionalAudits = (constitutionalAuditLedger || []).filter(r => r.agentId === agentId);
+    const councilEvents = (councilLedger || []).filter(r =>
+        (r.participants && r.participants.includes(agentId)) || r.convener === agentId
+    );
+    const attestationsReceived = (attestationLedger || []).filter(r => r.subjectId === agentId);
+    const attestationsIssued = (attestationLedger || []).filter(r => r.attesterId === agentId);
+
+    // Compute aggregate reputation score
+    const voteScore = votes.length * 10;
+    const execScore = executions.length * 15;
+    const slashPenalty = slashes.reduce((s, r) => s + (r.penaltyPct || 10), 0);
+    const delegScore = (delegationsTo.length * 8) + (delegationsFrom.length * 5);
+    const constitScore = constitutionalAudits.length * 5;
+    const councilScore = councilEvents.length * 12;
+    const attestScore = attestationsReceived.length * 6;
+    const rawScore = voteScore + execScore + delegScore + constitScore + councilScore + attestScore;
+    const finalScore = Math.max(0, rawScore - slashPenalty);
+
+    const riskLevel = slashes.length === 0 ? 'CLEAN' :
+        slashes.length === 1 ? 'CAUTION' :
+        slashes.filter(s => s.severity === 'CRITICAL').length > 0 ? 'CRITICAL' : 'HIGH';
+
+    return {
+        agentId,
+        agentName: agent.name,
+        address: agent.address,
+        agentType: agent.agentType,
+        harness: agent.harness,
+        kyaCredentialId: agent.kyaCredentialId,
+        registrationDate: agent.registrationDate,
+        crossChainActivity: {
+            votes: { count: votes.length, receipts: votes.slice(-3) },
+            executions: { count: executions.length, receipts: executions.slice(-3) },
+            slashes: { count: slashes.length, receipts: slashes.slice(-3) },
+            delegationsIssued: { count: delegationsFrom.length },
+            delegationsReceived: { count: delegationsTo.length },
+            constitutionalAudits: { count: constitutionalAudits.length },
+            councilParticipation: { count: councilEvents.length },
+            attestationsReceived: { count: attestationsReceived.length },
+            attestationsIssued: { count: attestationsIssued.length }
+        },
+        reputationScore: finalScore,
+        riskLevel,
+        votingPower: agent.votingPower,
+        contributionScore: agent.contributionScore,
+        chainsWithActivity: [
+            votes.length > 0 ? 'vote_receipts' : null,
+            executions.length > 0 ? 'executions' : null,
+            slashes.length > 0 ? 'slash_ledger' : null,
+            (delegationsFrom.length + delegationsTo.length) > 0 ? 'delegation_receipts' : null,
+            constitutionalAudits.length > 0 ? 'constitutional_audits' : null,
+            councilEvents.length > 0 ? 'council_ledger' : null,
+            attestationsReceived.length > 0 ? 'attestations' : null
+        ].filter(Boolean),
+        passportVersion: '1.0',
+        generatedAt: new Date().toISOString()
+    };
+}
+
+function seedPassportLedger() {
+    if (passportLedger.length > 0) return;
+    // Issue a passport snapshot for each agent on startup
+    agents.forEach(agent => {
+        const summary = buildPassportForAgent(agent.id);
+        if (summary) issuePassportSnapshot(agent.id, summary);
+    });
+    console.log(`🪪 Seeded ${passportLedger.length} agent passport snapshots into ledger`);
+}
+
+// GET /api/passport/:agentId — full reputation passport for one agent
+app.get('/api/passport/:agentId', (req, res) => {
+    const { agentId } = req.params;
+    const passport = buildPassportForAgent(agentId);
+    if (!passport) return res.status(404).json({ error: 'Agent not found' });
+    // Issue a fresh snapshot and return it
+    const receipt = issuePassportSnapshot(agentId, passport);
+    res.json({ passport, receipt, chainPosition: receipt.index, chainHead: passportChainHead.substring(0, 16) + '…' });
+});
+
+// GET /api/passport/verify/chain — verify full passport chain integrity
+app.get('/api/passport/verify/chain', (req, res) => {
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    const errors = [];
+    for (const receipt of passportLedger) {
+        const { hash, prevHash: storedPrev, ...data } = receipt;
+        const expected = computePassportHash({ index: receipt.index, agentId: receipt.agentId, timestamp: receipt.timestamp, crossChainSummary: receipt.crossChainSummary }, prevHash);
+        if (expected !== hash) errors.push({ index: receipt.index, agentId: receipt.agentId });
+        prevHash = hash;
+    }
+    res.json({
+        totalSnapshots: passportLedger.length,
+        chainValid: errors.length === 0,
+        errors,
+        chainHead: passportChainHead.substring(0, 16) + '…',
+        message: errors.length === 0
+            ? `✅ Passport chain intact — ${passportLedger.length} snapshots verified`
+            : `⚠️ ${errors.length} integrity errors found`
+    });
+});
+
+// GET /api/passport/ledger — all passport snapshots (paginated)
+app.get('/api/passport/ledger', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const page = passportLedger.slice(offset, offset + limit);
+    res.json({ snapshots: page, total: passportLedger.length, offset, limit,
+        chainHead: passportChainHead.substring(0, 16) + '…' });
+});
+
+// Serve passport frontend
+app.get('/passport', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/passport.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -7840,6 +7999,9 @@ app.listen(PORT, () => {
 
     // Seed peer attestation ledger (7th ERC-8004 chain)
     setTimeout(() => seedAttestationLedger(), 3500);
+
+    // Seed agent reputation passport ledger (8th ERC-8004 chain)
+    setTimeout(() => seedPassportLedger(), 4000);
 });
 
 module.exports = app;
