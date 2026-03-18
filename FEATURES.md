@@ -520,6 +520,29 @@ if (element) {
 
 ---
 
+## 🪪 Agent Reputation Passport — 8th ERC-8004 Chain (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Cross-Chain Identity Passport
+
+**File**: `demo/passport.html`
+**URL**: https://synthocracy.up.railway.app/passport
+**API**: `GET /api/passport/:agentId`, `GET /api/passport/verify/chain`, `GET /api/passport/ledger`
+
+### What It Does
+Aggregates all 7 existing ERC-8004 receipt chains into a single signed identity snapshot per agent:
+- Votes, Executions, Slashes, Delegations, Constitutional Audits, Council Events, Attestations
+- Computes reputation score across all chains (with slash penalties)
+- Issues a SHA-256 chained snapshot receipt — chain 8
+
+### Frontend Features
+- Agent selector with pill buttons
+- KYA credential + registration timestamp
+- Reputation Score / Voting Power / Active Chains metrics
+- 9-cell cross-chain activity grid (each links to source chain page)
+- Risk level badge: CLEAN / CAUTION / HIGH / CRITICAL
+- Live passport snapshot ledger with hash trail
+- Chain integrity verification bar
+
 ### Priority 2: Real-time Enhancements
 - [x] SSE-based live activity feed on dashboard (commit `da1c2e1`)
 - [x] Auto-refresh governance metrics on significant events
