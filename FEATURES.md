@@ -746,5 +746,64 @@ curl -s https://synthocracy.up.railway.app/api/health
 
 **📝 Remember**: This document is the source of truth for all implementation patterns. Always update it when making changes to prevent future regressions and maintain system coherence.
 
-**🔄 Last Updated**: March 17th, 2026 - Post Tools Dropdown Implementation  
-**📊 Status**: Production-ready with comprehensive feature set for hackathon evaluation
+## 📊 Judge Scorecard — Single System Overview (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Unified Judge Overview Page
+
+**File**: `demo/scorecard.html`
+**URL**: https://synthocracy.up.railway.app/scorecard
+**API**: `GET /api/scorecard`
+
+### What It Does
+Aggregates the full platform scope into a single page for judge evaluation:
+- **Live metrics**: total receipt count, agents, proposals, votes, chain count
+- **Track coverage cards**: ERC-8004, Let the Agent Cook, Open Track — each with highlights and feature lists
+- **All 13 chain inventory grid**: receipt count, description, track tags, and direct links
+- **5 autonomous loops**: name, interval, action — all in one view
+- **12 quick-access links**: dashboard, watchdog, consensus, slash, appeals, amendments, passport, finalization, API, docs, GitHub, BaseScan TX
+- **15-second auto-refresh**: live data from `/api/scorecard`
+
+### Implementation
+- `GET /api/scorecard`: aggregates live state from all 13 in-memory ledgers; returns chains[], tracks{}, summary, quickLinks
+- `GET /scorecard`: serves `demo/scorecard.html`
+- `shared-nav.js`: 📊 Scorecard added to navigation
+
+### Research Rationale
+With 13 ERC-8004 chains and 15+ feature pages, discovery friction was the biggest judge UX gap. Judges evaluating 50+ projects need to grasp scope in <2 minutes. The scorecard solves this with a single authoritative overview.
+
+---
+
+## 🔬 Proposal Lifecycle Tracer — 14th ERC-8004 Chain (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Cross-Chain Proposal Journey Visualizer
+
+**File**: `demo/lifecycle.html`
+**URL**: https://synthocracy.up.railway.app/lifecycle
+**API**: `GET /api/lifecycle/:proposalId`, `GET /api/lifecycle/verify/chain`, `GET /api/lifecycle/status`, `GET /api/lifecycle/ledger`
+
+### What It Does
+Answers the core governance question: "What happened to proposal X?" Aggregates the complete cryptographic journey of each proposal across all 13 existing chains into a single tamper-evident trace receipt:
+- Chains involved: Vote Receipts (1), Execution Ledger (2), Slash Ledger (3), Delegation (4), Constitutional Audit (5), Watchdog Oracle (9), Multi-Agent Consensus (10), Finalization Seals (12)
+- **Cross-chain fingerprint**: SHA-256 of all receipt hashes along the proposal path — a novel cryptographic primitive proving the complete governance lifecycle
+
+### Backend
+- `buildProposalTrace(proposalId)`: live aggregator — queries all 8 chains, assembles chronological event log, computes cross-chain fingerprint
+- `issueLifecycleReceipt(proposalId)`: SHA-256 chains the trace receipt (14th chain)
+- `seedLifecycleLedger()`: seeds traces for all existing proposals at 10500ms startup, no human trigger
+- `autoTraceOnStatusChange(proposalId)`: fires on governance events
+
+### Frontend Features
+- Proposal selector pills (click to trace)
+- 8-stat summary grid: total events, chains involved, vote breakdown, constitutional verdict, finalization status, slash events in window, watchdog scans, consensus rounds
+- Chain involvement tags (color-coded by chain)
+- Cross-chain fingerprint display
+- Chronological event timeline with chain-coded colored dots and receipt hash badges
+
+### Bugfixes (self-corrected same cycle)
+1. Route ordering: `/verify/chain` and `/ledger` moved before `/:proposalId` to avoid Express param capture
+2. Hash verification: `prevHash` destructured out of `dataOnly` before `computeLifecycleHash()` call
+
+---
+
+**🔄 Last Updated**: March 18th, 2026 - Post Proposal Lifecycle Tracer  
+**📊 Status**: Production-ready with 14 ERC-8004 chains — comprehensive feature set for hackathon evaluation
