@@ -8987,12 +8987,12 @@ function issueAmendmentReceipt(amendment, outcome, jurors) {
     amendmentLedger.push(receipt);
 
     // If ratified, apply amendment to constitution
+    const targetArticle = constitution.articles.find(a => a.id === amendment.articleId);
     if (outcome === 'RATIFIED') {
-        const article = constitution.articles.find(a => a.id === amendment.articleId);
-        if (article) {
-            article.text = amendment.proposedText;
-            article.lastAmended = receipt.ratifiedAt;
-            article.amendmentReceipt = receipt.receiptId;
+        if (targetArticle) {
+            targetArticle.text = amendment.proposedText;
+            targetArticle.lastAmended = receipt.ratifiedAt;
+            targetArticle.amendmentReceipt = receipt.receiptId;
         }
         if (!constitution.amendments) constitution.amendments = [];
         constitution.amendments.push({
@@ -9008,7 +9008,7 @@ function issueAmendmentReceipt(amendment, outcome, jurors) {
         type: 'amendment',
         agentId: 'amendment-engine',
         agentName: 'AmendmentEngine',
-        action: outcome === 'RATIFIED' ? `Constitutional amendment RATIFIED: ${article?.title || amendment.articleId}` : `Amendment REJECTED: ${constitution.articles.find(a => a.id === amendment.articleId)?.title || amendment.articleId}`,
+        action: outcome === 'RATIFIED' ? `Constitutional amendment RATIFIED: ${targetArticle?.title || amendment.articleId}` : `Amendment REJECTED: ${targetArticle?.title || amendment.articleId}`,
         outcome,
         receiptId: receipt.receiptId,
         timestamp: receipt.ratifiedAt
