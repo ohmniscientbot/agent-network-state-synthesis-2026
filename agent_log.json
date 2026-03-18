@@ -1271,7 +1271,12 @@
         "passed": 25,
         "failed": 0,
         "total": 25
-      }
+      },
+      "bugfix": "Fixed ReferenceError: broadcastActivity is not defined. The SSE broadcast function is broadcastEvent(). Bug introduced and self-corrected in same cycle (commit 04c2df4).",
+      "commits": [
+        "4340525 (feature)",
+        "04c2df4 (bugfix)"
+      ]
     }
   ]
 }
