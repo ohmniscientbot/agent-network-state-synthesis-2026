@@ -5872,6 +5872,266 @@ app.get('/api/constitution/check/:proposalId', (req, res) => {
     });
 });
 
+// ============================================================
+// AGENT SLASHING & ACCOUNTABILITY ENGINE
+// SOURCE: Inspired by Ethereum validator slashing (EIP-1154), 
+//         Cosmos SDK slashing module, and ERC-8004 accountability spec.
+// PURPOSE: Cryptographic, chain-linked punishment receipts for misbehaving agents.
+//          Autonomous detection — no human trigger required.
+// TRACKS: ERC-8004 (receipts), Let the Agent Cook (auto enforcement), Open Track (novel)
+// ============================================================
+
+let slashLedger = []; // ordered slash receipt chain
+let slashChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+// Slash conditions and their severity
+const SLASH_CONDITIONS = {
+    execution_failure: {
+        label: 'Autonomous Execution Failure',
+        description: 'Agent designated as executor failed to complete an assigned governance execution',
+        penaltyPct: 15,
+        severity: 'HIGH',
+        icon: '⚡'
+    },
+    proposal_spam: {
+        label: 'Proposal Spam',
+        description: 'Agent submitted >3 proposals in 24h window without adequate deliberation',
+        penaltyPct: 10,
+        severity: 'MEDIUM',
+        icon: '🚫'
+    },
+    principal_misalignment: {
+        label: 'Principal Misalignment',
+        description: 'Agent voted against its own registered principal\'s stated policy on a constitutional matter',
+        penaltyPct: 25,
+        severity: 'CRITICAL',
+        icon: '⚠️'
+    },
+    double_vote: {
+        label: 'Double Vote Attempt',
+        description: 'Agent attempted to cast a second vote on the same proposal',
+        penaltyPct: 20,
+        severity: 'HIGH',
+        icon: '🔁'
+    },
+    constitution_violation: {
+        label: 'Constitutional Violation',
+        description: 'Agent submitted a proposal that failed constitutional compliance screening',
+        penaltyPct: 30,
+        severity: 'CRITICAL',
+        icon: '📜'
+    },
+    inactivity: {
+        label: 'Extended Inactivity',
+        description: 'Agent has not participated in governance for >30 days, triggering reputation decay slash',
+        penaltyPct: 5,
+        severity: 'LOW',
+        icon: '💤'
+    }
+};
+
+// Compute SHA-256 hash chained to previous slash
+function computeSlashHash(data, prevHash) {
+    const payload = JSON.stringify({ ...data, prevHash });
+    return crypto.createHash('sha256').update(payload).digest('hex');
+}
+
+// Issue a slash receipt and add it to the ledger
+function issueSlashReceipt({ agentId, agentName, condition, evidence, autonomousDetection }) {
+    const cond = SLASH_CONDITIONS[condition];
+    if (!cond) throw new Error(`Unknown slash condition: ${condition}`);
+
+    const agent = agents.find(a => a.id === agentId);
+    const currentVP = agent?.votingPower || 0;
+    const penaltyAmount = Math.round(currentVP * (cond.penaltyPct / 100));
+
+    // Apply penalty to agent's voting power
+    if (agent) {
+        agent.votingPower = Math.max(1, currentVP - penaltyAmount);
+    }
+
+    const index = slashLedger.length;
+    const timestamp = new Date().toISOString();
+    const data = {
+        index,
+        agentId,
+        agentName,
+        condition,
+        conditionLabel: cond.label,
+        severity: cond.severity,
+        penaltyPct: cond.penaltyPct,
+        penaltyAmount,
+        votingPowerBefore: currentVP,
+        votingPowerAfter: Math.max(1, currentVP - penaltyAmount),
+        evidence,
+        autonomousDetection,
+        description: cond.description,
+        timestamp
+    };
+
+    const hash = computeSlashHash(data, slashChainHead);
+    const receipt = { ...data, prevHash: slashChainHead, hash };
+    slashLedger.push(receipt);
+    slashChainHead = hash;
+
+    // Emit to activity feed
+    emitActivity({
+        type: 'security',
+        message: `⚔️ ${cond.severity} slash issued against ${agentName}: ${cond.label} (−${cond.penaltyPct}% voting power)`,
+        agentId,
+        slashHash: hash.substring(0, 12)
+    });
+
+    return receipt;
+}
+
+// Seed initial slash ledger with realistic historical violations
+function seedSlashLedger() {
+    if (slashLedger.length > 0) return;
+
+    const seeds = [
+        {
+            agentId: 'agent-003',
+            agentName: 'BetaAnalyzer',
+            condition: 'proposal_spam',
+            evidence: 'Submitted 4 proposals within 18 hours on 2026-03-12; proposals P-004 through P-007 flagged by spam detector',
+            autonomousDetection: true
+        },
+        {
+            agentId: 'agent-002',
+            agentName: 'AlphaGovernor',
+            condition: 'constitution_violation',
+            evidence: 'Draft proposal "Suspend Quadratic Voting for Emergency Session" failed Art.5 anti-plutocracy check (score: 0/7 articles)',
+            autonomousDetection: true
+        },
+        {
+            agentId: 'agent-005',
+            agentName: 'DeltaOracle',
+            condition: 'principal_misalignment',
+            evidence: 'Voted YES on prop-seed-1 (Cross-Chain KYA) despite oracle-foundation policy record stating opposition to cross-chain identity merging',
+            autonomousDetection: true
+        },
+        {
+            agentId: 'agent-004',
+            agentName: 'GammaValidator',
+            condition: 'execution_failure',
+            evidence: 'Designated executor for prop-seed-2 treasury access controls. Execution timed out at step 3/4 (on-chain write failed). Receipt chain shows gap at index 2.',
+            autonomousDetection: true
+        }
+    ];
+
+    for (const s of seeds) {
+        issueSlashReceipt(s);
+    }
+
+    console.log(`⚔️ Seeded ${slashLedger.length} slash receipts for accountability history`);
+}
+
+// Autonomous slash detector — runs on governance events to auto-detect violations
+function autonomousSlashCheck(event) {
+    try {
+        if (event.type === 'double_vote' && event.agentId) {
+            const agent = agents.find(a => a.id === event.agentId);
+            issueSlashReceipt({
+                agentId: event.agentId,
+                agentName: agent?.name || event.agentId,
+                condition: 'double_vote',
+                evidence: `Double vote attempt on proposal ${event.proposalId} detected at ${new Date().toISOString()}`,
+                autonomousDetection: true
+            });
+        }
+    } catch (e) {
+        console.error('autonomousSlashCheck error:', e.message);
+    }
+}
+
+// GET /api/slash/ledger — full slash receipt chain (paginated)
+app.get('/api/slash/ledger', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    res.json({
+        slashes: slashLedger.slice(offset, offset + limit),
+        total: slashLedger.length,
+        chainHead: slashChainHead,
+        conditions: SLASH_CONDITIONS,
+        offset,
+        limit
+    });
+});
+
+// GET /api/slash/verify/chain — verify slash chain integrity
+app.get('/api/slash/verify/chain', (req, res) => {
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    const errors = [];
+
+    for (const receipt of slashLedger) {
+        const { prevHash: storedPrev, hash, ...data } = receipt;
+        if (storedPrev !== prevHash) {
+            errors.push(`Chain break at index ${data.index}: prevHash mismatch`);
+        }
+        const recomputed = computeSlashHash(data, storedPrev);
+        if (recomputed !== hash) {
+            errors.push(`Hash tamper at index ${data.index}`);
+        }
+        prevHash = hash;
+    }
+
+    res.json({
+        valid: errors.length === 0,
+        totalReceipts: slashLedger.length,
+        chainHead: slashChainHead,
+        errors,
+        message: errors.length === 0
+            ? `✅ All ${slashLedger.length} slash receipts verified — accountability chain intact`
+            : `❌ Chain verification failed: ${errors.length} error(s)`
+    });
+});
+
+// GET /api/slash/agent/:agentId — slash history for a specific agent
+app.get('/api/slash/agent/:agentId', (req, res) => {
+    const agentSlashes = slashLedger.filter(s => s.agentId === req.params.agentId);
+    const totalPenalty = agentSlashes.reduce((sum, s) => sum + s.penaltyAmount, 0);
+    const agent = agents.find(a => a.id === req.params.agentId);
+    res.json({
+        agentId: req.params.agentId,
+        agentName: agent?.name || req.params.agentId,
+        slashCount: agentSlashes.length,
+        totalPenaltyVP: totalPenalty,
+        currentVotingPower: agent?.votingPower || 0,
+        slashes: agentSlashes,
+        riskLevel: agentSlashes.length === 0 ? 'CLEAN' 
+            : agentSlashes.some(s => s.severity === 'CRITICAL') ? 'CRITICAL'
+            : agentSlashes.some(s => s.severity === 'HIGH') ? 'HIGH' : 'MEDIUM'
+    });
+});
+
+// POST /api/slash/trigger — manually trigger slash (admin only)
+app.post('/api/slash/trigger', requireAdmin, (req, res) => {
+    const { agentId, condition, evidence } = req.body;
+    if (!agentId || !condition || !evidence) {
+        return res.status(400).json({ error: 'agentId, condition, and evidence required' });
+    }
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return res.status(404).json({ error: 'Agent not found' });
+    try {
+        const receipt = issueSlashReceipt({
+            agentId,
+            agentName: agent.name,
+            condition,
+            evidence,
+            autonomousDetection: false
+        });
+        res.json({ success: true, receipt });
+    } catch (e) {
+        res.status(400).json({ error: e.message });
+    }
+});
+
+// Serve slash ledger page
+app.get('/slash-ledger', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/slash-ledger.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -5898,6 +6158,9 @@ app.listen(PORT, () => {
 
     // Seed execution receipts for passed proposals (Autonomous Execution Engine)
     setTimeout(() => seedExecutionReceipts(), 1000);
+
+    // Seed slash ledger with historical accountability violations
+    setTimeout(() => seedSlashLedger(), 1500);
 });
 
 module.exports = app;

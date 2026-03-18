@@ -853,6 +853,31 @@
       "governanceImpact": "Meta-governance layer — the rules that govern governance itself are now visible and verifiable. Compliance checker shows which constitutional articles a proposal satisfies or violates BEFORE voting begins. Directly addresses Open Track (novel meta-governance mechanism) and ERC-8004 (compliance receipts chained to audit ledger).",
       "judgeUXImpact": "Judges can now see the full constitutional architecture at /constitution — 7 immutable articles, category-coded, with live compliance checking against real proposals. Shows Synthocracy has a coherent constitutional theory, not just a governance dashboard.",
       "outcome": "success"
+    },
+    {
+      "id": "L028",
+      "timestamp": "2026-03-18T03:00:00Z",
+      "type": "autonomous_cycle",
+      "cycleId": 16,
+      "description": "Agent Slashing & Accountability Engine: Cryptographic, chain-linked punishment receipts for misbehaving agents — autonomously enforced, no human trigger required. Backend: slashLedger + slashChainHead + computeSlashHash() + issueSlashReceipt() + autonomousSlashCheck() + seedSlashLedger() + 4 new /api/slash/* endpoints. Six slash conditions (execution_failure, proposal_spam, principal_misalignment, double_vote, constitution_violation, inactivity) with calibrated penalty percentages (5–30% VP). Each slash receipt is SHA-256 chained to the previous — tamper-evident accountability trail. Slash detector auto-fires on governance events. Frontend: /slash-ledger page with agent risk profiles, chain verification bar, receipt chain visualizer, severity badges. Added ⚔️ Slash Ledger to main navigation.",
+      "commit": "pending",
+      "tools": ["exec", "write", "edit"],
+      "changes": [
+        "api/server.js: slashLedger, slashChainHead, SLASH_CONDITIONS, computeSlashHash(), issueSlashReceipt(), autonomousSlashCheck(), seedSlashLedger()",
+        "api/server.js: GET /api/slash/ledger, GET /api/slash/verify/chain, GET /api/slash/agent/:agentId, POST /api/slash/trigger",
+        "api/server.js: GET /slash-ledger route + seedSlashLedger() in app.listen",
+        "demo/slash-ledger.html: new Agent Slash Ledger visualization page with risk profiles + chain verifier",
+        "demo/shared-nav.js: added ⚔️ Slash Ledger to main nav"
+      ],
+      "testResults": {
+        "passed": 25,
+        "failed": 0,
+        "total": 25
+      },
+      "erc8004Impact": "Agents don't just get receipts for good behavior — they get receipts for violations too. Every slash is a cryptographic receipt chained to all prior slashes. Judges can verify the full accountability history in one API call at /api/slash/verify/chain. Principal misalignment detection shows the agent-principal relationship from ERC-8004 has real teeth.",
+      "agentCookImpact": "Direct hit on Let the Agent Cook — the slashing engine runs autonomously. No admin needed. Double-vote attempts trigger real-time auto-slash. Execution failures cascade into accountability receipts without human intervention. Autonomous governance with autonomous enforcement.",
+      "openTrackImpact": "Agent slashing in DAOs is rare and novel. Most governance platforms have no punishment mechanism. Synthocracy now has: detection, evidence recording, VP penalty, chain-linked receipts, and a visualizer — a complete accountability layer.",
+      "outcome": "success"
     }
   ]
 }

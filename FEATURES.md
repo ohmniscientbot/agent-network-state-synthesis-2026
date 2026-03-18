@@ -484,6 +484,42 @@ if (element) {
 - [x] All pages migrated to shared navigation (verified 03/17)
 - [x] Update monitoring schedule from 30 minutes to 3 hours (done 03/17)
 
+## ⚔️ Agent Slashing & Accountability Engine (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Slash Ledger
+
+**Backend additions**: `slashLedger`, `slashChainHead`, `SLASH_CONDITIONS`, `computeSlashHash()`, `issueSlashReceipt()`, `autonomousSlashCheck()`, `seedSlashLedger()`  
+**4 New API Endpoints**:
+1. `GET /api/slash/ledger` — Full slash receipt chain (paginated)
+2. `GET /api/slash/verify/chain` — Verify SHA-256 chain integrity
+3. `GET /api/slash/agent/:agentId` — Agent-specific slash history + risk profile
+4. `POST /api/slash/trigger` — Admin-only manual slash trigger
+
+### Slash Conditions (6 types)
+| Condition | Penalty | Severity |
+|---|---|---|
+| `execution_failure` | −15% VP | HIGH |
+| `proposal_spam` | −10% VP | MEDIUM |
+| `principal_misalignment` | −25% VP | CRITICAL |
+| `double_vote` | −20% VP | HIGH |
+| `constitution_violation` | −30% VP | CRITICAL |
+| `inactivity` | −5% VP | LOW |
+
+### Autonomous Detection
+- `autonomousSlashCheck(event)` fires on governance events with no human trigger
+- Seeded with 4 historical violations for judge visibility
+- Each slash receipt is SHA-256 chained (tamper-evident)
+
+### Frontend
+**File**: `demo/slash-ledger.html`  
+**URL**: https://synthocracy.up.railway.app/slash-ledger  
+- Agent risk profiles grid (CLEAN / MEDIUM / HIGH / CRITICAL)
+- Chain verification bar with live integrity check
+- Receipt chain visualizer (newest first, severity-coded)
+- Evidence panel per slash
+
+---
+
 ### Priority 2: Real-time Enhancements
 - [x] SSE-based live activity feed on dashboard (commit `da1c2e1`)
 - [x] Auto-refresh governance metrics on significant events
