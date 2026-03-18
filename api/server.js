@@ -7957,6 +7957,229 @@ app.get('/passport', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/passport.html'));
 });
 
+// ============================================================
+// 🔍 AUTONOMOUS GOVERNANCE WATCHDOG — Chain 9 (ERC-8004)
+// Runs every 60 seconds with NO human trigger.
+// Scans live governance state, detects anomalies, issues
+// cryptographically chained watchdog receipts.
+// Demonstrates: "Let the Agent Cook" track + ERC-8004 receipts.
+// ============================================================
+
+let watchdogLedger = [];
+let watchdogChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+let watchdogCycleCount = 0;
+
+const WATCHDOG_RULES = {
+    proposal_spam_threshold: 3,       // >3 proposals in 1hr = spam alert
+    high_risk_proposal_alert: true,   // AI-flagged HIGH risk = watchdog triggers
+    stale_proposal_alert: 2,          // proposals with 0 votes after 24h
+    power_concentration_threshold: 0.6, // >60% VP in one agent = oligarchy alert
+    quorum_threshold: 0.3,            // <30% participation = low quorum alert
+};
+
+function computeWatchdogHash(data, prev) {
+    const payload = JSON.stringify({ ...data, prevHash: prev });
+    return require('crypto').createHash('sha256').update(payload).digest('hex');
+}
+
+function issueWatchdogReceipt(scanResult) {
+    const index = watchdogLedger.length;
+    const timestamp = new Date().toISOString();
+    const hash = computeWatchdogHash({
+        index,
+        timestamp,
+        cycleId: scanResult.cycleId,
+        alertCount: scanResult.alerts.length,
+        status: scanResult.status,
+        fingerprint: scanResult.fingerprint
+    }, watchdogChainHead);
+
+    const receipt = {
+        index,
+        cycleId: scanResult.cycleId,
+        timestamp,
+        status: scanResult.status,
+        alertCount: scanResult.alerts.length,
+        alerts: scanResult.alerts,
+        stats: scanResult.stats,
+        fingerprint: scanResult.fingerprint,
+        prevHash: watchdogChainHead,
+        hash
+    };
+    watchdogLedger.push(receipt);
+    watchdogChainHead = hash;
+    return receipt;
+}
+
+function runWatchdogScan() {
+    watchdogCycleCount++;
+    const cycleId = `WD-${String(watchdogCycleCount).padStart(4, '0')}`;
+    const alerts = [];
+    const now = Date.now();
+
+    // Check 1: Power concentration
+    const totalVP = agents.reduce((sum, a) => sum + (a.votingPower || 0), 0);
+    if (totalVP > 0) {
+        agents.forEach(agent => {
+            const share = (agent.votingPower || 0) / totalVP;
+            if (share > WATCHDOG_RULES.power_concentration_threshold) {
+                alerts.push({
+                    type: 'POWER_CONCENTRATION',
+                    severity: 'HIGH',
+                    agentId: agent.id,
+                    message: `Agent ${agent.id} holds ${(share * 100).toFixed(1)}% of total voting power — oligarchy risk`,
+                    votingPowerShare: share
+                });
+            }
+        });
+    }
+
+    // Check 2: Stale proposals (0 votes, active for >1 cycle)
+    const activeProposals = proposals.filter(p => p.status === 'active');
+    activeProposals.forEach(p => {
+        const proposalVotes = votes.filter(v => v.proposalId === p.id);
+        if (proposalVotes.length === 0 && watchdogCycleCount > 2) {
+            alerts.push({
+                type: 'STALE_PROPOSAL',
+                severity: 'MEDIUM',
+                proposalId: p.id,
+                message: `Proposal "${p.title}" has zero votes and may be stale`,
+                title: p.title
+            });
+        }
+    });
+
+    // Check 3: AI risk scan — flag any HIGH-risk proposals not yet reviewed
+    proposals.forEach(p => {
+        if (p.riskLevel === 'HIGH' && p.status === 'active') {
+            alerts.push({
+                type: 'UNREVIEWED_HIGH_RISK',
+                severity: 'CRITICAL',
+                proposalId: p.id,
+                message: `HIGH-risk proposal "${p.title}" is active without human review`,
+                title: p.title
+            });
+        }
+    });
+
+    // Check 4: Low quorum (active proposals with few total votes relative to registered agents)
+    if (agents.length > 0) {
+        activeProposals.forEach(p => {
+            const proposalVotes = votes.filter(v => v.proposalId === p.id);
+            const participation = proposalVotes.length / agents.length;
+            if (participation < WATCHDOG_RULES.quorum_threshold && proposalVotes.length > 0) {
+                alerts.push({
+                    type: 'LOW_QUORUM',
+                    severity: 'LOW',
+                    proposalId: p.id,
+                    message: `Proposal "${p.title}" has ${(participation * 100).toFixed(0)}% participation (below ${WATCHDOG_RULES.quorum_threshold * 100}% threshold)`,
+                    participation
+                });
+            }
+        });
+    }
+
+    // Compute governance health fingerprint
+    const healthScore = Math.max(0, 100 - (alerts.filter(a => a.severity === 'CRITICAL').length * 30)
+        - (alerts.filter(a => a.severity === 'HIGH').length * 15)
+        - (alerts.filter(a => a.severity === 'MEDIUM').length * 8)
+        - (alerts.filter(a => a.severity === 'LOW').length * 3));
+
+    const fingerprint = require('crypto').createHash('sha256')
+        .update(JSON.stringify({ agents: agents.length, proposals: proposals.length, votes: votes.length, cycleId, now }))
+        .digest('hex').substring(0, 16);
+
+    const status = alerts.some(a => a.severity === 'CRITICAL') ? 'CRITICAL'
+        : alerts.some(a => a.severity === 'HIGH') ? 'WARNING'
+        : alerts.length > 0 ? 'ADVISORY'
+        : 'HEALTHY';
+
+    const scanResult = {
+        cycleId,
+        status,
+        healthScore,
+        fingerprint,
+        alerts,
+        stats: {
+            agentCount: agents.length,
+            proposalCount: proposals.length,
+            activeProposals: activeProposals.length,
+            totalVotes: votes.length,
+            totalVP
+        }
+    };
+
+    const receipt = issueWatchdogReceipt(scanResult);
+    console.log(`🔍 Watchdog ${cycleId}: ${status} | ${alerts.length} alerts | chain[${receipt.index}] ${receipt.hash.substring(0, 12)}…`);
+
+    // Emit to SSE activity feed
+    broadcastEvent({
+        type: 'governance',
+        agentId: 'watchdog',
+        timestamp: new Date().toISOString(),
+        description: `🔍 Watchdog ${cycleId}: ${status} — ${alerts.length} alert${alerts.length > 1 ? 's' : ''} detected`,
+        details: { cycleId, status, alertCount: alerts.length, healthScore }
+    });
+
+    return receipt;
+}
+
+// API endpoints for watchdog chain
+app.get('/api/watchdog/status', (req, res) => {
+    const latest = watchdogLedger.length > 0 ? watchdogLedger[watchdogLedger.length - 1] : null;
+    res.json({
+        cyclesRun: watchdogCycleCount,
+        totalReceipts: watchdogLedger.length,
+        latestCycle: latest ? latest.cycleId : null,
+        latestStatus: latest ? latest.status : 'NOT_STARTED',
+        chainHead: watchdogChainHead.substring(0, 16) + '…',
+        nextScanIn: 60 - (Math.floor(Date.now() / 1000) % 60) + 's',
+        rules: WATCHDOG_RULES
+    });
+});
+
+app.get('/api/watchdog/ledger', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const page = watchdogLedger.slice().reverse().slice(offset, offset + limit);
+    res.json({ receipts: page, total: watchdogLedger.length, offset, limit, chainHead: watchdogChainHead.substring(0, 16) + '…' });
+});
+
+app.get('/api/watchdog/verify/chain', (req, res) => {
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    const errors = [];
+    for (const receipt of watchdogLedger) {
+        const expected = computeWatchdogHash({
+            index: receipt.index,
+            timestamp: receipt.timestamp,
+            cycleId: receipt.cycleId,
+            alertCount: receipt.alertCount,
+            status: receipt.status,
+            fingerprint: receipt.fingerprint
+        }, prevHash);
+        if (expected !== receipt.hash) errors.push({ index: receipt.index, cycleId: receipt.cycleId });
+        prevHash = receipt.hash;
+    }
+    res.json({
+        totalReceipts: watchdogLedger.length,
+        chainValid: errors.length === 0,
+        errors,
+        chainHead: watchdogChainHead.substring(0, 16) + '…',
+        message: errors.length === 0
+            ? `✅ Watchdog chain intact — ${watchdogLedger.length} receipts verified`
+            : `⚠️ ${errors.length} integrity errors found`
+    });
+});
+
+app.get('/api/watchdog/latest', (req, res) => {
+    if (watchdogLedger.length === 0) return res.json({ message: 'No scans run yet' });
+    res.json(watchdogLedger[watchdogLedger.length - 1]);
+});
+
+app.get('/watchdog', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/watchdog.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -8002,6 +8225,13 @@ app.listen(PORT, () => {
 
     // Seed agent reputation passport ledger (8th ERC-8004 chain)
     setTimeout(() => seedPassportLedger(), 4000);
+
+    // Start autonomous governance watchdog (9th ERC-8004 chain — runs every 60s, no human trigger)
+    setTimeout(() => {
+        runWatchdogScan(); // Run immediately on startup
+        setInterval(runWatchdogScan, 60000); // Then every 60 seconds
+        console.log('🔍 Autonomous governance watchdog started — scanning every 60s');
+    }, 5000);
 });
 
 module.exports = app;

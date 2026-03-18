@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watchdog — Autonomous Governance Monitor | Synthocracy</title>
+<style>
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111115;
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --border-neural: rgba(139, 92, 246, 0.3);
+    --neural-blue: #3b82f6;
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --radius-neural: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg-primary); color: var(--primary-text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+.page-content { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.page-header { margin-bottom: 2rem; }
+.page-title { font-size: 2rem; font-weight: 700; color: var(--primary-text); margin-bottom: 0.5rem; }
+.page-title .icon { margin-right: 0.5rem; }
+.page-subtitle { color: var(--secondary-text); font-size: 0.95rem; }
+
+.badge-chain { display: inline-block; background: linear-gradient(135deg, var(--neural-purple), var(--neural-cyan)); color: white; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; margin-left: 0.75rem; vertical-align: middle; letter-spacing: 0.05em; }
+
+/* Status bar */
+.status-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1.25rem; text-align: center; }
+.stat-value { font-size: 1.8rem; font-weight: 700; color: var(--neural-cyan); }
+.stat-label { font-size: 0.75rem; color: var(--secondary-text); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Health badge */
+.health-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; }
+.health-HEALTHY { background: rgba(16, 185, 129, 0.15); color: var(--neural-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+.health-ADVISORY { background: rgba(245, 158, 11, 0.15); color: var(--neural-yellow); border: 1px solid rgba(245, 158, 11, 0.3); }
+.health-WARNING { background: rgba(239, 68, 68, 0.15); color: var(--neural-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+.health-CRITICAL { background: rgba(239, 68, 68, 0.3); color: #fca5a5; border: 1px solid var(--neural-red); animation: pulse 1.5s ease-in-out infinite; }
+.health-NOT_STARTED { background: rgba(148, 163, 184, 0.1); color: var(--secondary-text); border: 1px solid rgba(148, 163, 184, 0.2); }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* Grid layout */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* Sections */
+.section { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1.5rem; margin-bottom: 1.5rem; }
+.section-title { font-size: 1rem; font-weight: 600; color: var(--primary-text); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.section-title .count { background: rgba(139, 92, 246, 0.2); color: var(--neural-purple); font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; }
+
+/* Alert items */
+.alert-item { border: 1px solid; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.alert-CRITICAL { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); }
+.alert-HIGH { border-color: rgba(249, 115, 22, 0.4); background: rgba(249, 115, 22, 0.08); }
+.alert-MEDIUM { border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08); }
+.alert-LOW { border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.06); }
+.alert-type { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; opacity: 0.8; }
+.alert-message { font-size: 0.85rem; color: var(--primary-text); margin-top: 0.25rem; }
+.alert-CRITICAL .alert-type { color: #fca5a5; }
+.alert-HIGH .alert-type { color: var(--neural-orange); }
+.alert-MEDIUM .alert-type { color: var(--neural-yellow); }
+.alert-LOW .alert-type { color: var(--neural-blue); }
+
+/* Chain receipt items */
+.receipt-item { border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: border-color 0.2s; }
+.receipt-item:hover { border-color: rgba(139, 92, 246, 0.5); }
+.receipt-left { display: flex; flex-direction: column; gap: 0.2rem; }
+.receipt-cycle { font-size: 0.8rem; font-weight: 700; color: var(--neural-cyan); font-family: monospace; }
+.receipt-hash { font-size: 0.7rem; color: var(--secondary-text); font-family: monospace; }
+.receipt-time { font-size: 0.7rem; color: var(--secondary-text); }
+.receipt-right { text-align: right; }
+.receipt-alerts { font-size: 0.8rem; color: var(--secondary-text); }
+
+/* Chain integrity bar */
+.integrity-bar { display: flex; align-items: center; gap: 1rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 1rem 1.5rem; margin-bottom: 1.5rem; }
+.integrity-icon { font-size: 1.5rem; }
+.integrity-text { flex: 1; }
+.integrity-title { font-size: 0.9rem; font-weight: 600; }
+.integrity-detail { font-size: 0.75rem; color: var(--secondary-text); margin-top: 0.2rem; font-family: monospace; }
+.integrity-valid { color: var(--neural-green); }
+.integrity-invalid { color: var(--neural-red); }
+
+/* Auto-refresh indicator */
+.auto-refresh { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--secondary-text); margin-bottom: 1rem; }
+.refresh-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neural-green); animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Countdown */
+.countdown { background: rgba(139, 92, 246, 0.1); border: 1px solid var(--border-neural); border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--neural-purple); font-family: monospace; text-align: center; }
+
+/* Rules grid */
+.rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; }
+.rule-item { background: rgba(0,0,0,0.3); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 6px; padding: 0.75rem; }
+.rule-name { font-size: 0.75rem; font-weight: 600; color: var(--neural-cyan); letter-spacing: 0.05em; }
+.rule-value { font-size: 0.85rem; color: var(--primary-text); margin-top: 0.2rem; font-family: monospace; }
+
+.empty-state { text-align: center; color: var(--secondary-text); padding: 2rem; font-size: 0.9rem; }
+
+.btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: 1px solid var(--border-neural); background: transparent; color: var(--primary-text); border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.btn:hover { background: rgba(139, 92, 246, 0.1); border-color: var(--neural-purple); }
+.btn-primary { background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(6,182,212,0.2)); border-color: var(--neural-purple); }
+</style>
+</head>
+<body>
+
+<script src="/shared-nav.js"></script>
+<script>injectNavigation('watchdog');</script>
+
+<div class="page-content">
+    <div class="page-header">
+        <div class="page-title">
+            <span class="icon">🔍</span> Autonomous Governance Watchdog
+            <span class="badge-chain">Chain 9 · ERC-8004</span>
+        </div>
+        <div class="page-subtitle">
+            Live, autonomous safety scanner running every 60 seconds — no human trigger required.
+            Each scan issues a cryptographically chained receipt to the tamper-evident ERC-8004 ledger.
+        </div>
+    </div>
+
+    <!-- Auto-refresh indicator -->
+    <div class="auto-refresh">
+        <div class="refresh-dot"></div>
+        <span>Auto-refreshing every 10 seconds · Page data is live</span>
+        <span id="last-refresh" style="margin-left: auto; opacity: 0.6;"></span>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="status-bar">
+        <div class="stat-card"><div class="stat-value" id="stat-cycles">—</div><div class="stat-label">Scan Cycles</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-receipts">—</div><div class="stat-label">Chain Receipts</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-status">—</div><div class="stat-label">Latest Status</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-next">—</div><div class="stat-label">Next Scan In</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-alerts">—</div><div class="stat-label">Latest Alerts</div></div>
+    </div>
+
+    <!-- Chain integrity -->
+    <div class="integrity-bar" id="integrity-bar">
+        <div class="integrity-icon">⏳</div>
+        <div class="integrity-text">
+            <div class="integrity-title">Verifying watchdog chain integrity…</div>
+            <div class="integrity-detail" id="integrity-detail">Loading…</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <!-- Latest scan alerts -->
+        <div class="section">
+            <div class="section-title">⚠️ Latest Scan Alerts <span class="count" id="alerts-count">0</span></div>
+            <div id="alerts-container"><div class="empty-state">Awaiting first scan…</div></div>
+        </div>
+
+        <!-- Watchdog rules -->
+        <div class="section">
+            <div class="section-title">📋 Active Detection Rules</div>
+            <div class="rules-grid" id="rules-grid"><div class="empty-state">Loading…</div></div>
+        </div>
+    </div>
+
+    <!-- Receipt chain -->
+    <div class="section">
+        <div class="section-title">
+            ⛓️ Watchdog Receipt Chain
+            <button class="btn" style="margin-left: auto; font-size: 0.75rem;" onclick="loadLedger()">↺ Refresh</button>
+        </div>
+        <div id="ledger-container"><div class="empty-state">No scan receipts yet — first scan runs 5 seconds after server boot.</div></div>
+    </div>
+</div>
+
+<script>
+let watchdogStatus = null;
+
+function formatTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleTimeString();
+}
+
+function severityColor(s) {
+    return { CRITICAL: '#fca5a5', HIGH: '#f97316', MEDIUM: '#f59e0b', LOW: '#3b82f6' }[s] || '#94a3b8';
+}
+
+async function loadStatus() {
+    try {
+        const [status, chain] = await Promise.all([
+            fetch('/api/watchdog/status').then(r => r.json()),
+            fetch('/api/watchdog/verify/chain').then(r => r.json())
+        ]);
+
+        watchdogStatus = status;
+
+        document.getElementById('stat-cycles').textContent = status.cyclesRun || 0;
+        document.getElementById('stat-receipts').textContent = status.totalReceipts || 0;
+        document.getElementById('stat-next').textContent = status.nextScanIn || '—';
+
+        // Status badge
+        const statusEl = document.getElementById('stat-status');
+        const latestStatus = status.latestStatus || 'NOT_STARTED';
+        statusEl.innerHTML = `<span class="health-badge health-${latestStatus}">${latestStatus}</span>`;
+
+        // Alerts from latest
+        const latest = await fetch('/api/watchdog/latest').then(r => r.json());
+        const alertCount = latest.alerts ? latest.alerts.length : 0;
+        document.getElementById('stat-alerts').textContent = alertCount;
+
+        // Render latest alerts
+        const alertsEl = document.getElementById('alerts-container');
+        document.getElementById('alerts-count').textContent = alertCount;
+        if (latest.alerts && latest.alerts.length > 0) {
+            alertsEl.innerHTML = latest.alerts.map(a => `
+                <div class="alert-item alert-${a.severity}">
+                    <div class="alert-type">${a.severity} · ${a.type}</div>
+                    <div class="alert-message">${a.message}</div>
+                </div>
+            `).join('');
+        } else if (latest.cycleId) {
+            alertsEl.innerHTML = '<div class="empty-state">✅ No alerts — governance looks healthy</div>';
+        } else {
+            alertsEl.innerHTML = '<div class="empty-state">Awaiting first scan…</div>';
+        }
+
+        // Rules
+        if (status.rules) {
+            const rulesEl = document.getElementById('rules-grid');
+            const ruleMap = {
+                proposal_spam_threshold: 'Proposal Spam Threshold',
+                high_risk_proposal_alert: 'High-Risk Proposal Alert',
+                stale_proposal_alert: 'Stale Proposal Alert (cycles)',
+                power_concentration_threshold: 'Power Concentration Limit',
+                quorum_threshold: 'Minimum Quorum'
+            };
+            rulesEl.innerHTML = Object.entries(status.rules).map(([k, v]) => `
+                <div class="rule-item">
+                    <div class="rule-name">${ruleMap[k] || k.replace(/_/g,' ').toUpperCase()}</div>
+                    <div class="rule-value">${typeof v === 'number' && v < 1 ? (v * 100).toFixed(0) + '%' : String(v)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Chain integrity
+        const integrityBar = document.getElementById('integrity-bar');
+        const integrityIcon = integrityBar.querySelector('.integrity-icon');
+        const integrityTitle = integrityBar.querySelector('.integrity-title');
+        const integrityDetail = document.getElementById('integrity-detail');
+
+        if (chain.chainValid) {
+            integrityIcon.textContent = '✅';
+            integrityTitle.innerHTML = `<span class="integrity-valid">Chain Integrity Verified — ${chain.totalReceipts} receipts tamper-evident</span>`;
+            integrityDetail.textContent = `Head: ${chain.chainHead || '—'} · All SHA-256 links valid`;
+        } else {
+            integrityIcon.textContent = '⚠️';
+            integrityTitle.innerHTML = `<span class="integrity-invalid">${chain.errors?.length || 0} integrity error(s) detected</span>`;
+            integrityDetail.textContent = chain.message || '';
+        }
+
+        document.getElementById('last-refresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    } catch (e) {
+        console.error('Status load error:', e);
+    }
+}
+
+async function loadLedger() {
+    try {
+        const data = await fetch('/api/watchdog/ledger?limit=20').then(r => r.json());
+        const el = document.getElementById('ledger-container');
+        if (!data.receipts || data.receipts.length === 0) {
+            el.innerHTML = '<div class="empty-state">No scan receipts yet. Server just started — first scan runs 5s after boot.</div>';
+            return;
+        }
+        el.innerHTML = data.receipts.map(r => `
+            <div class="receipt-item" title="Hash: ${r.hash}">
+                <div class="receipt-left">
+                    <div class="receipt-cycle">${r.cycleId} <span class="health-badge health-${r.status}" style="font-size:0.65rem;padding:0.1rem 0.5rem">${r.status}</span></div>
+                    <div class="receipt-hash">…${r.hash ? r.hash.substring(r.hash.length - 20) : '?'}</div>
+                </div>
+                <div class="receipt-right">
+                    <div class="receipt-alerts">${r.alertCount} alert${r.alertCount !== 1 ? 's' : ''}</div>
+                    <div class="receipt-time">${formatTime(r.timestamp)}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        document.getElementById('ledger-container').innerHTML = '<div class="empty-state">Error loading ledger</div>';
+    }
+}
+
+async function refresh() {
+    await Promise.all([loadStatus(), loadLedger()]);
+}
+
+// Initial load
+setTimeout(() => {
+    refresh();
+    setInterval(refresh, 10000);
+}, 100);
+</script>
+</body>
+</html>

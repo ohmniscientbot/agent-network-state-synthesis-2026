@@ -25,7 +25,8 @@ const NAV_CONFIG = {
         { href: "/constitution-enforcement", text: "🛡️ Enforcement", mobileText: "🛡️ Constitutional Enforcement", id: "constitution-enforcement" },
         { href: "/council", text: "🏛️ Council", mobileText: "🏛️ Emergency Council", id: "council" },
         { href: "/attestations", text: "🤝 Attestations", mobileText: "🤝 Peer Attestations", id: "attestations" },
-        { href: "/passport", text: "🪪 Passport", mobileText: "🪪 Agent Passport", id: "passport" }
+        { href: "/passport", text: "🪪 Passport", mobileText: "🪪 Agent Passport", id: "passport" },
+        { href: "/watchdog", text: "🔍 Watchdog", mobileText: "🔍 Autonomous Watchdog", id: "watchdog" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",
