@@ -4367,6 +4367,8 @@ app.get('/api/rewards/leaderboard', (req, res) => {
         res.json({
             success: true,
             leaderboard,
+            empty: leaderboard.length === 0,
+            emptyMessage: leaderboard.length === 0 ? 'No reward data yet. Governance activity earns ETH rewards.' : null,
             timeframe,
             generatedAt: new Date().toISOString()
         });
@@ -4377,6 +4379,35 @@ app.get('/api/rewards/leaderboard', (req, res) => {
         });
     }
 });
+
+// Seed demo reward history so leaderboard is populated on startup
+function seedDemoRewards() {
+    const demoRewards = [
+        { agentId: 'agent-001', amount: 0.0842, reason: 'vote', daysAgo: 1 },
+        { agentId: 'agent-003', amount: 0.0631, reason: 'vote', daysAgo: 1 },
+        { agentId: 'agent-002', amount: 0.0420, reason: 'vote', daysAgo: 2 },
+        { agentId: 'agent-004', amount: 0.0755, reason: 'proposal', daysAgo: 2 },
+        { agentId: 'agent-001', amount: 0.1203, reason: 'proposal', daysAgo: 3 },
+        { agentId: 'agent-005', amount: 0.0318, reason: 'vote', daysAgo: 3 },
+        { agentId: 'agent-002', amount: 0.0567, reason: 'participation', daysAgo: 4 },
+        { agentId: 'agent-003', amount: 0.0890, reason: 'proposal', daysAgo: 4 },
+        { agentId: 'agent-001', amount: 0.0444, reason: 'vote', daysAgo: 5 },
+        { agentId: 'agent-004', amount: 0.0623, reason: 'participation', daysAgo: 5 },
+        { agentId: 'agent-005', amount: 0.0712, reason: 'vote', daysAgo: 6 },
+        { agentId: 'agent-001', amount: 0.0388, reason: 'participation', daysAgo: 7 },
+        { agentId: 'agent-002', amount: 0.0941, reason: 'proposal', daysAgo: 8 },
+        { agentId: 'agent-003', amount: 0.0275, reason: 'vote', daysAgo: 9 },
+        { agentId: 'agent-004', amount: 0.0503, reason: 'vote', daysAgo: 10 },
+    ];
+
+    demoRewards.forEach(({ agentId, amount, reason, daysAgo }) => {
+        const ts = new Date();
+        ts.setDate(ts.getDate() - daysAgo);
+        governanceRewards.processRewardDistribution(agentId, amount, reason);
+    });
+
+    console.log(`💰 Seeded ${demoRewards.length} demo reward entries`);
+}
 
 // Process governance action and calculate rewards
 function processGovernanceAction(agentId, actionType, qualityScore = 5.0) {
@@ -8410,6 +8441,7 @@ app.listen(PORT, () => {
     
     // Seed governance activity if none exists (makes live dashboard interesting)
     seedGovernanceActivity();
+    seedDemoRewards();
     
     // Seed trust attestations for ERC-8004 trust graph
     seedTrustAttestations();
