@@ -9910,7 +9910,7 @@ function issueHealthIndexReceipt() {
         details: { score: health.score, grade: health.grade, status: health.status, hash: hash.substring(0, 16) + '…' },
         timestamp: now
     };
-    broadcastActivity(event);
+    broadcastEvent(event);
     return receipt;
 }
 
