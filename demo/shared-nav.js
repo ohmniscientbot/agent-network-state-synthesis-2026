@@ -30,7 +30,8 @@ const NAV_CONFIG = {
         { href: "/consensus", text: "🤝 Consensus", mobileText: "🤝 Multi-Agent Consensus", id: "consensus" },
         { href: "/appeals", text: "⚖️ Appeals", mobileText: "⚖️ Agent Appeals", id: "appeals" },
         { href: "/finalization", text: "📜 Finalization", mobileText: "📜 Outcome Finalization", id: "finalization" },
-        { href: "/amendments", text: "🏛️ Amendments", mobileText: "🏛️ Constitutional Amendments", id: "amendments" }
+        { href: "/amendments", text: "🏛️ Amendments", mobileText: "🏛️ Constitutional Amendments", id: "amendments" },
+        { href: "/scorecard", text: "📊 Scorecard", mobileText: "📊 Judge Scorecard", id: "scorecard" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

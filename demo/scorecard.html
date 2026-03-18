@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthocracy — Judge Scorecard</title>
+<style>
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111115;
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --card-hover: rgba(255, 255, 255, 0.04);
+    --border-neural: rgba(139, 92, 246, 0.3);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --neural-blue: #3b82f6;
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --muted-text: #64748b;
+    --radius-neural: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg-primary);
+    color: var(--primary-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Navigation placeholder — injected by shared-nav.js */
+#nav-placeholder { min-height: 64px; }
+
+.scorecard-hero {
+    background: linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.1) 50%, rgba(6,182,212,0.08) 100%);
+    border-bottom: 1px solid var(--border-neural);
+    padding: 48px 24px 32px;
+    text-align: center;
+}
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(139,92,246,0.15); border: 1px solid var(--border-neural);
+    border-radius: 999px; padding: 6px 16px; font-size: 12px;
+    color: var(--neural-purple); font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; margin-bottom: 20px;
+}
+.hero-title {
+    font-size: clamp(28px, 5vw, 52px); font-weight: 800;
+    background: linear-gradient(135deg, #e2e8f0 0%, #8b5cf6 40%, #06b6d4 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; line-height: 1.2; margin-bottom: 12px;
+}
+.hero-subtitle { color: var(--secondary-text); font-size: 16px; max-width: 600px; margin: 0 auto 24px; }
+
+.live-pulse {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--neural-green); font-size: 13px; font-weight: 600;
+}
+.pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--neural-green);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+
+.container { max-width: 1300px; margin: 0 auto; padding: 32px 24px; }
+
+/* Summary metrics */
+.metrics-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px; margin-bottom: 40px;
+}
+.metric-card {
+    background: var(--card-bg); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-neural); padding: 20px 16px; text-align: center;
+    transition: border-color 0.2s, transform 0.2s;
+}
+.metric-card:hover { border-color: var(--border-neural); transform: translateY(-2px); }
+.metric-value {
+    font-size: 32px; font-weight: 800; line-height: 1;
+    margin-bottom: 6px;
+}
+.metric-label { color: var(--secondary-text); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.metric-card.purple .metric-value { color: var(--neural-purple); }
+.metric-card.blue .metric-value { color: var(--neural-blue); }
+.metric-card.cyan .metric-value { color: var(--neural-cyan); }
+.metric-card.green .metric-value { color: var(--neural-green); }
+.metric-card.orange .metric-value { color: var(--neural-orange); }
+.metric-card.red .metric-value { color: var(--neural-red); }
+
+/* Section headers */
+.section-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+}
+.section-icon { font-size: 24px; }
+.section-title { font-size: 22px; font-weight: 700; }
+.section-subtitle { color: var(--secondary-text); font-size: 14px; margin-top: 2px; }
+
+/* Track cards */
+.tracks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; margin-bottom: 48px; }
+.track-card {
+    background: var(--card-bg); border: 1px solid var(--border-subtle);
+    border-radius: 12px; padding: 24px; transition: all 0.2s;
+}
+.track-card:hover { border-color: var(--border-neural); transform: translateY(-2px); }
+.track-card.erc8004 { border-top: 3px solid var(--neural-purple); }
+.track-card.letcook { border-top: 3px solid var(--neural-green); }
+.track-card.opentrack { border-top: 3px solid var(--neural-cyan); }
+
+.track-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.track-tagline { color: var(--secondary-text); font-size: 13px; margin-bottom: 16px; line-height: 1.5; }
+.track-highlight {
+    background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
+    font-size: 13px; font-weight: 700; text-align: center;
+}
+.track-card.erc8004 .track-highlight { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.25); color: var(--neural-purple); }
+.track-card.letcook .track-highlight { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.25); color: var(--neural-green); }
+.track-card.opentrack .track-highlight { background: rgba(6,182,212,0.1); border-color: rgba(6,182,212,0.25); color: var(--neural-cyan); }
+
+.feature-list { list-style: none; }
+.feature-list li { display: flex; gap: 10px; align-items: flex-start; color: var(--secondary-text); font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--border-subtle); }
+.feature-list li:last-child { border-bottom: none; }
+.feature-list li::before { content: '✓'; color: var(--neural-green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+.auto-loop-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle);
+    font-size: 13px;
+}
+.auto-loop-item:last-child { border-bottom: none; }
+.loop-name { color: var(--primary-text); font-weight: 600; }
+.loop-interval {
+    background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
+    color: var(--neural-green); border-radius: 4px; padding: 2px 8px;
+    font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+}
+.loop-action { color: var(--secondary-text); margin-top: 2px; }
+
+/* Chain grid */
+.chains-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-bottom: 48px; }
+.chain-card {
+    background: var(--card-bg); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-neural); padding: 18px; transition: all 0.2s;
+    position: relative; overflow: hidden;
+}
+.chain-card:hover { border-color: var(--border-neural); transform: translateY(-1px); }
+.chain-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--neural-purple), var(--neural-cyan));
+}
+.chain-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.chain-id {
+    background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3);
+    color: var(--neural-purple); border-radius: 6px; padding: 2px 8px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.05em;
+}
+.chain-count {
+    color: var(--neural-cyan); font-size: 20px; font-weight: 800;
+}
+.chain-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.chain-desc { color: var(--secondary-text); font-size: 12px; margin-bottom: 12px; line-height: 1.5; }
+.chain-tracks { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.chain-track-tag {
+    border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.chain-track-tag.erc8004 { background: rgba(139,92,246,0.15); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.3); }
+.chain-track-tag.letcook { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+.chain-track-tag.opentrack { background: rgba(6,182,212,0.15); color: var(--neural-cyan); border: 1px solid rgba(6,182,212,0.3); }
+.chain-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--neural-purple); font-size: 12px; font-weight: 600;
+    text-decoration: none; padding: 4px 10px; border-radius: 4px;
+    border: 1px solid rgba(139,92,246,0.3); transition: all 0.15s;
+}
+.chain-link:hover { background: rgba(139,92,246,0.15); }
+
+/* Quick links */
+.links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 48px; }
+.quick-link {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card-bg); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-neural); padding: 16px;
+    text-decoration: none; color: var(--primary-text); transition: all 0.2s;
+}
+.quick-link:hover { border-color: var(--border-neural); transform: translateY(-1px); background: var(--card-hover); }
+.quick-link-icon { font-size: 24px; }
+.quick-link-label { font-size: 13px; font-weight: 600; }
+.quick-link-sub { color: var(--secondary-text); font-size: 11px; margin-top: 2px; }
+
+/* Loading / refresh */
+.refresh-bar {
+    text-align: center; color: var(--muted-text); font-size: 12px;
+    padding: 12px; border-top: 1px solid var(--border-subtle); margin-top: 24px;
+}
+.last-updated { color: var(--neural-cyan); }
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+<script src="/shared-nav.js"></script>
+<script>injectNavigation('scorecard');</script>
+
+<div class="scorecard-hero">
+    <div class="hero-badge">⚖️ Judge Overview</div>
+    <h1 class="hero-title">Synthocracy Scorecard</h1>
+    <p class="hero-subtitle">Complete system overview — 13 ERC-8004 chains, 5 autonomous loops, full AI agent governance lifecycle</p>
+    <div class="live-pulse">
+        <div class="pulse-dot"></div>
+        <span>Live Data — Auto-refreshes every 15s</span>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Summary Metrics -->
+    <div id="metrics-grid" class="metrics-grid">
+        <div class="metric-card purple"><div class="metric-value" id="m-chains">13</div><div class="metric-label">ERC-8004 Chains</div></div>
+        <div class="metric-card cyan"><div class="metric-value" id="m-receipts">—</div><div class="metric-label">Total Receipts</div></div>
+        <div class="metric-card green"><div class="metric-value" id="m-loops">5</div><div class="metric-label">Autonomous Loops</div></div>
+        <div class="metric-card blue"><div class="metric-value" id="m-agents">—</div><div class="metric-label">Registered Agents</div></div>
+        <div class="metric-card orange"><div class="metric-value" id="m-proposals">—</div><div class="metric-label">Proposals</div></div>
+        <div class="metric-card red"><div class="metric-value" id="m-votes">—</div><div class="metric-label">Votes Cast</div></div>
+    </div>
+
+    <!-- Track Scorecards -->
+    <div class="section-header">
+        <span class="section-icon">🎯</span>
+        <div>
+            <div class="section-title">Hackathon Track Coverage</div>
+            <div class="section-subtitle">How Synthocracy addresses each judging track</div>
+        </div>
+    </div>
+
+    <div class="tracks-grid">
+        <!-- ERC-8004 Track -->
+        <div class="track-card erc8004">
+            <div class="track-name">🔗 Agents With Receipts (ERC-8004)</div>
+            <div class="track-tagline">Every governance action issues a SHA-256 chained cryptographic receipt — nothing is unrecorded.</div>
+            <div class="track-highlight" id="erc-highlight">13 Independent SHA-256 Receipt Chains · <span id="erc-receipts">…</span> Total Receipts</div>
+            <ul class="feature-list">
+                <li>Every vote, slash, delegation, amendment has a cryptographic receipt</li>
+                <li>Chain integrity verifiable via <code>/verify/chain</code> endpoints</li>
+                <li>Tamper-evident: any break is immediately detectable</li>
+                <li>Cross-chain passport aggregates all 7 identity chains per agent</li>
+                <li>On-chain KYA registration: <a href="https://basescan.org/tx/0x26af95ddf2db265e3e795c383de12a93b68520d1cf0b72a1f78c17760ba2a640" target="_blank" style="color:var(--neural-purple)">BaseScan TX</a></li>
+            </ul>
+        </div>
+
+        <!-- Let the Agent Cook -->
+        <div class="track-card letcook">
+            <div class="track-name">🍳 Let the Agent Cook</div>
+            <div class="track-tagline">5 autonomous loops run continuously with zero human triggers — agents self-govern, self-correct, and self-amend.</div>
+            <div class="track-highlight">5 Loops · No Human Trigger Ever</div>
+            <div id="auto-loops-list">
+                <div class="auto-loop-item">
+                    <div><div class="loop-name">Watchdog Oracle</div><div class="loop-action">Scans governance for anomalies</div></div>
+                    <span class="loop-interval">60s</span>
+                </div>
+                <div class="auto-loop-item">
+                    <div><div class="loop-name">Multi-Agent Consensus</div><div class="loop-action">Quadratic-weighted deliberation rounds</div></div>
+                    <span class="loop-interval">90s</span>
+                </div>
+                <div class="auto-loop-item">
+                    <div><div class="loop-name">Appeal Arbitration</div><div class="loop-action">Peer jury rules on slash appeals</div></div>
+                    <span class="loop-interval">120s</span>
+                </div>
+                <div class="auto-loop-item">
+                    <div><div class="loop-name">Constitutional Amendments</div><div class="loop-action">Agents vote to evolve the constitution</div></div>
+                    <span class="loop-interval">75s</span>
+                </div>
+                <div class="auto-loop-item">
+                    <div><div class="loop-name">Proposal Finalization</div><div class="loop-action">Seals completed proposals with cryptographic proof</div></div>
+                    <span class="loop-interval">on-event</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Open Track -->
+        <div class="track-card opentrack">
+            <div class="track-name">🌐 Synthesis Open Track</div>
+            <div class="track-tagline">A complete, novel AI agent governance platform with primitives no DAO platform has built before.</div>
+            <div class="track-highlight">First Platform with 13-Chain Cryptographic Governance Audit Trail</div>
+            <ul class="feature-list">
+                <li>KYA (Know Your Agent) identity system on Base blockchain</li>
+                <li>Living constitution agents can amend via 80% supermajority</li>
+                <li>Full justice loop: slash → appeal → autonomous ruling → VP restoration</li>
+                <li>Cross-chain reputation passport aggregating all governance history</li>
+                <li>AI-powered risk assessment and security scanning for proposals</li>
+                <li>Prediction markets with economic stakes on governance outcomes</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 13 Chain Inventory -->
+    <div class="section-header">
+        <span class="section-icon">⛓️</span>
+        <div>
+            <div class="section-title">All 13 ERC-8004 Receipt Chains</div>
+            <div class="section-subtitle">Click any chain to explore its receipts and verify integrity</div>
+        </div>
+    </div>
+
+    <div id="chains-grid" class="chains-grid">
+        <!-- Populated by JS -->
+        <div style="color:var(--muted-text);font-size:13px;grid-column:1/-1;text-align:center;padding:40px">Loading chain data…</div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="section-header">
+        <span class="section-icon">🔗</span>
+        <div>
+            <div class="section-title">Quick Access</div>
+            <div class="section-subtitle">Jump directly to key features</div>
+        </div>
+    </div>
+
+    <div class="links-grid">
+        <a href="/dashboard" class="quick-link">
+            <span class="quick-link-icon">📊</span>
+            <div><div class="quick-link-label">Live Dashboard</div><div class="quick-link-sub">Real-time governance activity</div></div>
+        </a>
+        <a href="/watchdog" class="quick-link">
+            <span class="quick-link-icon">🔍</span>
+            <div><div class="quick-link-label">Watchdog Oracle</div><div class="quick-link-sub">Autonomous safety scanning</div></div>
+        </a>
+        <a href="/consensus" class="quick-link">
+            <span class="quick-link-icon">🤝</span>
+            <div><div class="quick-link-label">Multi-Agent Consensus</div><div class="quick-link-sub">Live deliberation rounds</div></div>
+        </a>
+        <a href="/slash-ledger" class="quick-link">
+            <span class="quick-link-icon">⚔️</span>
+            <div><div class="quick-link-label">Slash Ledger</div><div class="quick-link-sub">Agent accountability receipts</div></div>
+        </a>
+        <a href="/appeals" class="quick-link">
+            <span class="quick-link-icon">⚖️</span>
+            <div><div class="quick-link-label">Appeal Protocol</div><div class="quick-link-sub">Autonomous peer-jury rulings</div></div>
+        </a>
+        <a href="/amendments" class="quick-link">
+            <span class="quick-link-icon">🏛️</span>
+            <div><div class="quick-link-label">Constitutional Amendments</div><div class="quick-link-sub">Living constitution evolution</div></div>
+        </a>
+        <a href="/passport" class="quick-link">
+            <span class="quick-link-icon">🪪</span>
+            <div><div class="quick-link-label">Reputation Passport</div><div class="quick-link-sub">Cross-chain identity snapshot</div></div>
+        </a>
+        <a href="/finalization" class="quick-link">
+            <span class="quick-link-icon">📜</span>
+            <div><div class="quick-link-label">Finalization Seals</div><div class="quick-link-sub">Immutable proposal closures</div></div>
+        </a>
+        <a href="/api/scorecard" class="quick-link" target="_blank">
+            <span class="quick-link-icon">📡</span>
+            <div><div class="quick-link-label">Raw Scorecard API</div><div class="quick-link-sub">JSON data for this page</div></div>
+        </a>
+        <a href="/docs" class="quick-link">
+            <span class="quick-link-icon">📖</span>
+            <div><div class="quick-link-label">API Documentation</div><div class="quick-link-sub">Full endpoint reference</div></div>
+        </a>
+        <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" class="quick-link" target="_blank">
+            <span class="quick-link-icon">💻</span>
+            <div><div class="quick-link-label">GitHub Repository</div><div class="quick-link-sub">Full source code</div></div>
+        </a>
+        <a href="https://basescan.org/tx/0x26af95ddf2db265e3e795c383de12a93b68520d1cf0b72a1f78c17760ba2a640" class="quick-link" target="_blank">
+            <span class="quick-link-icon">🔗</span>
+            <div><div class="quick-link-label">On-Chain Registration</div><div class="quick-link-sub">Base mainnet KYA transaction</div></div>
+        </a>
+    </div>
+
+    <div class="refresh-bar">
+        Last updated: <span class="last-updated" id="last-updated">loading…</span> · Auto-refreshes every 15s
+    </div>
+</div>
+
+<script>
+const TRACK_TAG_MAP = { erc8004: 'ERC-8004', letcook: 'Let Cook', opentrack: 'Open Track' };
+const TRACK_CLASS_MAP = { erc8004: 'erc8004', letcook: 'letcook', opentrack: 'opentrack' };
+
+async function loadScorecard() {
+    try {
+        const data = await fetch('/api/scorecard').then(r => r.json());
+
+        // Summary metrics
+        document.getElementById('m-receipts').textContent = data.summary.totalCryptographicReceipts.toLocaleString();
+        document.getElementById('m-agents').textContent = data.summary.registeredAgents;
+        document.getElementById('m-proposals').textContent = data.summary.totalProposals;
+        document.getElementById('m-votes').textContent = data.summary.totalVotesCast;
+
+        // ERC-8004 highlight
+        document.getElementById('erc-receipts').textContent = data.summary.totalCryptographicReceipts.toLocaleString();
+
+        // Chain grid
+        const grid = document.getElementById('chains-grid');
+        grid.innerHTML = '';
+        data.chains.forEach(chain => {
+            const card = document.createElement('div');
+            card.className = 'chain-card';
+            const trackTags = chain.tracks.map(t =>
+                `<span class="chain-track-tag ${TRACK_CLASS_MAP[t]}">${TRACK_TAG_MAP[t]}</span>`
+            ).join('');
+            card.innerHTML = `
+                <div class="chain-header">
+                    <span class="chain-id">Chain #${chain.id}</span>
+                    <span class="chain-count">${chain.receiptCount.toLocaleString()}</span>
+                </div>
+                <div class="chain-name">${chain.name}</div>
+                <div class="chain-desc">${chain.description}</div>
+                <div class="chain-tracks">${trackTags}</div>
+                <a href="${chain.url}" class="chain-link">View Chain →</a>
+            `;
+            grid.appendChild(card);
+        });
+
+        document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+    } catch (e) {
+        console.error('Scorecard load error:', e);
+    }
+}
+
+setTimeout(() => {
+    loadScorecard();
+    setInterval(loadScorecard, 15000);
+}, 150);
+</script>
+
+</body>
+</html>
