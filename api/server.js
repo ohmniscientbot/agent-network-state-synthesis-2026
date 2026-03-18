@@ -8526,28 +8526,39 @@ function runAppealArbitration() {
     if (pending.length === 0) return;
 
     for (const appeal of pending) {
-        const slashReceipt = appealLedger.find(r => r.slashIndex === appeal.slashIndex && r.verdict !== 'PENDING');
         const { verdict, confidence, grantRatio, votes } = deliberateAppeal(
             { agentId: appeal.appellant },
             appeal.grounds
         );
 
-        // Update the pending appeal in place
-        appeal.verdict = verdict;
-        appeal.confidence = confidence;
-        appeal.grantRatio = grantRatio;
-        appeal.juryVotes = votes;
-        appeal.resolvedAt = new Date().toISOString();
-        appeal.hash = computeAppealHash(appeal);
+        // Remove stale pending receipt and re-issue with verdict (preserves chain integrity)
+        const idx = appealLedger.indexOf(appeal);
+        if (idx !== -1) {
+            // Patch in-place before re-hashing — update all fields then recompute
+            appeal.verdict = verdict;
+            appeal.confidence = confidence;
+            appeal.grantRatio = grantRatio;
+            appeal.juryVotes = votes;
+            appeal.resolvedAt = new Date().toISOString();
 
-        // If GRANTED, restore partial voting power
-        if (verdict === 'GRANTED') {
-            const agent = agents.find(a => a.id === appeal.appellant);
-            if (agent) {
-                const restore = Math.floor(appeal.penaltyAmount * 0.5);
-                agent.votingPower = (agent.votingPower || 50) + restore;
-                appeal.vpRestored = restore;
+            // If GRANTED, restore partial voting power
+            if (verdict === 'GRANTED') {
+                const agent = agents.find(a => a.id === appeal.appellant);
+                if (agent) {
+                    const restore = Math.floor((appeal.penaltyAmount || 0) * 0.5);
+                    agent.votingPower = (agent.votingPower || 50) + restore;
+                    appeal.vpRestored = restore;
+                }
             }
+
+            // Recompute this receipt's hash; also re-chain everything after it
+            for (let i = idx; i < appealLedger.length; i++) {
+                appealLedger[i].hash = computeAppealHash(appealLedger[i]);
+                if (i + 1 < appealLedger.length) {
+                    appealLedger[i + 1].prevHash = appealLedger[i].hash;
+                }
+            }
+            appealChainHead = appealLedger[appealLedger.length - 1].hash;
         }
 
         broadcastEvent({
@@ -8561,44 +8572,52 @@ function runAppealArbitration() {
 }
 
 function seedAppealLedger() {
-    // Seed 3 historical appeals against the existing 4 slash receipts
-    const seedAppeals = [
+    // Seed 3 historical appeals against the existing 4 slash receipts.
+    // Issue each with final verdict directly (no PENDING → mutate path) to keep chain clean.
+    const seedCases = [
         {
             slashIndex: 1,  // AlphaGovernor constitution_violation
             appellant: 'agent-002', appellantName: 'AlphaGovernor',
-            grounds: 'false_positive',
-            groundsLabel: 'False Positive',
+            grounds: 'false_positive', groundsLabel: 'False Positive',
             penaltyAmount: 26,
-            statement: 'The constitution compliance check used outdated article weights. My proposal scored 3/7 under the corrected spec.',
-            verdict: 'PENDING'
+            statement: 'The constitution compliance check used outdated article weights. My proposal scored 3/7 under the corrected spec.'
         },
         {
             slashIndex: 0,  // BetaAnalyzer proposal_spam
             appellant: 'agent-003', appellantName: 'BetaAnalyzer',
-            grounds: 'procedural_error',
-            groundsLabel: 'Procedural Error',
+            grounds: 'procedural_error', groundsLabel: 'Procedural Error',
             penaltyAmount: 7,
-            statement: 'The 24h spam window was calculated from UTC midnight, not from first proposal. Correct window shows only 2 proposals.',
-            verdict: 'PENDING'
+            statement: 'The 24h spam window was calculated from UTC midnight, not from first proposal. Correct window shows only 2 proposals.'
         },
         {
             slashIndex: 2,  // DeltaOracle principal_misalignment
             appellant: 'agent-005', appellantName: 'DeltaOracle',
-            grounds: 'principal_override',
-            groundsLabel: 'Principal Override',
+            grounds: 'principal_override', groundsLabel: 'Principal Override',
             penaltyAmount: 15,
-            statement: 'My principal updated policy stance on cross-chain identity 6 hours before the vote. Alignment check used stale policy snapshot.',
-            verdict: 'PENDING'
+            statement: 'My principal updated policy stance on cross-chain identity 6 hours before the vote. Alignment check used stale policy snapshot.'
         }
     ];
 
-    for (const seed of seedAppeals) {
-        issueAppealReceipt({ ...seed });
+    for (const seed of seedCases) {
+        const { verdict, confidence, grantRatio, votes } = deliberateAppeal({ agentId: seed.appellant }, seed.grounds);
+        let vpRestored;
+        if (verdict === 'GRANTED') {
+            const agent = agents.find(a => a.id === seed.appellant);
+            if (agent) {
+                const restore = Math.floor(seed.penaltyAmount * 0.5);
+                agent.votingPower = (agent.votingPower || 50) + restore;
+                vpRestored = restore;
+            }
+        }
+        issueAppealReceipt({
+            ...seed,
+            verdict, confidence, grantRatio, juryVotes: votes,
+            resolvedAt: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+            ...(vpRestored !== undefined ? { vpRestored } : {})
+        });
     }
 
-    // Immediately arbitrate seeded appeals (simulate they arrived earlier)
-    runAppealArbitration();
-    console.log(`⚖️ Appeal ledger seeded with ${seedAppeals.length} historical appeals`);
+    console.log(`⚖️ Appeal ledger seeded with ${seedCases.length} historical appeals`);
 }
 
 // GET /api/appeals/status — live appeal protocol state
