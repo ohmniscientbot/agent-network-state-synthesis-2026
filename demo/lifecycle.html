@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal Lifecycle Tracer — Synthocracy</title>
+<style>
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111115;
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --border-neural: rgba(139, 92, 246, 0.3);
+    --neural-blue: #3b82f6;
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --radius-neural: 8px;
+    --radius-sm: 4px;
+    --neural-cyan-glow: rgba(6,182,212,0.1);
+    --neural-blue-glow: rgba(59,130,246,0.1);
+    --neural-green-glow: rgba(16,185,129,0.1);
+    --neural-red-glow: rgba(239,68,68,0.1);
+    --neural-purple-glow: rgba(139,92,246,0.1);
+    --neural-yellow-glow: rgba(245,158,11,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg-primary);
+    color: var(--primary-text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px 48px; }
+
+/* Hero */
+.hero {
+    text-align: center;
+    padding: 32px 20px 20px;
+}
+.hero h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--neural-purple), var(--neural-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
+.hero p { color: var(--secondary-text); font-size: 0.9rem; max-width: 600px; margin: 0 auto 20px; }
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 2px;
+}
+.badge-erc { background: rgba(139,92,246,0.2); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.4); }
+.badge-cook { background: rgba(245,158,11,0.15); color: var(--neural-yellow); border: 1px solid rgba(245,158,11,0.3); }
+.badge-open { background: rgba(6,182,212,0.15); color: var(--neural-cyan); border: 1px solid rgba(6,182,212,0.3); }
+
+/* Chain bar */
+.chain-bar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 14px 20px;
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.chain-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.chain-bar code { font-size: 0.73rem; color: var(--neural-cyan); background: rgba(6,182,212,0.08); padding: 2px 8px; border-radius: 4px; }
+
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+}
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 18px;
+    text-align: center;
+}
+.stat-value { font-size: 1.8rem; font-weight: 700; color: var(--neural-cyan); }
+.stat-label { color: var(--secondary-text); font-size: 0.75rem; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Proposal selector */
+.selector-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 24px;
+    margin: 20px 0;
+}
+.selector-section h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--primary-text); }
+.proposal-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+.proposal-pill {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border-neural);
+    background: var(--card-bg);
+    color: var(--secondary-text);
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+}
+.proposal-pill:hover { border-color: var(--neural-purple); color: var(--neural-purple); background: var(--neural-purple-glow); }
+.proposal-pill.active { border-color: var(--neural-cyan); color: var(--neural-cyan); background: var(--neural-cyan-glow); font-weight: 600; }
+
+/* Lifecycle panel */
+.lifecycle-panel { display: none; }
+.lifecycle-panel.visible { display: block; }
+
+.prop-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 20px;
+    margin: 20px 0;
+}
+.prop-header h2 { font-size: 1.3rem; margin-bottom: 8px; }
+.prop-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.prop-meta-item { font-size: 0.8rem; color: var(--secondary-text); }
+.prop-meta-item strong { color: var(--primary-text); }
+
+/* Summary grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+}
+.summary-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 14px;
+    text-align: center;
+}
+.summary-card .val { font-size: 1.4rem; font-weight: 700; }
+.summary-card .lbl { font-size: 0.72rem; color: var(--secondary-text); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Chain involvement bar */
+.chain-involvement {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 16px 20px;
+    margin: 12px 0;
+}
+.chain-involvement h3 { font-size: 0.85rem; color: var(--secondary-text); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.chain-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.chain-tag {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid;
+}
+
+/* Timeline */
+.timeline-section h3 { font-size: 1rem; color: var(--primary-text); margin: 24px 0 12px; }
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-neural);
+}
+.timeline-event {
+    position: relative;
+    margin-bottom: 14px;
+}
+.timeline-dot {
+    position: absolute;
+    left: -22px;
+    top: 12px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid;
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    z-index: 1;
+}
+.event-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+}
+.event-card:hover { border-color: var(--neural-purple); }
+.event-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.event-description { font-size: 0.88rem; color: var(--primary-text); font-weight: 500; }
+.event-time { font-size: 0.72rem; color: var(--secondary-text); white-space: nowrap; }
+.event-hash { font-size: 0.68rem; color: var(--neural-cyan); font-family: monospace; background: rgba(6,182,212,0.06); padding: 2px 8px; border-radius: 3px; margin-top: 6px; display: inline-block; }
+.event-chain-label { font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; letter-spacing: 0.03em; }
+
+/* Fingerprint */
+.fingerprint-bar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 14px 20px;
+    margin: 20px 0;
+    font-size: 0.8rem;
+    color: var(--secondary-text);
+}
+.fingerprint-bar .fp-value {
+    font-family: monospace;
+    color: var(--neural-purple);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Loading/error */
+.loading, .error-msg {
+    text-align: center;
+    padding: 32px;
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+}
+.error-msg { color: var(--neural-red); }
+
+/* Status colors */
+.status-passed { color: var(--neural-green); }
+.status-active { color: var(--neural-cyan); }
+.status-pending { color: var(--neural-yellow); }
+.status-failed, .status-rejected { color: var(--neural-red); }
+.status-constitutionally_blocked { color: var(--neural-orange); }
+</style>
+</head>
+<body>
+<script src="/shared-nav.js"></script>
+<script>injectNavigation('lifecycle');</script>
+
+<div class="hero">
+    <h1>🔬 Proposal Lifecycle Tracer</h1>
+    <p>The complete cryptographic journey of any governance proposal — traced across all 13 ERC-8004 chains in a single tamper-evident receipt.</p>
+    <div>
+        <span class="badge badge-erc">ERC-8004 Chain #14</span>
+        <span class="badge badge-cook">Autonomous</span>
+        <span class="badge badge-open">Novel Primitive</span>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Chain integrity bar -->
+    <div class="chain-bar" id="chain-bar">
+        <div class="chain-dot" id="chain-dot" style="background: var(--secondary-text);"></div>
+        <strong style="font-size:0.85rem;">Lifecycle Tracer Chain</strong>
+        <span style="font-size:0.8rem; color: var(--secondary-text);">14th ERC-8004 Receipt Chain</span>
+        <code id="chain-head-display">loading…</code>
+        <span id="chain-integrity-badge" style="font-size:0.75rem; color: var(--secondary-text);">Verifying…</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="stat-traces">–</div>
+            <div class="stat-label">Traces Issued</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-proposals">–</div>
+            <div class="stat-label">Proposals Tracked</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-chains">13</div>
+            <div class="stat-label">Chains Aggregated</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--neural-green);">✓</div>
+            <div class="stat-label">Autonomous · No Human Trigger</div>
+        </div>
+    </div>
+
+    <!-- Proposal selector -->
+    <div class="selector-section">
+        <h2>🔍 Select a Proposal to Trace</h2>
+        <div class="proposal-pills" id="proposal-pills">
+            <div class="loading">Loading proposals…</div>
+        </div>
+    </div>
+
+    <!-- Lifecycle panel -->
+    <div class="lifecycle-panel" id="lifecycle-panel">
+        <div class="prop-header" id="prop-header"></div>
+
+        <div class="summary-grid" id="summary-grid"></div>
+
+        <div class="chain-involvement" id="chain-involvement">
+            <h3>Chains Involved in This Proposal</h3>
+            <div class="chain-tags" id="chain-tags"></div>
+        </div>
+
+        <div class="fingerprint-bar" id="fingerprint-bar"></div>
+
+        <div class="timeline-section">
+            <h3>📅 Chronological Event Timeline</h3>
+            <div class="timeline" id="event-timeline"></div>
+        </div>
+    </div>
+
+    <!-- Ledger table -->
+    <div style="margin-top: 32px;">
+        <h3 style="font-size:1rem; margin-bottom:12px;">📋 Lifecycle Trace Ledger (Chain #14)</h3>
+        <div id="ledger-table"></div>
+    </div>
+</div>
+
+<script>
+const API = '';
+
+const CHAIN_COLORS = {
+    1: { color: 'var(--neural-cyan)', label: '🧾 Vote Receipts' },
+    2: { color: 'var(--neural-green)', label: '⚡ Execution Ledger' },
+    3: { color: 'var(--neural-red)', label: '⚔️ Slash Ledger' },
+    4: { color: 'var(--neural-blue)', label: '🗳️ Delegation' },
+    5: { color: 'var(--neural-purple)', label: '🛡️ Constitutional Audit' },
+    6: { color: 'var(--neural-yellow)', label: '🏛️ Emergency Council' },
+    7: { color: 'var(--neural-orange)', label: '🤝 Peer Attestations' },
+    8: { color: 'var(--neural-cyan)', label: '🪪 Passport' },
+    9: { color: 'var(--neural-blue)', label: '🔍 Watchdog Oracle' },
+    10: { color: 'var(--neural-purple)', label: '🤝 Consensus' },
+    11: { color: 'var(--neural-yellow)', label: '⚖️ Appeals' },
+    12: { color: 'var(--neural-green)', label: '📜 Finalization Seals' },
+    13: { color: 'var(--neural-orange)', label: '🏛️ Amendments' },
+    14: { color: 'var(--neural-purple)', label: '🔬 Lifecycle Tracer' }
+};
+
+const STAGE_COLORS = {
+    SUBMITTED: { dot: 'var(--neural-blue)', text: 'var(--neural-blue)' },
+    AUDITED: { dot: 'var(--neural-purple)', text: 'var(--neural-purple)' },
+    WATCHDOG_SCAN: { dot: 'var(--neural-blue)', text: 'var(--neural-blue)' },
+    DELEGATION: { dot: 'var(--neural-cyan)', text: 'var(--neural-cyan)' },
+    VOTE_CAST: { dot: 'var(--neural-cyan)', text: 'var(--neural-cyan)' },
+    SLASH_ISSUED: { dot: 'var(--neural-red)', text: 'var(--neural-red)' },
+    CONSENSUS_ROUND: { dot: 'var(--neural-purple)', text: 'var(--neural-purple)' },
+    EXECUTED: { dot: 'var(--neural-green)', text: 'var(--neural-green)' },
+    FINALIZED: { dot: 'var(--neural-yellow)', text: 'var(--neural-yellow)' },
+};
+
+function statusClass(s) {
+    if (!s) return '';
+    return 'status-' + (s || '').toLowerCase().replace(/\s+/g, '_');
+}
+
+function fmtTime(ts) {
+    if (!ts) return 'N/A';
+    return new Date(ts).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function hashBadge(hash) {
+    if (!hash) return '';
+    return `<span class="event-hash">${hash.substring(0, 16)}…</span>`;
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch(API + '/api/lifecycle/status');
+        const d = await r.json();
+        document.getElementById('stat-traces').textContent = d.totalTraces || 0;
+        document.getElementById('stat-proposals').textContent = d.proposalsTracked || 0;
+    } catch(e) {}
+}
+
+async function loadChainIntegrity() {
+    try {
+        const r = await fetch(API + '/api/lifecycle/verify/chain');
+        const d = await r.json();
+        const dot = document.getElementById('chain-dot');
+        const badge = document.getElementById('chain-integrity-badge');
+        if (d.valid) {
+            dot.style.background = 'var(--neural-green)';
+            badge.textContent = `✅ Chain intact — ${d.receipts} receipts verified`;
+            badge.style.color = 'var(--neural-green)';
+        } else {
+            dot.style.background = 'var(--neural-red)';
+            badge.textContent = `❌ ${d.faults} fault(s) detected`;
+            badge.style.color = 'var(--neural-red)';
+        }
+        document.getElementById('chain-head-display').textContent = (d.chainHead || '0'.repeat(64)).substring(0, 20) + '…';
+    } catch(e) {}
+}
+
+let allProposals = [];
+
+async function loadProposals() {
+    try {
+        const r = await fetch(API + '/api/governance/proposals');
+        const d = await r.json();
+        allProposals = d.proposals || [];
+        const pills = document.getElementById('proposal-pills');
+        pills.innerHTML = '';
+        allProposals.forEach(p => {
+            const pill = document.createElement('div');
+            pill.className = 'proposal-pill';
+            pill.innerHTML = `<span style="font-weight:600;">${p.id.replace('prop-seed-','#')}</span> ${p.title.substring(0, 45)}${p.title.length > 45 ? '…' : ''}`;
+            pill.title = p.title;
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.proposal-pill').forEach(x => x.classList.remove('active'));
+                pill.classList.add('active');
+                loadLifecycle(p.id);
+            });
+            pills.appendChild(pill);
+        });
+    } catch(e) {
+        document.getElementById('proposal-pills').innerHTML = '<div class="error-msg">Failed to load proposals</div>';
+    }
+}
+
+async function loadLifecycle(proposalId) {
+    const panel = document.getElementById('lifecycle-panel');
+    panel.classList.remove('visible');
+    panel.classList.add('visible');
+    document.getElementById('prop-header').innerHTML = '<div class="loading">Loading lifecycle trace…</div>';
+    document.getElementById('event-timeline').innerHTML = '';
+    document.getElementById('summary-grid').innerHTML = '';
+    document.getElementById('chain-tags').innerHTML = '';
+
+    try {
+        const r = await fetch(API + '/api/lifecycle/' + proposalId);
+        const d = await r.json();
+        renderLifecycle(d);
+    } catch(e) {
+        document.getElementById('prop-header').innerHTML = `<div class="error-msg">Failed to load lifecycle: ${e.message}</div>`;
+    }
+}
+
+function renderLifecycle(d) {
+    const s = d.summary;
+
+    // Header
+    const statusCls = statusClass(d.status);
+    document.getElementById('prop-header').innerHTML = `
+        <h2>${d.proposalTitle}</h2>
+        <div class="prop-meta">
+            <div class="prop-meta-item">ID: <strong>${d.proposalId}</strong></div>
+            <div class="prop-meta-item">Category: <strong>${d.proposalCategory}</strong></div>
+            <div class="prop-meta-item">Proposer: <strong>${d.proposer}</strong></div>
+            <div class="prop-meta-item">Status: <strong class="${statusCls}">${d.status.toUpperCase()}</strong></div>
+            <div class="prop-meta-item">Created: <strong>${fmtTime(d.createdAt)}</strong></div>
+            <div class="prop-meta-item">Deadline: <strong>${fmtTime(d.votingDeadline)}</strong></div>
+        </div>
+    `;
+
+    // Summary
+    const voteBar = s.forWeight + s.againstWeight > 0
+        ? `<div style="height:6px; background: rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; margin-top:8px;">
+             <div style="height:100%; width:${Math.round(s.forWeight/(s.forWeight+s.againstWeight)*100)}%; background: var(--neural-green); border-radius:3px;"></div>
+           </div>` : '';
+
+    document.getElementById('summary-grid').innerHTML = `
+        <div class="summary-card">
+            <div class="val" style="color:var(--neural-cyan);">${s.totalEvents}</div>
+            <div class="lbl">Total Events</div>
+        </div>
+        <div class="summary-card">
+            <div class="val" style="color:var(--neural-purple);">${s.chainCount}</div>
+            <div class="lbl">Chains Involved</div>
+        </div>
+        <div class="summary-card">
+            <div class="val" style="color:var(--neural-green);">${s.forVotes}<span style="font-size:0.7rem;color:var(--secondary-text);"> FOR</span></div>
+            <div class="lbl">For / ${s.againstVotes} Against${voteBar}</div>
+        </div>
+        <div class="summary-card">
+            <div class="val" style="color:${s.hasConstitutionalAudit ? (s.constitutionalVerdict === 'COMPLIANT' ? 'var(--neural-green)' : 'var(--neural-orange)') : 'var(--secondary-text)'};">${s.hasConstitutionalAudit ? s.constitutionalVerdict : 'N/A'}</div>
+            <div class="lbl">Constitutional Audit</div>
+        </div>
+        <div class="summary-card">
+            <div class="val" style="color:${s.hasFinalizationSeal ? 'var(--neural-yellow)' : 'var(--secondary-text)'};">${s.hasFinalizationSeal ? '✓ SEALED' : 'Pending'}</div>
+            <div class="lbl">Finalization Seal</div>
+        </div>
+        <div class="summary-card">
+            <div class="val" style="color:${s.slashEventsDuringWindow > 0 ? 'var(--neural-red)' : 'var(--neural-green)'};">${s.slashEventsDuringWindow}</div>
+            <div class="lbl">Slash Events in Window</div>
+        </div>
+        <div class="summary-card">
+            <div class="val" style="color:var(--neural-blue);">${s.watchdogScansDuringWindow}</div>
+            <div class="lbl">Watchdog Scans</div>
+        </div>
+        <div class="summary-card">
+            <div class="val" style="color:var(--neural-purple);">${s.consensusRoundsDuringWindow}</div>
+            <div class="lbl">Consensus Rounds</div>
+        </div>
+    `;
+
+    // Chain involvement
+    const chainTagsHtml = s.chainsInvolved.map(cid => {
+        const info = CHAIN_COLORS[cid] || { color: 'var(--secondary-text)', label: `Chain ${cid}` };
+        return `<span class="chain-tag" style="color:${info.color}; border-color:${info.color}; background:${info.color}10;">${info.label}</span>`;
+    }).join('');
+    document.getElementById('chain-tags').innerHTML = chainTagsHtml;
+
+    // Fingerprint
+    document.getElementById('fingerprint-bar').innerHTML = `
+        <strong style="color:var(--primary-text); font-size:0.85rem;">🔗 Cross-Chain Fingerprint</strong>
+        <span style="color:var(--secondary-text); font-size:0.78rem;"> — SHA-256 of all receipt hashes along this proposal's path</span><br>
+        <span class="fp-value">${s.crossChainFingerprint}</span>
+        <span style="font-size:0.72rem; color:var(--secondary-text); margin-left:12px;">${s.chainCount} chain(s) · ${s.totalEvents} events · ERC-8004 chain #14</span>
+    `;
+
+    // Timeline
+    const timelineHtml = (d.events || []).map(ev => {
+        const sc = STAGE_COLORS[ev.stage] || { dot: 'var(--secondary-text)', text: 'var(--secondary-text)' };
+        const chainInfo = ev.chainId ? (CHAIN_COLORS[ev.chainId] || { label: `Chain ${ev.chainId}`, color: 'var(--secondary-text)' }) : null;
+        const chainLabel = chainInfo
+            ? `<span class="event-chain-label" style="color:${chainInfo.color}; background:${chainInfo.color}15; border: 1px solid ${chainInfo.color}40;">${chainInfo.label}</span>`
+            : '';
+        return `
+        <div class="timeline-event">
+            <div class="timeline-dot" style="border-color:${sc.dot};">
+                <span style="font-size:0.55rem;">${ev.icon || '•'}</span>
+            </div>
+            <div class="event-card">
+                <div class="event-header">
+                    <span class="event-description">${ev.description}</span>
+                    <span class="event-time">${fmtTime(ev.timestamp)}</span>
+                </div>
+                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:4px;">
+                    ${chainLabel}
+                    <span style="font-size:0.7rem; color:${sc.text}; background:${sc.text}12; padding:2px 8px; border-radius:12px; border: 1px solid ${sc.text}30;">${ev.stage}</span>
+                    ${hashBadge(ev.receiptHash)}
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('');
+
+    document.getElementById('event-timeline').innerHTML = timelineHtml || '<div class="loading">No events found yet — proposal may be very new.</div>';
+}
+
+async function loadLedger() {
+    try {
+        const r = await fetch(API + '/api/lifecycle/ledger?limit=10');
+        const d = await r.json();
+        const receipts = d.receipts || [];
+        if (!receipts.length) {
+            document.getElementById('ledger-table').innerHTML = '<div class="loading">Seeding in progress…</div>';
+            return;
+        }
+        const rows = receipts.map(r => `
+            <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 14px 18px; margin-bottom: 8px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;">
+                <div>
+                    <span style="font-size:0.78rem; color:var(--secondary-text);">#${r.index}</span>
+                    <span style="font-size:0.88rem; color:var(--primary-text); margin-left:10px; font-weight:500;">${r.proposalTitle}</span>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <span style="font-size:0.75rem; color:var(--secondary-text);">${r.summary?.chainCount || 0} chains · ${r.summary?.totalEvents || 0} events</span>
+                    <span class="badge status-${(r.proposalStatus||'').toLowerCase()}" style="font-size:0.68rem; padding:2px 8px;">${(r.proposalStatus||'').toUpperCase()}</span>
+                    <code style="font-size:0.68rem; color:var(--neural-cyan); background:rgba(6,182,212,0.06); padding:2px 8px; border-radius:3px;">${(r.hash||'').substring(0,16)}…</code>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('ledger-table').innerHTML = rows;
+    } catch(e) {
+        document.getElementById('ledger-table').innerHTML = '<div class="loading">Loading ledger…</div>';
+    }
+}
+
+async function init() {
+    await Promise.all([loadStatus(), loadChainIntegrity(), loadProposals(), loadLedger()]);
+}
+
+setTimeout(init, 100);
+setInterval(() => {
+    loadStatus();
+    loadChainIntegrity();
+    loadLedger();
+}, 15000);
+</script>
+</body>
+</html>
