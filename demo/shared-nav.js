@@ -18,7 +18,8 @@ const NAV_CONFIG = {
         { href: "/vote-receipts", text: "🧾 Receipts", mobileText: "🧾 Vote Receipts", id: "vote-receipts" },
         { href: "/execution-log", text: "⚡ Execution Log", mobileText: "⚡ Autonomous Executions", id: "execution-log" },
         { href: "/constitution", text: "📜 Constitution", mobileText: "📜 Constitutional Layer", id: "constitution" },
-        { href: "/slash-ledger", text: "⚔️ Slash Ledger", mobileText: "⚔️ Agent Slash Ledger", id: "slash-ledger" }
+        { href: "/slash-ledger", text: "⚔️ Slash Ledger", mobileText: "⚔️ Agent Slash Ledger", id: "slash-ledger" },
+        { href: "/audit", text: "🔍 Audit", mobileText: "🔍 Audit Timeline", id: "audit" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

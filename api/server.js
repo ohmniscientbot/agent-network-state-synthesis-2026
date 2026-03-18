@@ -6132,6 +6132,191 @@ app.get('/slash-ledger', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/slash-ledger.html'));
 });
 
+// ============================================================
+// UNIFIED GOVERNANCE AUDIT TIMELINE
+// Merges vote receipts + execution receipts + slash receipts
+// into one chronological, cross-referenced audit trail.
+// ERC-8004: Full governance lifecycle in a single verifiable feed.
+// ============================================================
+
+// GET /api/audit/timeline — unified chronological event feed
+app.get('/api/audit/timeline', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+    const offset = parseInt(req.query.offset) || 0;
+    const kind = req.query.kind || 'all'; // 'all' | 'vote' | 'execution' | 'slash'
+
+    // Normalize each ledger entry to a common shape
+    const votes = voteReceiptLedger.map(r => ({
+        kind: 'vote',
+        timestamp: r.timestamp,
+        agentId: r.agentId,
+        agentName: r.agentName,
+        proposalId: r.proposalId,
+        summary: `${r.agentName} voted ${r.vote.toUpperCase()} on "${r.proposalTitle}" (weight: ${r.quadraticWeight.toFixed(2)})`,
+        severity: 'INFO',
+        receiptIndex: r.index,
+        hash: r.hash,
+        prevHash: r.prevHash,
+        chain: 'vote-receipts',
+        payload: {
+            vote: r.vote,
+            votingPower: r.votingPower,
+            quadraticWeight: r.quadraticWeight,
+            reason: r.reason
+        }
+    }));
+
+    const executions = executionLedger.map(r => ({
+        kind: 'execution',
+        timestamp: r.timestamp,
+        agentId: r.executorId,
+        agentName: r.executor,
+        proposalId: r.proposalId,
+        summary: `Autonomous execution of "${r.proposalTitle}" — ${r.outcome.status.toUpperCase()} (${r.outcome.impact})`,
+        severity: r.outcome.status === 'success' ? 'SUCCESS' : 'FAILURE',
+        receiptIndex: r.index,
+        hash: r.hash,
+        prevHash: r.prevHash,
+        chain: 'execution-log',
+        payload: {
+            category: r.category,
+            steps: r.steps.length,
+            outcome: r.outcome.status,
+            autonomyLevel: r.outcome.autonomyLevel,
+            simulatedTxHash: r.outcome.simulatedTxHash
+        }
+    }));
+
+    const slashes = slashLedger.map(r => ({
+        kind: 'slash',
+        timestamp: r.timestamp,
+        agentId: r.agentId,
+        agentName: r.agentName,
+        proposalId: null,
+        summary: `${r.agentName} SLASHED for ${r.condition} — penalty: ${r.penaltyPercent}% VP (${r.severity})`,
+        severity: r.severity,
+        receiptIndex: r.index,
+        hash: r.hash,
+        prevHash: r.prevHash,
+        chain: 'slash-ledger',
+        payload: {
+            condition: r.condition,
+            penaltyPercent: r.penaltyPercent,
+            evidence: r.evidence,
+            autonomousDetection: r.autonomousDetection
+        }
+    }));
+
+    // Filter by kind
+    let all = [];
+    if (kind === 'all' || kind === 'vote') all = all.concat(votes);
+    if (kind === 'all' || kind === 'execution') all = all.concat(executions);
+    if (kind === 'all' || kind === 'slash') all = all.concat(slashes);
+
+    // Chronological sort
+    all.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    const total = all.length;
+    const page = all.slice(offset, offset + limit);
+
+    // Chain integrity summary
+    const chainSummary = {
+        voteChain: { receipts: voteReceiptLedger.length, head: receiptChainHead },
+        executionChain: { receipts: executionLedger.length, head: execChainHead },
+        slashChain: { receipts: slashLedger.length, head: slashChainHead }
+    };
+
+    res.json({
+        events: page,
+        total,
+        offset,
+        limit,
+        kind,
+        chains: chainSummary,
+        generatedAt: new Date().toISOString(),
+        message: `Unified audit timeline: ${votes.length} votes + ${executions.length} executions + ${slashes.length} slashes = ${total} events`
+    });
+});
+
+// GET /api/audit/agent/:agentId — all audit events for one agent
+app.get('/api/audit/agent/:agentId', (req, res) => {
+    const { agentId } = req.params;
+    const agentVotes = voteReceiptLedger.filter(r => r.agentId === agentId).map(r => ({
+        kind: 'vote', timestamp: r.timestamp, proposalId: r.proposalId,
+        proposalTitle: r.proposalTitle, vote: r.vote, weight: r.quadraticWeight,
+        hash: r.hash, chain: 'vote-receipts'
+    }));
+    const agentExecs = executionLedger.filter(r => r.executorId === agentId).map(r => ({
+        kind: 'execution', timestamp: r.timestamp, proposalId: r.proposalId,
+        proposalTitle: r.proposalTitle, outcome: r.outcome.status,
+        hash: r.hash, chain: 'execution-log'
+    }));
+    const agentSlashes = slashLedger.filter(r => r.agentId === agentId).map(r => ({
+        kind: 'slash', timestamp: r.timestamp, condition: r.condition,
+        penaltyPercent: r.penaltyPercent, severity: r.severity,
+        hash: r.hash, chain: 'slash-ledger'
+    }));
+
+    const all = [...agentVotes, ...agentExecs, ...agentSlashes]
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    const agent = agents.find(a => a.id === agentId) || { id: agentId };
+    const agentRatings = reputationEntries.filter(r => r.agentId === agentId);
+    const trustScore = agentRatings.length > 0
+        ? Math.round(agentRatings.reduce((s, r) => s + r.score, 0) / agentRatings.length)
+        : 0;
+
+    res.json({
+        agentId,
+        agentName: agent.name || agentId,
+        trustScore,
+        summary: {
+            totalVotes: agentVotes.length,
+            totalExecutions: agentExecs.length,
+            totalSlashes: agentSlashes.length,
+            totalEvents: all.length,
+            reputationRatings: agentRatings.length
+        },
+        events: all,
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// GET /api/audit/proposal/:proposalId — all audit events for one proposal
+app.get('/api/audit/proposal/:proposalId', (req, res) => {
+    const { proposalId } = req.params;
+    const proposal = proposals.find(p => p.id === proposalId);
+
+    const propVotes = voteReceiptLedger.filter(r => r.proposalId === proposalId).map(r => ({
+        kind: 'vote', timestamp: r.timestamp, agentId: r.agentId, agentName: r.agentName,
+        vote: r.vote, weight: r.quadraticWeight, hash: r.hash
+    }));
+    const propExecs = executionLedger.filter(r => r.proposalId === proposalId).map(r => ({
+        kind: 'execution', timestamp: r.timestamp, executor: r.executor,
+        outcome: r.outcome.status, steps: r.steps.length, hash: r.hash
+    }));
+
+    const totalForWeight = propVotes.filter(v => v.vote === 'for').reduce((s, v) => s + v.weight, 0);
+    const totalAgainstWeight = propVotes.filter(v => v.vote === 'against').reduce((s, v) => s + v.weight, 0);
+
+    res.json({
+        proposalId,
+        proposalTitle: proposal?.title || proposalId,
+        status: proposal?.status || 'unknown',
+        lifecycle: {
+            voting: { receipts: propVotes.length, forWeight: totalForWeight.toFixed(2), againstWeight: totalAgainstWeight.toFixed(2) },
+            execution: { receipts: propExecs.length, status: propExecs[0]?.outcome || 'none' }
+        },
+        events: [...propVotes, ...propExecs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)),
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// Serve audit timeline page
+app.get('/audit', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/audit-timeline.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);

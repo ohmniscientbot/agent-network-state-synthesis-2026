@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthocracy — Governance Audit Timeline</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --bg-tertiary: #16161a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+            --radius-sm: 4px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(6,182,212,0.06) 100%);
+            border-bottom: 1px solid var(--border-neural);
+            padding: 32px 24px 24px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 2rem; font-weight: 700; color: var(--primary-text); margin-bottom: 8px; }
+        .hero h1 span { color: var(--neural-purple); }
+        .hero p { color: var(--secondary-text); font-size: 1rem; max-width: 600px; margin: 0 auto 20px; }
+
+        /* Chain health bar */
+        .chain-health {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        .chain-pill {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+        }
+        .chain-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neural-green); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+        /* Controls */
+        .controls {
+            padding: 20px 24px;
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: var(--bg-secondary);
+        }
+        .filter-btn {
+            background: var(--card-bg); border: 1px solid var(--border-neural);
+            color: var(--secondary-text); padding: 7px 16px; border-radius: 20px;
+            cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(139,92,246,0.2); border-color: var(--neural-purple);
+            color: var(--primary-text);
+        }
+        .filter-btn.active { color: var(--neural-purple); }
+        .agent-lookup {
+            margin-left: auto; display: flex; gap: 8px; align-items: center;
+        }
+        .agent-lookup input {
+            background: var(--bg-tertiary); border: 1px solid var(--border-neural);
+            color: var(--primary-text); padding: 7px 12px; border-radius: var(--radius-neural);
+            font-size: 0.85rem; width: 200px; outline: none;
+        }
+        .agent-lookup input:focus { border-color: var(--neural-cyan); }
+        .btn {
+            background: rgba(139,92,246,0.2); border: 1px solid var(--neural-purple);
+            color: var(--neural-purple); padding: 7px 14px; border-radius: var(--radius-neural);
+            cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+        }
+        .btn:hover { background: rgba(139,92,246,0.35); }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            padding: 16px 24px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .stat-item { font-size: 0.85rem; color: var(--secondary-text); }
+        .stat-item strong { color: var(--primary-text); }
+        .stat-item .vote-count { color: var(--neural-cyan); }
+        .stat-item .exec-count { color: var(--neural-green); }
+        .stat-item .slash-count { color: var(--neural-red); }
+
+        /* Timeline */
+        .timeline { max-width: 900px; margin: 0 auto; padding: 24px; }
+        .timeline-item {
+            display: flex; gap: 16px; margin-bottom: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+
+        .timeline-connector {
+            display: flex; flex-direction: column; align-items: center;
+            flex-shrink: 0; width: 32px;
+        }
+        .timeline-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0; border: 2px solid transparent;
+        }
+        .timeline-icon.vote { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.4); }
+        .timeline-icon.execution { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); }
+        .timeline-icon.slash-low { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.4); }
+        .timeline-icon.slash-medium { background: rgba(249,115,22,0.15); border-color: rgba(249,115,22,0.4); }
+        .timeline-icon.slash-high { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); }
+        .timeline-icon.slash-critical { background: rgba(220,38,38,0.2); border-color: rgba(220,38,38,0.6); }
+        .timeline-line {
+            width: 1px; flex: 1; min-height: 8px;
+            background: linear-gradient(to bottom, rgba(139,92,246,0.3), transparent);
+        }
+
+        .timeline-card {
+            flex: 1; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-neural); padding: 12px 16px;
+            transition: border-color 0.2s;
+        }
+        .timeline-card:hover { border-color: var(--border-neural); }
+        .timeline-card.vote { border-left: 3px solid rgba(6,182,212,0.5); }
+        .timeline-card.execution { border-left: 3px solid rgba(16,185,129,0.5); }
+        .timeline-card.slash { border-left: 3px solid rgba(239,68,68,0.5); }
+
+        .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+        .card-summary { font-size: 0.9rem; color: var(--primary-text); line-height: 1.4; }
+        .card-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+        .badge {
+            font-size: 0.7rem; font-weight: 600; padding: 2px 7px; border-radius: 3px;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .badge.vote { background: rgba(6,182,212,0.15); color: var(--neural-cyan); }
+        .badge.execution { background: rgba(16,185,129,0.15); color: var(--neural-green); }
+        .badge.slash { background: rgba(239,68,68,0.15); color: var(--neural-red); }
+        .badge.for { background: rgba(16,185,129,0.15); color: var(--neural-green); }
+        .badge.against { background: rgba(239,68,68,0.15); color: var(--neural-red); }
+        .badge.success { background: rgba(16,185,129,0.15); color: var(--neural-green); }
+        .badge.critical { background: rgba(220,38,38,0.2); color: #f87171; }
+        .badge.high { background: rgba(239,68,68,0.15); color: var(--neural-red); }
+        .badge.medium { background: rgba(249,115,22,0.15); color: var(--neural-orange); }
+        .badge.low { background: rgba(245,158,11,0.15); color: var(--neural-yellow); }
+        .badge.info { background: rgba(139,92,246,0.15); color: var(--neural-purple); }
+
+        .hash-pill {
+            font-family: monospace; font-size: 0.7rem; color: var(--secondary-text);
+            background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px;
+            max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .timestamp { font-size: 0.75rem; color: var(--secondary-text); }
+        .chain-link { font-size: 0.75rem; color: var(--neural-cyan); text-decoration: none; }
+        .chain-link:hover { text-decoration: underline; }
+
+        /* Agent profile panel */
+        .agent-panel {
+            background: var(--bg-secondary); border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural); padding: 20px; margin: 0 24px 24px;
+            display: none;
+        }
+        .agent-panel.visible { display: block; }
+        .agent-panel h3 { color: var(--neural-purple); margin-bottom: 12px; }
+        .agent-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .agent-stat { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-neural); padding: 10px 12px; text-align: center; }
+        .agent-stat .val { font-size: 1.4rem; font-weight: 700; color: var(--primary-text); }
+        .agent-stat .lbl { font-size: 0.7rem; color: var(--secondary-text); text-transform: uppercase; }
+
+        /* Loading / empty */
+        .loading { text-align: center; padding: 48px; color: var(--secondary-text); }
+        .loading-spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border-neural); border-top-color: var(--neural-purple); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty { text-align: center; padding: 48px; color: var(--secondary-text); font-size: 0.9rem; }
+
+        .load-more { display: block; width: 100%; padding: 12px; background: var(--card-bg); border: 1px dashed var(--border-neural); border-radius: var(--radius-neural); color: var(--secondary-text); cursor: pointer; text-align: center; font-size: 0.85rem; transition: all 0.2s; margin-top: 8px; }
+        .load-more:hover { border-color: var(--neural-purple); color: var(--neural-purple); }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>🔍 Governance <span>Audit Timeline</span></h1>
+    <p>Unified chronological ledger of all votes, autonomous executions, and agent slashes — every event cryptographically chained for tamper-evident accountability.</p>
+    <div class="chain-health" id="chainHealth">
+        <div class="chain-pill"><span class="dot"></span>Loading chains…</div>
+    </div>
+</div>
+
+<div class="controls">
+    <button class="filter-btn active" data-kind="all" onclick="setFilter('all', this)">🌐 All Events</button>
+    <button class="filter-btn" data-kind="vote" onclick="setFilter('vote', this)">🗳️ Votes</button>
+    <button class="filter-btn" data-kind="execution" onclick="setFilter('execution', this)">⚡ Executions</button>
+    <button class="filter-btn" data-kind="slash" onclick="setFilter('slash', this)">⚔️ Slashes</button>
+
+    <div class="agent-lookup">
+        <input type="text" id="agentInput" placeholder="Filter by agent-001…" />
+        <button class="btn" onclick="lookupAgent()">🔎 Agent View</button>
+        <button class="btn" onclick="clearAgentView()">✕</button>
+    </div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+    <div class="stat-item"><span class="vote-count">—</span> votes</div>
+    <div class="stat-item"><span class="exec-count">—</span> executions</div>
+    <div class="stat-item"><span class="slash-count">—</span> slashes</div>
+    <div class="stat-item">Total: <strong id="totalEvents">—</strong> events</div>
+    <div class="stat-item" style="margin-left:auto; font-size:0.75rem;">
+        Generated: <span id="genAt" style="color:var(--neural-cyan)">—</span>
+    </div>
+</div>
+
+<div class="agent-panel" id="agentPanel">
+    <h3 id="agentPanelTitle">Agent Profile</h3>
+    <div class="agent-stats-grid" id="agentStatsGrid"></div>
+</div>
+
+<div class="timeline" id="timeline">
+    <div class="loading">
+        <div class="loading-spinner"></div>
+        <div>Loading audit timeline…</div>
+    </div>
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+injectNavigation('audit');
+
+const ICONS = { vote: '🗳️', execution: '⚡', slash: '⚔️' };
+const SEVERITY_ICON = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡', LOW: '🟢', SUCCESS: '✅', INFO: '🔵', FAILURE: '❌' };
+
+let currentKind = 'all';
+let allEvents = [];
+let displayLimit = 50;
+
+function formatHash(h) { return h ? h.slice(0, 8) + '…' + h.slice(-6) : '—'; }
+function formatTs(ts) {
+    const d = new Date(ts);
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+function iconClass(ev) {
+    if (ev.kind === 'vote') return 'vote';
+    if (ev.kind === 'execution') return 'execution';
+    const sev = (ev.severity || 'LOW').toLowerCase();
+    return `slash-${sev}`;
+}
+
+function renderBadges(ev) {
+    const badges = [];
+    badges.push(`<span class="badge ${ev.kind}">${ev.kind.toUpperCase()}</span>`);
+    if (ev.kind === 'vote') {
+        const vote = ev.payload?.vote || '';
+        badges.push(`<span class="badge ${vote}">${vote.toUpperCase()}</span>`);
+    }
+    if (ev.kind === 'execution') {
+        badges.push(`<span class="badge success">${(ev.payload?.outcome || 'success').toUpperCase()}</span>`);
+    }
+    if (ev.kind === 'slash') {
+        const sev = (ev.severity || 'LOW').toLowerCase();
+        badges.push(`<span class="badge ${sev}">${ev.severity}</span>`);
+    }
+    return badges.join('');
+}
+
+function renderEvent(ev) {
+    const chain = ev.chain || 'unknown';
+    const chainPath = chain === 'vote-receipts' ? '/vote-receipts' : chain === 'execution-log' ? '/execution-log' : '/slash-ledger';
+    return `
+    <div class="timeline-item">
+        <div class="timeline-connector">
+            <div class="timeline-icon ${iconClass(ev)}">${ICONS[ev.kind] || '?'}</div>
+            <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-card ${ev.kind}">
+            <div class="card-header">
+                <div class="card-summary">${ev.summary}</div>
+            </div>
+            <div class="card-meta">
+                ${renderBadges(ev)}
+                <span class="timestamp">${formatTs(ev.timestamp)}</span>
+                <span class="hash-pill" title="${ev.hash}">${formatHash(ev.hash)}</span>
+                <a href="${chainPath}" class="chain-link">→ ${chain}</a>
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderTimeline(events) {
+    const el = document.getElementById('timeline');
+    if (!events.length) {
+        el.innerHTML = '<div class="empty">No events match this filter.</div>';
+        return;
+    }
+    const visible = events.slice(0, displayLimit);
+    let html = visible.map(renderEvent).join('');
+    if (events.length > displayLimit) {
+        html += `<button class="load-more" onclick="loadMore()">Load more (${events.length - displayLimit} remaining)</button>`;
+    }
+    el.innerHTML = html;
+}
+
+function loadMore() {
+    displayLimit += 50;
+    renderTimeline(allEvents);
+}
+
+function updateStatsBar(data) {
+    const votes = data.events.filter(e => e.kind === 'vote').length;
+    const execs = data.events.filter(e => e.kind === 'execution').length;
+    const slashes = data.events.filter(e => e.kind === 'slash').length;
+
+    const bar = document.getElementById('statsBar');
+    bar.innerHTML = `
+        <div class="stat-item"><span class="vote-count">${votes}</span> votes</div>
+        <div class="stat-item"><span class="exec-count">${execs}</span> executions</div>
+        <div class="stat-item"><span class="slash-count">${slashes}</span> slashes</div>
+        <div class="stat-item">Total: <strong id="totalEvents">${data.total}</strong> events</div>
+        <div class="stat-item" style="margin-left:auto; font-size:0.75rem;">
+            Generated: <span style="color:var(--neural-cyan)">${formatTs(data.generatedAt)}</span>
+        </div>`;
+}
+
+function updateChainHealth(chains) {
+    if (!chains) return;
+    const el = document.getElementById('chainHealth');
+    el.innerHTML = `
+        <div class="chain-pill"><span class="dot"></span>Votes: ${chains.voteChain.receipts} receipts</div>
+        <div class="chain-pill"><span class="dot" style="background:var(--neural-green)"></span>Executions: ${chains.executionChain.receipts} receipts</div>
+        <div class="chain-pill"><span class="dot" style="background:var(--neural-red)"></span>Slashes: ${chains.slashChain.receipts} receipts</div>`;
+}
+
+async function loadTimeline(kind = 'all') {
+    document.getElementById('timeline').innerHTML = `<div class="loading"><div class="loading-spinner"></div><div>Loading…</div></div>`;
+    try {
+        const res = await fetch(`/api/audit/timeline?kind=${kind}&limit=500`);
+        const data = await res.json();
+        allEvents = data.events;
+        displayLimit = 50;
+        renderTimeline(allEvents);
+        updateStatsBar(data);
+        updateChainHealth(data.chains);
+    } catch (e) {
+        document.getElementById('timeline').innerHTML = `<div class="empty">⚠️ Failed to load timeline: ${e.message}</div>`;
+    }
+}
+
+function setFilter(kind, btn) {
+    currentKind = kind;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    clearAgentView();
+    loadTimeline(kind);
+}
+
+async function lookupAgent() {
+    const agentId = document.getElementById('agentInput').value.trim();
+    if (!agentId) return;
+    try {
+        const res = await fetch(`/api/audit/agent/${encodeURIComponent(agentId)}`);
+        const data = await res.json();
+        if (data.error) { alert(data.error); return; }
+
+        const panel = document.getElementById('agentPanel');
+        panel.classList.add('visible');
+        document.getElementById('agentPanelTitle').textContent = `🤖 ${data.agentName} (${data.agentId})`;
+        document.getElementById('agentStatsGrid').innerHTML = `
+            <div class="agent-stat"><div class="val" style="color:var(--neural-cyan)">${data.summary.totalVotes}</div><div class="lbl">Votes Cast</div></div>
+            <div class="agent-stat"><div class="val" style="color:var(--neural-green)">${data.summary.totalExecutions}</div><div class="lbl">Executions</div></div>
+            <div class="agent-stat"><div class="val" style="color:var(--neural-red)">${data.summary.totalSlashes}</div><div class="lbl">Slashes</div></div>
+            <div class="agent-stat"><div class="val" style="color:var(--neural-purple)">${data.trustScore || 0}</div><div class="lbl">Trust Score</div></div>`;
+
+        allEvents = data.events;
+        displayLimit = 50;
+        renderTimeline(allEvents);
+    } catch (e) {
+        alert('Failed to look up agent: ' + e.message);
+    }
+}
+
+function clearAgentView() {
+    document.getElementById('agentPanel').classList.remove('visible');
+    document.getElementById('agentInput').value = '';
+    if (document.getElementById('agentPanel').classList.contains('visible')) return;
+    loadTimeline(currentKind);
+}
+
+// Init
+loadTimeline('all');
+</script>
+</body>
+</html>
