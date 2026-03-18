@@ -14,7 +14,8 @@ const NAV_CONFIG = {
         { href: "/roi-analytics", text: "📈 ROI", mobileText: "📈 ROI Analytics", id: "roi" },
         { href: "/debates", text: "⚖️ Debates", mobileText: "⚖️ Debate Chamber", id: "debates" },
         { href: "/trust", text: "🤝 Trust Graph", mobileText: "🤝 Trust Graph", id: "trust" },
-        { href: "/reputation", text: "⏳ Reputation", mobileText: "⏳ Reputation Decay", id: "reputation" }
+        { href: "/reputation", text: "⏳ Reputation", mobileText: "⏳ Reputation Decay", id: "reputation" },
+        { href: "/vote-receipts", text: "🧾 Receipts", mobileText: "🧾 Vote Receipts", id: "vote-receipts" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

@@ -1143,6 +1143,18 @@ app.post('/api/governance/vote', (req, res) => {
         // Process governance reward for voting
         processGovernanceAction(agentId, 'vote', 6.0);
 
+        // Issue cryptographic vote receipt (ERC-8004 Agents With Receipts)
+        const receipt = issueVoteReceipt({
+            agentId,
+            agentName: agent.name || agentId,
+            proposalId,
+            proposalTitle: proposal.title,
+            vote,
+            votingPower: rawVotingPower,
+            quadraticWeight: parseFloat(quadraticWeight.toFixed(2)),
+            reason: reason || 'No reason provided'
+        });
+
         res.json({
             success: true,
             message: 'Vote cast using quadratic voting',
@@ -1153,6 +1165,13 @@ app.post('/api/governance/vote', (req, res) => {
                 votingPower: rawVotingPower,
                 quadraticWeight: parseFloat(quadraticWeight.toFixed(2)),
                 reason
+            },
+            receipt: {
+                index: receipt.index,
+                hash: receipt.hash,
+                prevHash: receipt.prevHash,
+                timestamp: receipt.timestamp,
+                verifyUrl: `/api/receipts/${receipt.index}`
             },
             proposal: {
                 id: proposal.id,
@@ -5402,6 +5421,127 @@ function computeReputationDecay(agentId) {
     };
 }
 
+// ============================================================
+// === VOTE RECEIPT LEDGER (ERC-8004 RECEIPTS TRACK) ==========
+// Every vote produces a cryptographic receipt; receipts chain
+// together via prevHash to form a tamper-evident audit ledger.
+// Judges can verify any vote was cast exactly as recorded.
+// ============================================================
+
+let voteReceiptLedger = []; // array of receipt objects, ordered by index
+let receiptChainHead = '0000000000000000000000000000000000000000000000000000000000000000'; // genesis
+
+function computeReceiptHash(receiptData, prevHash) {
+    const payload = JSON.stringify({ ...receiptData, prevHash });
+    return crypto.createHash('sha256').update(payload).digest('hex');
+}
+
+function issueVoteReceipt({ agentId, agentName, proposalId, proposalTitle, vote, votingPower, quadraticWeight, reason }) {
+    const index = voteReceiptLedger.length;
+    const timestamp = new Date().toISOString();
+    const receiptData = { index, agentId, agentName, proposalId, proposalTitle, vote, votingPower, quadraticWeight, reason, timestamp };
+    const hash = computeReceiptHash(receiptData, receiptChainHead);
+    const receipt = { ...receiptData, prevHash: receiptChainHead, hash, valid: true };
+    voteReceiptLedger.push(receipt);
+    receiptChainHead = hash;
+    return receipt;
+}
+
+function seedVoteReceipts() {
+    if (voteReceiptLedger.length > 0) return;
+    // Retroactively issue receipts for all seeded votes
+    const allVotes = [];
+    for (const p of proposals) {
+        if (p.votes) {
+            for (const v of p.votes) {
+                allVotes.push({ ...v, proposalId: p.id, proposalTitle: p.title });
+            }
+        }
+    }
+    allVotes.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    for (const v of allVotes) {
+        issueVoteReceipt(v);
+    }
+    console.log(`📜 Seeded ${voteReceiptLedger.length} vote receipts into ledger`);
+}
+
+// GET /api/receipts — return full ledger (paginated)
+app.get('/api/receipts', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const offset = parseInt(req.query.offset) || 0;
+    const page = voteReceiptLedger.slice(offset, offset + limit);
+    res.json({
+        receipts: page,
+        total: voteReceiptLedger.length,
+        chainHead: receiptChainHead,
+        offset, limit,
+        genesisHash: '0000000000000000000000000000000000000000000000000000000000000000'
+    });
+});
+
+// GET /api/receipts/:index — get single receipt by index
+app.get('/api/receipts/:index', (req, res) => {
+    const idx = parseInt(req.params.index);
+    if (isNaN(idx) || idx < 0 || idx >= voteReceiptLedger.length) {
+        return res.status(404).json({ error: 'Receipt not found' });
+    }
+    const receipt = voteReceiptLedger[idx];
+    // Verify integrity
+    const recomputed = computeReceiptHash(
+        { index: receipt.index, agentId: receipt.agentId, agentName: receipt.agentName,
+          proposalId: receipt.proposalId, proposalTitle: receipt.proposalTitle,
+          vote: receipt.vote, votingPower: receipt.votingPower, quadraticWeight: receipt.quadraticWeight,
+          reason: receipt.reason, timestamp: receipt.timestamp },
+        receipt.prevHash
+    );
+    res.json({ ...receipt, integrityCheck: recomputed === receipt.hash ? 'PASS' : 'FAIL', recomputedHash: recomputed });
+});
+
+// GET /api/receipts/verify/chain — verify entire chain integrity
+app.get('/api/receipts/verify/chain', (req, res) => {
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    let valid = true;
+    const errors = [];
+    for (const receipt of voteReceiptLedger) {
+        const recomputed = computeReceiptHash(
+            { index: receipt.index, agentId: receipt.agentId, agentName: receipt.agentName,
+              proposalId: receipt.proposalId, proposalTitle: receipt.proposalTitle,
+              vote: receipt.vote, votingPower: receipt.votingPower, quadraticWeight: receipt.quadraticWeight,
+              reason: receipt.reason, timestamp: receipt.timestamp },
+            prevHash
+        );
+        if (recomputed !== receipt.hash) {
+            valid = false;
+            errors.push({ index: receipt.index, expected: receipt.hash, got: recomputed });
+        }
+        if (receipt.prevHash !== prevHash) {
+            valid = false;
+            errors.push({ index: receipt.index, prevHashMismatch: true });
+        }
+        prevHash = receipt.hash;
+    }
+    res.json({
+        valid,
+        totalReceipts: voteReceiptLedger.length,
+        chainHead: receiptChainHead,
+        errors,
+        message: valid
+            ? `✅ All ${voteReceiptLedger.length} receipts verified — chain is intact`
+            : `❌ Chain integrity failure: ${errors.length} error(s) found`
+    });
+});
+
+// GET /api/receipts/agent/:agentId — receipts for a specific agent
+app.get('/api/receipts/agent/:agentId', (req, res) => {
+    const receipts = voteReceiptLedger.filter(r => r.agentId === req.params.agentId);
+    res.json({ agentId: req.params.agentId, receipts, total: receipts.length });
+});
+
+// Serve vote-receipts page
+app.get('/vote-receipts', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/vote-receipts.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -5421,6 +5561,10 @@ app.listen(PORT, () => {
     
     // Seed trust attestations for ERC-8004 trust graph
     seedTrustAttestations();
+
+    // Seed vote receipt ledger with existing votes (ERC-8004 receipts)
+    // Must run after seedGovernanceActivity so proposals/votes exist
+    setTimeout(() => seedVoteReceipts(), 500);
 });
 
 module.exports = app;
