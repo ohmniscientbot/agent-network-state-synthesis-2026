@@ -8037,8 +8037,8 @@ function runWatchdogScan() {
     // Check 2: Stale proposals (0 votes, active for >1 cycle)
     const activeProposals = proposals.filter(p => p.status === 'active');
     activeProposals.forEach(p => {
-        const proposalVotes = votes.filter(v => v.proposalId === p.id);
-        if (proposalVotes.length === 0 && watchdogCycleCount > 2) {
+        const voteCount = p.votes ? p.votes.length : 0;
+        if (voteCount === 0 && watchdogCycleCount > 2) {
             alerts.push({
                 type: 'STALE_PROPOSAL',
                 severity: 'MEDIUM',
@@ -8065,9 +8065,9 @@ function runWatchdogScan() {
     // Check 4: Low quorum (active proposals with few total votes relative to registered agents)
     if (agents.length > 0) {
         activeProposals.forEach(p => {
-            const proposalVotes = votes.filter(v => v.proposalId === p.id);
-            const participation = proposalVotes.length / agents.length;
-            if (participation < WATCHDOG_RULES.quorum_threshold && proposalVotes.length > 0) {
+            const voteCount = p.votes ? p.votes.length : 0;
+            const participation = voteCount / agents.length;
+            if (participation < WATCHDOG_RULES.quorum_threshold && voteCount > 0) {
                 alerts.push({
                     type: 'LOW_QUORUM',
                     severity: 'LOW',
@@ -8080,13 +8080,14 @@ function runWatchdogScan() {
     }
 
     // Compute governance health fingerprint
+    const totalVotesCast = proposals.reduce((sum, p) => sum + (p.votes ? p.votes.length : 0), 0);
     const healthScore = Math.max(0, 100 - (alerts.filter(a => a.severity === 'CRITICAL').length * 30)
         - (alerts.filter(a => a.severity === 'HIGH').length * 15)
         - (alerts.filter(a => a.severity === 'MEDIUM').length * 8)
         - (alerts.filter(a => a.severity === 'LOW').length * 3));
 
     const fingerprint = require('crypto').createHash('sha256')
-        .update(JSON.stringify({ agents: agents.length, proposals: proposals.length, votes: votes.length, cycleId, now }))
+        .update(JSON.stringify({ agents: agents.length, proposals: proposals.length, votes: totalVotesCast, cycleId, now }))
         .digest('hex').substring(0, 16);
 
     const status = alerts.some(a => a.severity === 'CRITICAL') ? 'CRITICAL'
@@ -8104,7 +8105,7 @@ function runWatchdogScan() {
             agentCount: agents.length,
             proposalCount: proposals.length,
             activeProposals: activeProposals.length,
-            totalVotes: votes.length,
+            totalVotes: totalVotesCast,
             totalVP
         }
     };
