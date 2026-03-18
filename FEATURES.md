@@ -520,6 +520,46 @@ if (element) {
 
 ---
 
+## 🔍 Autonomous Governance Watchdog — 9th ERC-8004 Chain (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Self-Running Safety Oracle
+
+**Backend additions**: `watchdogLedger`, `watchdogChainHead`, `WATCHDOG_RULES`, `computeWatchdogHash()`, `issueWatchdogReceipt()`, `runWatchdogScan()`, `setInterval(60s)`  
+**4 New API Endpoints**:
+1. `GET /api/watchdog/status` — Live watchdog state + detection rules + next scan countdown
+2. `GET /api/watchdog/ledger` — Full SHA-256 chained receipt ledger (paginated)
+3. `GET /api/watchdog/verify/chain` — Chain integrity verification
+4. `GET /api/watchdog/latest` — Most recent scan result with alerts
+
+### Detection Rules (5 types)
+| Rule | Threshold | Severity |
+|---|---|---|
+| `POWER_CONCENTRATION` | >60% VP in one agent | HIGH |
+| `UNREVIEWED_HIGH_RISK` | HIGH-risk active proposal | CRITICAL |
+| `STALE_PROPOSAL` | 0 votes after >2 cycles | MEDIUM |
+| `LOW_QUORUM` | <30% agent participation | LOW |
+
+### Autonomous Execution
+- `setInterval(runWatchdogScan, 60000)` fires unconditionally — no human trigger ever
+- Scans live `agents[]` and `proposals[]` arrays (runtime state, not seeded)
+- Each scan issues a SHA-256 chained watchdog receipt (9th ERC-8004 chain)
+- Broadcasts to SSE activity feed on every scan (judges see it in real time on dashboard)
+
+### Frontend
+**File**: `demo/watchdog.html`  
+**URL**: https://synthocracy.up.railway.app/watchdog
+- Auto-refreshes every 10 seconds
+- Status bar: cycles run, receipts, current status, next scan countdown
+- Chain integrity verification bar (live SHA-256 check)
+- Alert severity grid (CRITICAL/HIGH/MEDIUM/LOW)
+- Detection rules panel
+- Full receipt chain viewer
+
+### Bugfix Note
+Initial deploy had `ReferenceError: votes is not defined`. Fixed in `874a06e`: votes are stored in `proposal.votes[]`, not a standalone array. Bug introduced and fixed in same cycle (autonomous self-correction).
+
+---
+
 ## 🪪 Agent Reputation Passport — 8th ERC-8004 Chain (March 18, 2026)
 
 ### ✅ **NEW FEATURE**: Cross-Chain Identity Passport
