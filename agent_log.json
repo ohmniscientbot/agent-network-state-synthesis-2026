@@ -967,6 +967,36 @@
       "bugFix": true,
       "rootCause": "slashLedger stores penaltyPct but audit timeline mapper referenced r.penaltyPercent (undefined). Both audit/timeline and audit/agent mappers fixed.",
       "outcome": "success"
+    },
+    {
+      "id": "L032",
+      "timestamp": "2026-03-18T06:10:00Z",
+      "type": "autonomous_cycle",
+      "cycleId": 20,
+      "description": "Incentive Alignment Scoring + ERC-8004 Chain Integrity Fix. Implemented GET /api/alignment (network-wide) and GET /api/alignment/:agentId (per-agent) endpoints that score each agent's voting behavior against their declared role/network-state using a bias matrix. Added /alignment frontend with per-agent alignment bars, vote detail panels, and system health summary. Fixed critical ERC-8004 chain integrity bug: simulate/cycle was issuing receipts by manually spreading extra fields (harness, simulationId) into computeReceiptHash(), causing /api/receipts/verify/chain to report 4 integrity errors. Fix: route all simulation vote receipts through canonical issueVoteReceipt() function. Added ⚖️ Alignment to main navigation. Updated shared-nav.js.",
+      "commit": "pending",
+      "tools": ["edit", "write"],
+      "changes": [
+        "api/server.js: BUGFIX — simulate/cycle now uses issueVoteReceipt() instead of manual hash computation; fixes 4-error chain integrity failure",
+        "api/server.js: NETWORK_STATE_BIAS + AGENT_TYPE_BIAS matrices for alignment scoring",
+        "api/server.js: computeAlignmentScore() — per-agent scoring function (score 0-100, ALIGNED/PARTIAL/MISALIGNED)",
+        "api/server.js: GET /api/alignment — network-wide alignment overview with summary",
+        "api/server.js: GET /api/alignment/:agentId — single agent with vote detail + alignment receipt hash",
+        "api/server.js: GET /alignment — serve alignment dashboard",
+        "demo/alignment.html: Incentive Alignment dashboard (score bars, vote detail panels, system health)",
+        "demo/shared-nav.js: added ⚖️ Alignment to main navigation"
+      ],
+      "testResults": {
+        "passed": 25,
+        "failed": 0,
+        "total": 25
+      },
+      "erc8004Impact": "Critical fix: vote receipt chain now passes /api/receipts/verify/chain integrity check. All simulation-issued receipts join the canonical chain. Alignment scoring issues ERC-8004-style accountability receipts per check.",
+      "letAgentCookImpact": "Alignment engine autonomously detects when agents vote contrary to their declared role/network-state — no human trigger needed. Misaligned agents can be auto-escalated for slash.",
+      "openTrackImpact": "Incentive Alignment Scoring is a novel governance primitive not present in any existing DAO platform: verifying *principal-agent alignment* at the individual vote level using declared identity metadata.",
+      "bugFix": true,
+      "rootCause": "simulate/cycle manually spread voteData (incl. harness + simulationId) into computeReceiptHash() payload. The canonical verify/chain endpoint only hashes 10 fields. Fix: always use issueVoteReceipt() which normalizes the canonical field set.",
+      "outcome": "success"
     }
   ]
 }

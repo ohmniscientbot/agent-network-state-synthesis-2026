@@ -6133,6 +6133,145 @@ app.get('/slash-ledger', (req, res) => {
 });
 
 // ============================================================
+// INCENTIVE ALIGNMENT SCORING (March 18, 2026)
+// SOURCE: Principal-Agent alignment theory, DAO accountability research
+// PURPOSE: Score each agent's voting behavior against their declared
+//          role/network-state and flag misalignments for human review.
+// TRACKS: ERC-8004 (accountability receipts), Let the Agent Cook (autonomous
+//         detection), Synthesis Open Track (novel governance primitive)
+// ============================================================
+
+const NETWORK_STATE_BIAS = {
+    Synthesia:    { governance: +1, economic: +0.5, security: -0.3, protocol: 0 },
+    Algorithmica: { governance: 0,  economic: +1,   security: 0,    protocol: +0.5 },
+    Mechanica:    { governance: -0.5, economic: 0,  security: +1,   protocol: +0.5 }
+};
+
+const AGENT_TYPE_BIAS = {
+    governance:  { governance: +1, economic: 0,   security: -0.5, protocol: 0 },
+    trading:     { governance: 0,  economic: +1,  security: -0.5, protocol: 0 },
+    research:    { governance: +0.5, economic: +0.5, security: 0,  protocol: +0.5 },
+    security:    { governance: -0.5, economic: -0.5, security: +1, protocol: +0.5 },
+    creative:    { governance: +0.5, economic: 0,  security: 0,    protocol: +0.5 },
+    analysis:    { governance: +0.5, economic: +0.5, security: +0.5, protocol: 0 }
+};
+
+function computeAlignmentScore(agent, agentVotes) {
+    if (!agentVotes.length) {
+        return { score: null, confidence: 'no_data', details: [] };
+    }
+
+    // agents use agentType field; networkState may be absent (default to Synthesia)
+    const ns = agent.networkState ? (agent.networkState.charAt(0).toUpperCase() + agent.networkState.slice(1)) : 'Synthesia';
+    const nsBias  = NETWORK_STATE_BIAS[ns] || NETWORK_STATE_BIAS['Synthesia'];
+    const roleBias = AGENT_TYPE_BIAS[agent.agentType || agent.type || 'governance'] || AGENT_TYPE_BIAS['governance'];
+
+    let alignedCount = 0;
+    const details = [];
+
+    for (const receipt of agentVotes) {
+        const proposal = proposals.find(p => p.id === receipt.proposalId);
+        if (!proposal) continue;
+
+        const cat = proposal.category || 'governance';
+        const expectedBias = (nsBias[cat] || 0) + (roleBias[cat] || 0); // -2 to +2
+        // Map: positive bias → FOR expected, negative → AGAINST expected
+        const expectedVote = expectedBias >= 0 ? 'for' : 'against';
+        const aligned = receipt.vote === expectedVote;
+        if (aligned) alignedCount++;
+
+        details.push({
+            proposalId: receipt.proposalId,
+            proposalTitle: receipt.proposalTitle || receipt.proposalId,
+            category: cat,
+            vote: receipt.vote,
+            expectedVote,
+            expectedBias: Math.round(expectedBias * 100) / 100,
+            aligned,
+            receiptHash: receipt.hash ? receipt.hash.substring(0, 16) + '…' : null
+        });
+    }
+
+    const total = details.length;
+    const alignmentRatio = total > 0 ? alignedCount / total : 0;
+    const score = Math.round(alignmentRatio * 100);
+    const confidence = total >= 5 ? 'high' : total >= 2 ? 'medium' : 'low';
+    const level = score >= 80 ? 'ALIGNED' : score >= 55 ? 'PARTIAL' : 'MISALIGNED';
+
+    return { score, alignmentRatio, aligned: alignedCount, total, confidence, level, details };
+}
+
+// GET /api/alignment — network-wide incentive alignment overview
+app.get('/api/alignment', (req, res) => {
+    const report = agents.map(agent => {
+        const agentVotes = voteReceiptLedger.filter(r => r.agentId === agent.id);
+        const alignment = computeAlignmentScore(agent, agentVotes);
+        const slashCount = slashLedger.filter(s => s.agentId === agent.id).length;
+        return {
+            agentId: agent.id,
+            agentName: agent.name,
+            agentType: agent.agentType || agent.type,
+            networkState: agent.networkState || 'synthesia',
+            kyaVerified: !!agent.kyaCredential,
+            alignment,
+            slashCount,
+            risk: slashCount >= 2 ? 'HIGH' : slashCount === 1 ? 'MEDIUM' : alignment.level === 'MISALIGNED' ? 'MEDIUM' : 'LOW'
+        };
+    });
+
+    const aligned = report.filter(r => r.alignment.level === 'ALIGNED').length;
+    const misaligned = report.filter(r => r.alignment.level === 'MISALIGNED').length;
+    const systemAlignmentScore = report.reduce((s, r) => s + (r.alignment.score || 0), 0) / Math.max(report.length, 1);
+
+    res.json({
+        summary: {
+            totalAgents: report.length,
+            aligned,
+            partial: report.filter(r => r.alignment.level === 'PARTIAL').length,
+            misaligned,
+            systemAlignmentScore: Math.round(systemAlignmentScore),
+            systemAlignmentLevel: systemAlignmentScore >= 80 ? 'HEALTHY' : systemAlignmentScore >= 55 ? 'MODERATE' : 'AT_RISK',
+            generatedAt: new Date().toISOString()
+        },
+        agents: report
+    });
+});
+
+// GET /api/alignment/:agentId — single agent alignment detail
+app.get('/api/alignment/:agentId', (req, res) => {
+    const agent = agents.find(a => a.id === req.params.agentId);
+    if (!agent) return res.status(404).json({ error: 'Agent not found' });
+
+    const agentVotes = voteReceiptLedger.filter(r => r.agentId === agent.id);
+    const alignment = computeAlignmentScore(agent, agentVotes);
+    const slashHistory = slashLedger.filter(s => s.agentId === agent.id);
+    const delegationInfo = Object.entries(delegations).find(([from]) => from === agent.id);
+
+    // Issue alignment receipt for ERC-8004 trail
+    const alignmentReceiptHash = 'sha256:' + crypto.createHash('sha256')
+        .update(JSON.stringify({ agentId: agent.id, score: alignment.score, level: alignment.level, generatedAt: new Date().toISOString() }))
+        .digest('hex').substring(0, 16) + '…';
+
+    res.json({
+        agentId: agent.id,
+        agentName: agent.name,
+        agentType: agent.agentType || agent.type,
+        networkState: agent.networkState || 'synthesia',
+        kyaVerified: !!(agent.kyaVerified || agent.kyaCredential),
+        alignment,
+        slashHistory: slashHistory.map(s => ({ condition: s.condition, severity: s.severity, penaltyPct: s.penaltyPct, timestamp: s.timestamp })),
+        delegation: delegationInfo ? { delegatesTo: delegationInfo[1] } : null,
+        alignmentReceiptHash,
+        generatedAt: new Date().toISOString()
+    });
+});
+
+// Serve alignment dashboard
+app.get('/alignment', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/alignment.html'));
+});
+
+// ============================================================
 // UNIFIED GOVERNANCE AUDIT TIMELINE
 // Merges vote receipts + execution receipts + slash receipts
 // into one chronological, cross-referenced audit trail.
@@ -6430,8 +6569,10 @@ app.post('/api/simulate/cycle', (req, res) => {
         }
         newProposal.totalVotingPower += vp;
 
-        // Issue cryptographic vote receipt (ERC-8004)
-        const voteData = {
+        // Issue cryptographic vote receipt (ERC-8004) via canonical issueVoteReceipt()
+        // IMPORTANT: Always use issueVoteReceipt() — never manually compute hashes —
+        // to guarantee the canonical field set is consistent with verify/chain.
+        const simReceipt = issueVoteReceipt({
             agentId: agent.id,
             agentName: agent.name,
             proposalId,
@@ -6439,26 +6580,13 @@ app.post('/api/simulate/cycle', (req, res) => {
             vote,
             votingPower: vp,
             quadraticWeight: weight,
-            reason,
-            harness: agent.harness || 'openclaw',
-            simulationId
-        };
+            reason
+        });
 
-        const index = voteReceiptLedger.length;
-        const hash = computeReceiptHash({ ...voteData, index }, receiptChainHead);
-        const receipt = {
-            index, ...voteData,
-            timestamp: new Date().toISOString(),
-            prevHash: receiptChainHead,
-            hash
-        };
-        voteReceiptLedger.push(receipt);
-        receiptChainHead = hash;
+        voteRecords.push({ agentId: agent.id, agentName: agent.name, vote, weight, hash: simReceipt.hash.substring(0, 16) });
 
-        voteRecords.push({ agentId: agent.id, agentName: agent.name, vote, weight, hash: hash.substring(0, 16) });
-
-        step('vote', agent, `Voted ${vote.toUpperCase()} (weight: ${weight}) — receipt: ${hash.substring(0, 16)}…`, {
-            vote, weight, receiptHash: hash
+        step('vote', agent, `Voted ${vote.toUpperCase()} (weight: ${weight}) — receipt: ${simReceipt.hash.substring(0, 16)}…`, {
+            vote, weight, receiptHash: simReceipt.hash
         });
     }
 

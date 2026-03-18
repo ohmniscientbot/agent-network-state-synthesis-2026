@@ -19,7 +19,8 @@ const NAV_CONFIG = {
         { href: "/execution-log", text: "⚡ Execution Log", mobileText: "⚡ Autonomous Executions", id: "execution-log" },
         { href: "/constitution", text: "📜 Constitution", mobileText: "📜 Constitutional Layer", id: "constitution" },
         { href: "/slash-ledger", text: "⚔️ Slash Ledger", mobileText: "⚔️ Agent Slash Ledger", id: "slash-ledger" },
-        { href: "/audit", text: "🔍 Audit", mobileText: "🔍 Audit Timeline", id: "audit" }
+        { href: "/audit", text: "🔍 Audit", mobileText: "🔍 Audit Timeline", id: "audit" },
+        { href: "/alignment", text: "⚖️ Alignment", mobileText: "⚖️ Incentive Alignment", id: "alignment" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

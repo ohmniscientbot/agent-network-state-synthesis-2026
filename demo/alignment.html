@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incentive Alignment | Synthocracy</title>
+<style>
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111115;
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --border-neural: rgba(139, 92, 246, 0.3);
+    --neural-blue: #3b82f6;
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --radius-neural: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg-primary);
+    color: var(--primary-text);
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+}
+.page-wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+h1 { font-size: 1.6rem; color: var(--neural-purple); margin-bottom: 4px; }
+.subtitle { color: var(--secondary-text); font-size: 0.85rem; margin-bottom: 24px; }
+
+/* Summary bar */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+}
+.summary-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 16px;
+    text-align: center;
+}
+.summary-card .val { font-size: 2rem; font-weight: bold; color: var(--neural-purple); }
+.summary-card .lbl { font-size: 0.75rem; color: var(--secondary-text); margin-top: 4px; }
+
+/* System alignment bar */
+.system-bar-wrap { margin-bottom: 28px; }
+.system-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--secondary-text); margin-bottom: 6px; }
+.system-bar {
+    height: 10px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.system-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neural-purple), var(--neural-cyan));
+    border-radius: 5px;
+    transition: width 0.8s ease;
+}
+
+/* Agent cards */
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.agent-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.agent-card:hover { border-color: var(--neural-purple); }
+.agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.agent-name { font-size: 1rem; font-weight: bold; color: var(--primary-text); }
+.agent-meta { font-size: 0.75rem; color: var(--secondary-text); margin-top: 2px; }
+.badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.badge-aligned { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+.badge-partial { background: rgba(245,158,11,0.15); color: var(--neural-yellow); border: 1px solid rgba(245,158,11,0.3); }
+.badge-misaligned { background: rgba(239,68,68,0.15); color: var(--neural-red); border: 1px solid rgba(239,68,68,0.3); }
+.badge-nodata { background: rgba(148,163,184,0.1); color: var(--secondary-text); border: 1px solid rgba(148,163,184,0.2); }
+
+/* score bar */
+.score-wrap { margin: 12px 0; }
+.score-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--secondary-text); margin-bottom: 4px; }
+.score-bar { height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+.fill-green { background: var(--neural-green); }
+.fill-yellow { background: var(--neural-yellow); }
+.fill-red { background: var(--neural-red); }
+
+/* detail panel */
+.detail-row { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.detail-row:last-child { border-bottom: none; }
+.detail-row .vote-for { color: var(--neural-green); }
+.detail-row .vote-against { color: var(--neural-red); }
+.detail-row .check { color: var(--neural-green); }
+.detail-row .cross { color: var(--neural-red); }
+
+/* receipt hash */
+.receipt-hash { font-size: 0.65rem; color: rgba(139,92,246,0.6); margin-top: 10px; word-break: break-all; }
+
+/* expand button */
+.expand-btn {
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.3);
+    color: var(--neural-purple);
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    margin-top: 12px;
+    font-family: inherit;
+}
+.expand-btn:hover { background: rgba(139,92,246,0.2); }
+.detail-panel { display: none; margin-top: 12px; }
+.detail-panel.open { display: block; }
+
+.loading { text-align: center; padding: 60px; color: var(--secondary-text); }
+.error-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 16px; border-radius: 8px; color: var(--neural-red); margin: 20px 0; }
+
+.refresh-btn {
+    background: rgba(139,92,246,0.1);
+    border: 1px solid var(--border-neural);
+    color: var(--neural-purple);
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-family: inherit;
+    margin-bottom: 20px;
+}
+.refresh-btn:hover { background: rgba(139,92,246,0.2); }
+
+.chain-notice {
+    background: rgba(6,182,212,0.07);
+    border: 1px solid rgba(6,182,212,0.2);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    color: var(--neural-cyan);
+    margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+<script src="/shared-nav.js"></script>
+<script>injectNavigation('alignment');</script>
+
+<div class="page-wrap" id="content" style="display:none">
+  <h1>⚖️ Incentive Alignment Scoring</h1>
+  <p class="subtitle">Per-agent analysis of voting behavior vs declared role & network state — with ERC-8004 accountability receipts</p>
+
+  <div class="chain-notice">
+    🔗 Each alignment check issues a cryptographic receipt traceable via <a href="/vote-receipts" style="color:var(--neural-cyan)">ERC-8004 vote ledger</a>.
+    Misaligned agents are flagged for human review and potential <a href="/slash-ledger" style="color:var(--neural-cyan)">slashing</a>.
+  </div>
+
+  <button class="refresh-btn" onclick="loadAlignment()">🔄 Refresh</button>
+
+  <div id="summary-grid" class="summary-grid"></div>
+  <div class="system-bar-wrap">
+    <div class="system-bar-label">
+      <span>System Alignment</span>
+      <span id="system-score-label">—</span>
+    </div>
+    <div class="system-bar"><div class="system-bar-fill" id="system-bar-fill" style="width:0%"></div></div>
+  </div>
+
+  <div id="agent-grid" class="agent-grid"></div>
+</div>
+
+<div class="loading" id="loading">Loading alignment data…</div>
+
+<script>
+setTimeout(() => {
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('loading').style.display = 'none';
+    loadAlignment();
+}, 100);
+
+async function loadAlignment() {
+    const grid = document.getElementById('agent-grid');
+    const summaryGrid = document.getElementById('summary-grid');
+    grid.innerHTML = '<div class="loading">Fetching…</div>';
+
+    try {
+        const res = await fetch('/api/alignment');
+        const data = await res.json();
+        renderSummary(data.summary);
+        renderAgents(data.agents);
+    } catch(e) {
+        grid.innerHTML = `<div class="error-box">❌ Failed to load alignment data: ${e.message}</div>`;
+    }
+}
+
+function renderSummary(s) {
+    document.getElementById('summary-grid').innerHTML = `
+        <div class="summary-card"><div class="val">${s.totalAgents}</div><div class="lbl">Total Agents</div></div>
+        <div class="summary-card"><div class="val" style="color:var(--neural-green)">${s.aligned}</div><div class="lbl">Aligned</div></div>
+        <div class="summary-card"><div class="val" style="color:var(--neural-yellow)">${s.partial}</div><div class="lbl">Partial</div></div>
+        <div class="summary-card"><div class="val" style="color:var(--neural-red)">${s.misaligned}</div><div class="lbl">Misaligned</div></div>
+        <div class="summary-card"><div class="val">${s.systemAlignmentScore}%</div><div class="lbl">System Score</div></div>
+        <div class="summary-card"><div class="val" style="color:${s.systemAlignmentLevel==='HEALTHY'?'var(--neural-green)':s.systemAlignmentLevel==='MODERATE'?'var(--neural-yellow)':'var(--neural-red)'}">
+            ${s.systemAlignmentLevel}</div><div class="lbl">Health Level</div></div>
+    `;
+    document.getElementById('system-score-label').textContent = `${s.systemAlignmentScore}% (${s.systemAlignmentLevel})`;
+    const fill = document.getElementById('system-bar-fill');
+    fill.style.width = s.systemAlignmentScore + '%';
+    if (s.systemAlignmentScore >= 80) fill.className = 'system-bar-fill fill-green';
+    else if (s.systemAlignmentScore >= 55) fill.className = 'system-bar-fill fill-yellow';
+    else fill.className = 'system-bar-fill fill-red';
+}
+
+function badgeClass(level) {
+    if (!level || level === 'no_data') return 'badge-nodata';
+    if (level === 'ALIGNED') return 'badge-aligned';
+    if (level === 'PARTIAL') return 'badge-partial';
+    return 'badge-misaligned';
+}
+
+function fillClass(score) {
+    if (score === null) return 'fill-green';
+    if (score >= 80) return 'fill-green';
+    if (score >= 55) return 'fill-yellow';
+    return 'fill-red';
+}
+
+function renderAgents(agents) {
+    const grid = document.getElementById('agent-grid');
+    grid.innerHTML = '';
+    for (const a of agents) {
+        const al = a.alignment;
+        const scoreDisplay = al.score !== null ? al.score + '%' : 'N/A';
+        const levelDisplay = al.level || 'NO DATA';
+        const bClass = badgeClass(al.level);
+        const fClass = fillClass(al.score);
+        const barWidth = al.score !== null ? al.score : 0;
+
+        const riskColor = a.risk === 'HIGH' ? 'var(--neural-red)' : a.risk === 'MEDIUM' ? 'var(--neural-yellow)' : 'var(--neural-green)';
+
+        let detailRows = '';
+        if (al.details && al.details.length) {
+            detailRows = al.details.map(d => `
+                <div class="detail-row">
+                    <span style="color:var(--secondary-text);max-width:180px;overflow:hidden;text-overflow:ellipsis">${d.proposalTitle || d.proposalId}</span>
+                    <span>
+                        <span class="vote-${d.vote}">${d.vote.toUpperCase()}</span>
+                        <span style="color:var(--secondary-text)"> / exp:</span>
+                        <span class="vote-${d.expectedVote}">${d.expectedVote.toUpperCase()}</span>
+                        <span class="${d.aligned ? 'check' : 'cross'}"> ${d.aligned ? '✓' : '✗'}</span>
+                    </span>
+                </div>
+            `).join('');
+        } else {
+            detailRows = '<div style="color:var(--secondary-text);font-size:0.75rem;padding:8px 0">No voting history yet</div>';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'agent-card';
+        card.innerHTML = `
+            <div class="agent-header">
+                <div>
+                    <div class="agent-name">${a.agentName}</div>
+                    <div class="agent-meta">${a.agentType} · ${a.networkState} · ${a.kyaVerified ? '✅ KYA' : '⚠️ unverified'}</div>
+                </div>
+                <span class="badge ${bClass}">${levelDisplay}</span>
+            </div>
+            <div class="score-wrap">
+                <div class="score-label">
+                    <span>Alignment Score</span>
+                    <span>${scoreDisplay} (confidence: ${al.confidence || 'n/a'})</span>
+                </div>
+                <div class="score-bar"><div class="score-fill ${fClass}" style="width:${barWidth}%"></div></div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--secondary-text)">
+                Votes analyzed: ${al.total || 0} &nbsp;|&nbsp; Slashes: <span style="color:${riskColor}">${a.slashCount}</span> &nbsp;|&nbsp; Risk: <span style="color:${riskColor}">${a.risk}</span>
+            </div>
+            <button class="expand-btn" onclick="toggleDetail(this)">▼ Vote Detail</button>
+            <div class="detail-panel">
+                <div style="font-size:0.72rem;color:var(--secondary-text);margin-bottom:8px">Vote vs Expected (based on role/network-state bias)</div>
+                ${detailRows}
+            </div>
+        `;
+        grid.appendChild(card);
+    }
+}
+
+function toggleDetail(btn) {
+    const panel = btn.nextElementSibling;
+    panel.classList.toggle('open');
+    btn.textContent = panel.classList.contains('open') ? '▲ Hide Detail' : '▼ Vote Detail';
+}
+</script>
+</body>
+</html>

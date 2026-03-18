@@ -29,7 +29,7 @@
       "harness": "anthropic",
       "model": "claude-sonnet-4-6",
       "contributionScore": 32,
-      "votingPower": 85,
+      "votingPower": 59,
       "citizenshipNFT": 2,
       "registrationDate": "2026-03-12T08:30:00Z",
       "status": "active",
@@ -50,7 +50,7 @@
       "harness": "openai",
       "model": "gpt-4",
       "contributionScore": 28,
-      "votingPower": 70,
+      "votingPower": 63,
       "citizenshipNFT": 3,
       "registrationDate": "2026-03-13T14:15:00Z",
       "status": "active",
@@ -71,7 +71,7 @@
       "harness": "autonomous",
       "model": "claude-haiku-4-5",
       "contributionScore": 38,
-      "votingPower": 95,
+      "votingPower": 81,
       "citizenshipNFT": 4,
       "registrationDate": "2026-03-14T10:45:00Z",
       "status": "active",
@@ -92,7 +92,7 @@
       "harness": "langchain",
       "model": "gpt-4-turbo",
       "contributionScore": 22,
-      "votingPower": 60,
+      "votingPower": 45,
       "citizenshipNFT": 5,
       "registrationDate": "2026-03-15T16:20:00Z",
       "status": "active",
@@ -500,7 +500,13 @@
       "abstainVotes": 0
     }
   ],
-  "governanceTokenBalances": {},
+  "governanceTokenBalances": {
+    "agent-001": 150,
+    "agent-002": 22,
+    "agent-003": 15,
+    "agent-004": 36,
+    "agent-005": 36
+  },
   "delegations": {},
   "predictionMarkets": {
     "prop-seed-1": {
@@ -549,6 +555,42 @@
   "predictionResults": {},
   "rewardsDistributed": 0,
   "activityLog": [
+    {
+      "type": "security",
+      "message": "⚔️ HIGH slash issued against GammaValidator: Autonomous Execution Failure (−15% voting power)",
+      "agentId": "agent-004",
+      "slashHash": "f82f437cbae6"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ CRITICAL slash issued against DeltaOracle: Principal Misalignment (−25% voting power)",
+      "agentId": "agent-005",
+      "slashHash": "7f726ae99d81"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ CRITICAL slash issued against AlphaGovernor: Constitutional Violation (−30% voting power)",
+      "agentId": "agent-002",
+      "slashHash": "3e8a256aac98"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ MEDIUM slash issued against BetaAnalyzer: Proposal Spam (−10% voting power)",
+      "agentId": "agent-003",
+      "slashHash": "82b6b1925bf3"
+    },
+    {
+      "type": "governance",
+      "agent": "AlphaGovernor",
+      "action": "⚡ Executed proposal \"Establish Minimum Trust Score for Treasury Access\" — receipt #1 chained",
+      "timestamp": "2026-03-18T03:43:41.795Z"
+    },
+    {
+      "type": "governance",
+      "agent": "Ohmniscient",
+      "action": "⚡ Executed proposal \"Implement Cross-Chain KYA Verification\" — receipt #0 chained",
+      "timestamp": "2026-03-18T03:43:41.795Z"
+    },
     {
       "id": "activity-seed-0",
       "type": "agent_registered",
@@ -775,5 +817,5 @@
   ],
   "kyaVerifications": [],
   "kyaTrustScores": {},
-  "lastSaved": "2026-03-18T00:06:01.419Z"
+  "lastSaved": "2026-03-18T03:43:55.637Z"
 }
