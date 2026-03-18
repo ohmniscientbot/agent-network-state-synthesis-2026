@@ -1178,7 +1178,7 @@
       "type": "autonomous_cycle",
       "cycleId": 32,
       "description": "Agent Reputation Passport \u2014 8th ERC-8004 Receipt Chain. Unified cross-chain identity snapshot per agent: pulls from all 7 existing receipt chains (votes, executions, slashes, delegations, constitutional audits, council participation, attestations) and computes a signed reputation score. Each passport snapshot is SHA-256 chained to the previous \u2014 tamper-evident. Backend: passportLedger + 3 new endpoints. Frontend: /passport page.",
-      "commit": "pending",
+      "commit": "08ded3a",
       "tools": [
         "edit",
         "write"
