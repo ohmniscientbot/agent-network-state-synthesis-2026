@@ -1486,7 +1486,7 @@
         "api/server.js: runTrustEndorsementRound() \u2014 autonomous peer evaluation loop",
         "api/server.js: setTimeout(runTrustEndorsementRound, 13000) \u2014 seed on startup",
         "api/server.js: setInterval(runTrustEndorsementRound, 120000) \u2014 autonomous loop, no human trigger",
-        "api/server.js: GET /api/trust/status, /graph, /ledger, /verify/chain, /agent/:agentId, GET /trust",
+        "api/server.js: GET /api/trust-network/status|graph|ledger|verify/chain|agent/:id + GET /trust",
         "api/server.js: scorecard updated \u2014 chain 16 added, erc8004ChainCount=16, autonomousLoopsRunning=7",
         "demo/trust.html: Status bar, directed trust graph canvas, per-agent trust cards, receipt chain viewer",
         "demo/shared-nav.js: \ud83e\udd1d Trust Network added to navigation"

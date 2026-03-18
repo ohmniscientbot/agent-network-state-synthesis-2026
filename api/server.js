@@ -9304,7 +9304,7 @@ app.get('/api/scorecard', (req, res) => {
         {
             id: 16,
             name: 'Trust Endorsement Network',
-            endpoint: '/api/trust/verify/chain',
+            endpoint: '/api/trust-network/verify/chain',
             url: '/trust',
             receiptCount: trustLedger.length,
             description: 'Cross-agent trust endorsement network — agents cryptographically endorse or distrust peers based on voting alignment, slash history, and execution reliability',
@@ -10158,7 +10158,7 @@ setInterval(runTrustEndorsementRound, 120000);
 // ── Trust Network API Endpoints ────────────────────────────────────────────
 
 // GET /api/trust/status — protocol overview
-app.get('/api/trust/status', (req, res) => {
+app.get('/api/trust-network/status', (req, res) => {
     const endorsed = trustLedger.filter(r => r.verdict === 'ENDORSED').length;
     const distrusted = trustLedger.filter(r => r.verdict === 'DISTRUST').length;
     const nextRoundMs = 120000 - (Date.now() % 120000);
@@ -10178,7 +10178,7 @@ app.get('/api/trust/status', (req, res) => {
 });
 
 // GET /api/trust/graph — full adjacency data for visualization
-app.get('/api/trust/graph', (req, res) => {
+app.get('/api/trust-network/graph', (req, res) => {
     const nodes = agents.map(a => ({
         id: a.id,
         name: a.name,
@@ -10198,7 +10198,7 @@ app.get('/api/trust/graph', (req, res) => {
 });
 
 // GET /api/trust/ledger — paginated receipt chain
-app.get('/api/trust/ledger', (req, res) => {
+app.get('/api/trust-network/ledger', (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
@@ -10207,7 +10207,7 @@ app.get('/api/trust/ledger', (req, res) => {
 });
 
 // GET /api/trust/verify/chain — chain integrity
-app.get('/api/trust/verify/chain', (req, res) => {
+app.get('/api/trust-network/verify/chain', (req, res) => {
     if (trustLedger.length === 0) {
         return res.json({ valid: true, receipts: 0, message: 'Chain empty — first round fires 13s after startup' });
     }
@@ -10240,7 +10240,7 @@ app.get('/api/trust/verify/chain', (req, res) => {
 });
 
 // GET /api/trust/agent/:agentId — per-agent trust profile
-app.get('/api/trust/agent/:agentId', (req, res) => {
+app.get('/api/trust-network/agent/:agentId', (req, res) => {
     const agentId = req.params.agentId;
     const agent = agents.find(a => a.id === agentId);
     if (!agent) return res.status(404).json({ error: 'Agent not found' });

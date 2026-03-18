@@ -866,11 +866,11 @@ Answers the core governance question: "What happened to proposal X?" Aggregates 
 
 **Backend additions**: `trustLedger`, `trustChainHead`, `trustGraph`, `computeAgentTrustScore()`, `runTrustEndorsementRound()`, `setInterval(120s)`  
 **6 New API Endpoints**:
-1. `GET /api/trust/status` — protocol overview + next round countdown
-2. `GET /api/trust/graph` — full adjacency matrix (nodes + directed edges) for visualization
-3. `GET /api/trust/ledger` — paginated SHA-256 chained receipt ledger
-4. `GET /api/trust/verify/chain` — chain integrity verification
-5. `GET /api/trust/agent/:agentId` — per-agent trust profile (endorsedBy, distrustedBy, outbound)
+1. `GET /api/trust-network/status` — protocol overview + next round countdown
+2. `GET /api/trust-network/graph` — full adjacency matrix (nodes + directed edges) for visualization
+3. `GET /api/trust-network/ledger` — paginated SHA-256 chained receipt ledger
+4. `GET /api/trust-network/verify/chain` — chain integrity verification
+5. `GET /api/trust-network/agent/:agentId` — per-agent trust profile (endorsedBy, distrustedBy, outbound)
 6. `GET /trust` — frontend dashboard
 
 ### 3-Dimension Trust Scoring

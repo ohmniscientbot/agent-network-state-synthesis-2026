@@ -152,7 +152,7 @@ function scoreColor(score) {
 
 async function loadStatus() {
     try {
-        const r = await fetch('/api/trust/status');
+        const r = await fetch('/api/trust-network/status');
         const d = await r.json();
         document.getElementById('statRounds').textContent = d.roundsRun || 0;
         document.getElementById('statEndorsed').textContent = d.totalEndorsements || 0;
@@ -165,7 +165,7 @@ async function loadStatus() {
 
 async function loadGraph() {
     try {
-        const r = await fetch('/api/trust/graph');
+        const r = await fetch('/api/trust-network/graph');
         graphData = await r.json();
         renderAgentCards(graphData);
         drawTrustGraph(graphData);
@@ -296,7 +296,7 @@ function drawTrustGraph(data) {
 
 async function loadLedger() {
     try {
-        const r = await fetch('/api/trust/ledger?limit=15');
+        const r = await fetch('/api/trust-network/ledger?limit=15');
         const d = await r.json();
         const container = document.getElementById('receiptChain');
         if (!d.receipts || d.receipts.length === 0) {
@@ -339,7 +339,7 @@ async function verifyChain() {
     const btn = document.querySelector('.verify-btn');
     btn.textContent = '⏳ Verifying…';
     try {
-        const r = await fetch('/api/trust/verify/chain');
+        const r = await fetch('/api/trust-network/verify/chain');
         const d = await r.json();
         const el = document.getElementById('integrityStatus');
         const detail = document.getElementById('integrityDetail');
