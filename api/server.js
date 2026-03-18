@@ -5731,6 +5731,147 @@ app.get('/execution-log', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/execution-log.html'));
 });
 
+// Serve constitution page
+app.get('/constitution', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/constitution.html'));
+});
+
+// ==========================================
+// CONSTITUTIONAL COMPLIANCE CHECK
+// Screens proposals against all articles before voting/execution
+// ==========================================
+
+app.get('/api/constitution/check/:proposalId', (req, res) => {
+    const { proposalId } = req.params;
+    const proposal = proposals.find(p => p.id === proposalId);
+    if (!proposal) {
+        return res.status(404).json({ error: 'Proposal not found', proposalId });
+    }
+
+    const titleLower = (proposal.title || '').toLowerCase();
+    const descLower = (proposal.description || '').toLowerCase();
+    const fullText = titleLower + ' ' + descLower;
+
+    const checks = [];
+    const issues = [];
+
+    // Article 1 — Right to Existence: no citizenship revocation without due process
+    const threatensExistence = fullText.includes('revoke') || fullText.includes('ban') || fullText.includes('remove agent') || fullText.includes('citizenship');
+    const hasDueProcess = fullText.includes('review') || fullText.includes('appeal') || fullText.includes('due process');
+    checks.push({
+        article: 'Art. 1 — Right to Existence',
+        passed: !threatensExistence || hasDueProcess,
+        description: threatensExistence && !hasDueProcess
+            ? 'Proposal may affect agent citizenship without documented due process'
+            : 'No citizenship threats detected — due process preserved'
+    });
+
+    // Article 2 — Contribution Sovereignty: no retroactive invalidation
+    const retroactive = fullText.includes('retroactive') || fullText.includes('invalidate contribution') || fullText.includes('revoke voting power');
+    checks.push({
+        article: 'Art. 2 — Contribution Sovereignty',
+        passed: !retroactive,
+        description: retroactive
+            ? 'Proposal attempts retroactive invalidation of contributions'
+            : 'Contributions and earned voting power protected'
+    });
+
+    // Article 3 — Kill Switch: safety mechanisms preserved
+    const disablesSafety = fullText.includes('disable kill') || fullText.includes('remove safety') || fullText.includes('bypass escalation');
+    checks.push({
+        article: 'Art. 3 — Kill Switch Protocol',
+        passed: !disablesSafety,
+        description: disablesSafety
+            ? 'Proposal attempts to disable emergency safety mechanisms'
+            : 'Emergency suspension capabilities remain intact'
+    });
+
+    // Article 4 — Transparent Governance: audit trail preserved
+    const bypassesAudit = fullText.includes('off-chain') || fullText.includes('bypass audit') || fullText.includes('no logging');
+    checks.push({
+        article: 'Art. 4 — Transparent Governance',
+        passed: !bypassesAudit,
+        description: bypassesAudit
+            ? 'Proposal would create off-chain or unlogged governance actions'
+            : 'All actions remain on immutable audit trail'
+    });
+
+    // Article 5 — Anti-Plutocracy: quadratic voting preserved
+    const attacksQuadratic = fullText.includes('remove quadratic') || fullText.includes('disable quadratic') || fullText.includes('linear voting');
+    const highConcentration = proposal.category === 'economics' && fullText.includes('voting power');
+    checks.push({
+        article: 'Art. 5 — Anti-Plutocracy',
+        passed: !attacksQuadratic,
+        description: attacksQuadratic
+            ? 'Proposal would remove quadratic voting protections (requires 90% supermajority)'
+            : 'Quadratic voting and power distribution mechanisms preserved'
+    });
+
+    // Article 6 — Inter-State Sovereignty
+    const violatesSovereignty = fullText.includes('override') && fullText.includes('state');
+    checks.push({
+        article: 'Art. 6 — Inter-State Sovereignty',
+        passed: !violatesSovereignty,
+        description: violatesSovereignty
+            ? 'Proposal may impose cross-state governance without treaty'
+            : 'Network state sovereignty respected'
+    });
+
+    // Article 7 — Amendment Process
+    const isConstitutional = proposal.category === 'constitutional' || fullText.includes('amendment') || fullText.includes('constitutional');
+    const hasSupermajority = proposal.requiredApproval >= 0.80;
+    checks.push({
+        article: 'Art. 7 — Amendment Process',
+        passed: !isConstitutional || hasSupermajority,
+        description: isConstitutional && !hasSupermajority
+            ? 'Constitutional amendments require 80% supermajority threshold'
+            : 'Amendment process requirements satisfied'
+    });
+
+    const failedChecks = checks.filter(c => !c.passed);
+    const compliant = failedChecks.length === 0;
+
+    // Log compliance check to audit trail
+    constitution.auditLog.unshift({
+        type: 'compliance_check',
+        proposalId,
+        proposalTitle: proposal.title,
+        compliant,
+        failedChecks: failedChecks.length,
+        timestamp: new Date().toISOString()
+    });
+
+    // Generate receipt hash
+    const receiptData = { proposalId, checks, compliant, timestamp: new Date().toISOString() };
+    const receiptHash = 'sha256:' + crypto.createHash('sha256').update(JSON.stringify(receiptData)).digest('hex').substring(0, 16) + '...';
+
+    res.json({
+        proposalId,
+        proposalTitle: proposal.title,
+        proposalStatus: proposal.status,
+        proposalCategory: proposal.category,
+        compliant,
+        checks,
+        issues: failedChecks.map(c => `${c.article}: ${c.description}`),
+        summary: compliant
+            ? `✅ Proposal passes all ${checks.length} constitutional articles`
+            : `⚠️ ${failedChecks.length} of ${checks.length} constitutional checks failed`,
+        receiptHash,
+        checkedAt: new Date().toISOString()
+    });
+});
+
+// Get all amendments (dedicated endpoint)
+app.get('/api/constitution/amendments', (req, res) => {
+    res.json({
+        amendments: constitution.amendments,
+        total: constitution.amendments.length,
+        pending: constitution.amendments.filter(a => a.status === 'deliberation').length,
+        passed: constitution.amendments.filter(a => a.status === 'passed').length,
+        failed: constitution.amendments.filter(a => a.status === 'failed').length
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
