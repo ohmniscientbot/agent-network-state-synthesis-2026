@@ -5975,7 +5975,7 @@ function issueSlashReceipt({ agentId, agentName, condition, evidence, autonomous
     slashChainHead = hash;
 
     // Emit to activity feed
-    emitActivity({
+    broadcastEvent({
         type: 'security',
         message: `⚔️ ${cond.severity} slash issued against ${agentName}: ${cond.label} (−${cond.penaltyPct}% voting power)`,
         agentId,

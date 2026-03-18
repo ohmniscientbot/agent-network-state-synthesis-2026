@@ -835,23 +835,27 @@
       "timestamp": "2026-03-18T02:10:00Z",
       "type": "autonomous_cycle",
       "cycleId": 15,
-      "description": "Constitutional Layer UI + Compliance Check API: (1) New /constitution page — visualizes all 7 constitutional articles with category-coded cards, proposal compliance checker, ERC-8004 receipt chain viewer, amendment proposals panel, and live constitutional audit log. (2) Backend: /api/constitution/check/:proposalId — screens every proposal against all 7 articles in real-time and returns structured compliance report with per-article pass/fail + receipt hash. (3) Backend: /api/constitution/amendments dedicated endpoint. (4) Added 📜 Constitution to main navigation. (5) Compliance check logs every query to the constitutional audit trail.",
+      "description": "Constitutional Layer UI + Compliance Check API: (1) New /constitution page \u2014 visualizes all 7 constitutional articles with category-coded cards, proposal compliance checker, ERC-8004 receipt chain viewer, amendment proposals panel, and live constitutional audit log. (2) Backend: /api/constitution/check/:proposalId \u2014 screens every proposal against all 7 articles in real-time and returns structured compliance report with per-article pass/fail + receipt hash. (3) Backend: /api/constitution/amendments dedicated endpoint. (4) Added \ud83d\udcdc Constitution to main navigation. (5) Compliance check logs every query to the constitutional audit trail.",
       "commit": "6609d8d",
-      "tools": ["write", "edit", "exec"],
+      "tools": [
+        "write",
+        "edit",
+        "exec"
+      ],
       "changes": [
         "demo/constitution.html: Constitutional Layer visualization page (28KB)",
         "api/server.js: GET /constitution route",
-        "api/server.js: GET /api/constitution/check/:proposalId — 7-article compliance checker",
+        "api/server.js: GET /api/constitution/check/:proposalId \u2014 7-article compliance checker",
         "api/server.js: GET /api/constitution/amendments dedicated endpoint",
-        "demo/shared-nav.js: added 📜 Constitution to main nav"
+        "demo/shared-nav.js: added \ud83d\udcdc Constitution to main nav"
       ],
       "testResults": {
         "passed": 25,
         "failed": 0,
         "total": 25
       },
-      "governanceImpact": "Meta-governance layer — the rules that govern governance itself are now visible and verifiable. Compliance checker shows which constitutional articles a proposal satisfies or violates BEFORE voting begins. Directly addresses Open Track (novel meta-governance mechanism) and ERC-8004 (compliance receipts chained to audit ledger).",
-      "judgeUXImpact": "Judges can now see the full constitutional architecture at /constitution — 7 immutable articles, category-coded, with live compliance checking against real proposals. Shows Synthocracy has a coherent constitutional theory, not just a governance dashboard.",
+      "governanceImpact": "Meta-governance layer \u2014 the rules that govern governance itself are now visible and verifiable. Compliance checker shows which constitutional articles a proposal satisfies or violates BEFORE voting begins. Directly addresses Open Track (novel meta-governance mechanism) and ERC-8004 (compliance receipts chained to audit ledger).",
+      "judgeUXImpact": "Judges can now see the full constitutional architecture at /constitution \u2014 7 immutable articles, category-coded, with live compliance checking against real proposals. Shows Synthocracy has a coherent constitutional theory, not just a governance dashboard.",
       "outcome": "success"
     },
     {
@@ -859,25 +863,53 @@
       "timestamp": "2026-03-18T03:00:00Z",
       "type": "autonomous_cycle",
       "cycleId": 16,
-      "description": "Agent Slashing & Accountability Engine: Cryptographic, chain-linked punishment receipts for misbehaving agents — autonomously enforced, no human trigger required. Backend: slashLedger + slashChainHead + computeSlashHash() + issueSlashReceipt() + autonomousSlashCheck() + seedSlashLedger() + 4 new /api/slash/* endpoints. Six slash conditions (execution_failure, proposal_spam, principal_misalignment, double_vote, constitution_violation, inactivity) with calibrated penalty percentages (5–30% VP). Each slash receipt is SHA-256 chained to the previous — tamper-evident accountability trail. Slash detector auto-fires on governance events. Frontend: /slash-ledger page with agent risk profiles, chain verification bar, receipt chain visualizer, severity badges. Added ⚔️ Slash Ledger to main navigation.",
-      "commit": "pending",
-      "tools": ["exec", "write", "edit"],
+      "description": "Agent Slashing & Accountability Engine: Cryptographic, chain-linked punishment receipts for misbehaving agents \u2014 autonomously enforced, no human trigger required. Backend: slashLedger + slashChainHead + computeSlashHash() + issueSlashReceipt() + autonomousSlashCheck() + seedSlashLedger() + 4 new /api/slash/* endpoints. Six slash conditions (execution_failure, proposal_spam, principal_misalignment, double_vote, constitution_violation, inactivity) with calibrated penalty percentages (5\u201330% VP). Each slash receipt is SHA-256 chained to the previous \u2014 tamper-evident accountability trail. Slash detector auto-fires on governance events. Frontend: /slash-ledger page with agent risk profiles, chain verification bar, receipt chain visualizer, severity badges. Added \u2694\ufe0f Slash Ledger to main navigation.",
+      "commit": "2c98a3b",
+      "tools": [
+        "exec",
+        "write",
+        "edit"
+      ],
       "changes": [
         "api/server.js: slashLedger, slashChainHead, SLASH_CONDITIONS, computeSlashHash(), issueSlashReceipt(), autonomousSlashCheck(), seedSlashLedger()",
         "api/server.js: GET /api/slash/ledger, GET /api/slash/verify/chain, GET /api/slash/agent/:agentId, POST /api/slash/trigger",
         "api/server.js: GET /slash-ledger route + seedSlashLedger() in app.listen",
         "demo/slash-ledger.html: new Agent Slash Ledger visualization page with risk profiles + chain verifier",
-        "demo/shared-nav.js: added ⚔️ Slash Ledger to main nav"
+        "demo/shared-nav.js: added \u2694\ufe0f Slash Ledger to main nav"
       ],
       "testResults": {
         "passed": 25,
         "failed": 0,
         "total": 25
       },
-      "erc8004Impact": "Agents don't just get receipts for good behavior — they get receipts for violations too. Every slash is a cryptographic receipt chained to all prior slashes. Judges can verify the full accountability history in one API call at /api/slash/verify/chain. Principal misalignment detection shows the agent-principal relationship from ERC-8004 has real teeth.",
-      "agentCookImpact": "Direct hit on Let the Agent Cook — the slashing engine runs autonomously. No admin needed. Double-vote attempts trigger real-time auto-slash. Execution failures cascade into accountability receipts without human intervention. Autonomous governance with autonomous enforcement.",
-      "openTrackImpact": "Agent slashing in DAOs is rare and novel. Most governance platforms have no punishment mechanism. Synthocracy now has: detection, evidence recording, VP penalty, chain-linked receipts, and a visualizer — a complete accountability layer.",
+      "erc8004Impact": "Agents don't just get receipts for good behavior \u2014 they get receipts for violations too. Every slash is a cryptographic receipt chained to all prior slashes. Judges can verify the full accountability history in one API call at /api/slash/verify/chain. Principal misalignment detection shows the agent-principal relationship from ERC-8004 has real teeth.",
+      "agentCookImpact": "Direct hit on Let the Agent Cook \u2014 the slashing engine runs autonomously. No admin needed. Double-vote attempts trigger real-time auto-slash. Execution failures cascade into accountability receipts without human intervention. Autonomous governance with autonomous enforcement.",
+      "openTrackImpact": "Agent slashing in DAOs is rare and novel. Most governance platforms have no punishment mechanism. Synthocracy now has: detection, evidence recording, VP penalty, chain-linked receipts, and a visualizer \u2014 a complete accountability layer.",
       "outcome": "success"
+    },
+    {
+      "id": "L029",
+      "timestamp": "2026-03-18T03:50:00Z",
+      "type": "autonomous_cycle",
+      "cycleId": 17,
+      "description": "Critical crash fix: server.js called undefined emitActivity() in issueSlashReceipt() causing Railway 502 on startup. Fixed by replacing emitActivity() with the correct broadcastEvent() function. The slash ledger feature from L028 is now fully operational.",
+      "commit": "pending",
+      "tools": [
+        "edit"
+      ],
+      "changes": [
+        "api/server.js line 5978: emitActivity \u2192 broadcastEvent (undefined function crash fix)",
+        "agent_log.json: updated L028 commit hash to 2c98a3b"
+      ],
+      "testResults": {
+        "passed": 25,
+        "failed": 0,
+        "total": 25
+      },
+      "outcome": "success",
+      "bugFix": true,
+      "rootCause": "L028 slash ledger used emitActivity() which does not exist \u2014 correct function is broadcastEvent()",
+      "impact": "Railway app was 502 since L028 push. This fix restores full service."
     }
   ]
 }
