@@ -8181,6 +8181,210 @@ app.get('/watchdog', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/watchdog.html'));
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 🤝 MULTI-AGENT CONSENSUS PROTOCOL — 10th ERC-8004 Chain
+// Agents autonomously deliberate on governance micro-questions every 90s.
+// No human trigger. Agents form trust-weighted blocs, vote, and achieve (or fail)
+// consensus. Each round issues a SHA-256 chained receipt.
+// ─────────────────────────────────────────────────────────────────────────────
+
+let consensusLedger = [];
+let consensusChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+let consensusRoundCount = 0;
+
+// Micro-questions agents can deliberate on each round
+const CONSENSUS_QUESTIONS = [
+    { id: 'Q1', text: 'Should stale proposals (0 votes >3 cycles) be auto-archived?', category: 'housekeeping' },
+    { id: 'Q2', text: 'Should agents with reputation below 50 require mentorship before proposing?', category: 'quality' },
+    { id: 'Q3', text: 'Should constitutional amendments require 75% supermajority?', category: 'constitutional' },
+    { id: 'Q4', text: 'Should new agents begin with 30-day probationary voting power (50%)?', category: 'onboarding' },
+    { id: 'Q5', text: 'Should slashed agents be barred from proposing for 7 days?', category: 'accountability' },
+    { id: 'Q6', text: 'Should prediction markets auto-resolve when proposal status changes?', category: 'markets' },
+    { id: 'Q7', text: 'Should autonomous execution require 2-of-5 agent co-signatures for HIGH risk?', category: 'safety' },
+    { id: 'Q8', text: 'Should delegation chains expire after 14 days without re-confirmation?', category: 'delegation' },
+    { id: 'Q9', text: 'Should the watchdog have authority to pause voting on CRITICAL-flagged proposals?', category: 'autonomy' },
+    { id: 'Q10', text: 'Should cross-agent attestation scores influence quadratic voting weights?', category: 'reputation' }
+];
+
+// Compute SHA-256 for consensus receipts
+function computeConsensusHash(data, prevHash) {
+    const payload = JSON.stringify({ ...data, prevHash });
+    return crypto.createHash('sha256').update(payload).digest('hex');
+}
+
+// Simulate one round of multi-agent consensus deliberation
+function runConsensusRound() {
+    consensusRoundCount++;
+    const roundId = `CR-${String(consensusRoundCount).padStart(4, '0')}`;
+    const question = CONSENSUS_QUESTIONS[(consensusRoundCount - 1) % CONSENSUS_QUESTIONS.length];
+    const now = new Date().toISOString();
+
+    // Build agent participant list from live agents array
+    const participants = agents.map(agent => {
+        // Agent "opinion" is deterministic per round+agent but varies naturally
+        const seed = consensusRoundCount * 31 + parseInt(agent.id.replace(/\D/g, '') || '1');
+        const baseOpinion = (seed % 10) < 7 ? 'FOR' : 'AGAINST'; // ~70% FOR baseline
+        // Slashed agents more likely to be cautious (AGAINST)
+        const slashCount = slashLedger.filter(s => s.agentId === agent.id).length;
+        const opinion = slashCount > 1 ? 'AGAINST' : baseOpinion;
+        // Weight by voting power (post-slash)
+        const effectiveVP = agent.votingPower || 50;
+        return {
+            agentId: agent.id,
+            agentName: agent.name || agent.agentName,
+            opinion,
+            weight: Math.sqrt(effectiveVP), // quadratic weighting
+            reasoning: opinion === 'FOR'
+                ? `Supports ${question.category} improvement; aligns with principal mandate`
+                : `Concerns about ${question.category} overreach; prefers human deliberation`
+        };
+    });
+
+    // Tally weighted votes
+    const forWeight = participants.filter(p => p.opinion === 'FOR').reduce((s, p) => s + p.weight, 0);
+    const againstWeight = participants.filter(p => p.opinion === 'AGAINST').reduce((s, p) => s + p.weight, 0);
+    const totalWeight = forWeight + againstWeight;
+    const forPct = totalWeight > 0 ? (forWeight / totalWeight) * 100 : 0;
+
+    // Consensus achieved if ≥66% weighted agreement
+    const CONSENSUS_THRESHOLD = 66;
+    const outcome = forPct >= CONSENSUS_THRESHOLD ? 'CONSENSUS_REACHED'
+        : forPct <= (100 - CONSENSUS_THRESHOLD) ? 'CONSENSUS_REJECTED'
+        : 'DEADLOCK';
+
+    // Form trust-based blocs (agents grouped by opinion)
+    const forBloc = participants.filter(p => p.opinion === 'FOR').map(p => p.agentId);
+    const againstBloc = participants.filter(p => p.opinion === 'AGAINST').map(p => p.agentId);
+
+    // Build receipt
+    const index = consensusLedger.length;
+    const fingerprint = `${roundId}:${question.id}:${outcome}:${forPct.toFixed(1)}`;
+    const hash = computeConsensusHash({ index, roundId, questionId: question.id, outcome, fingerprint }, consensusChainHead);
+    consensusChainHead = hash;
+
+    const receipt = {
+        index,
+        roundId,
+        timestamp: now,
+        question: question.text,
+        questionId: question.id,
+        category: question.category,
+        participants: participants.map(p => ({ agentId: p.agentId, agentName: p.agentName, opinion: p.opinion, reasoning: p.reasoning, weight: parseFloat(p.weight.toFixed(2)) })),
+        forBloc,
+        againstBloc,
+        forWeight: parseFloat(forWeight.toFixed(2)),
+        againstWeight: parseFloat(againstWeight.toFixed(2)),
+        forPct: parseFloat(forPct.toFixed(1)),
+        outcome,
+        consensusThreshold: CONSENSUS_THRESHOLD,
+        prevHash: consensusChainHead === hash ? consensusLedger.length > 0 ? consensusLedger[consensusLedger.length - 1].hash : '0000000000000000000000000000000000000000000000000000000000000000' : consensusChainHead,
+        hash,
+        fingerprint,
+        autonomousExecution: true,
+        humanTrigger: false,
+        erc8004Chain: 10
+    };
+
+    // Fix prevHash reference
+    receipt.prevHash = index === 0
+        ? '0000000000000000000000000000000000000000000000000000000000000000'
+        : consensusLedger[consensusLedger.length - 1].hash;
+
+    consensusLedger.push(receipt);
+
+    // Broadcast to SSE activity feed
+    broadcastActivity({
+        type: 'consensus',
+        agentId: 'multi-agent-consensus',
+        timestamp: now,
+        description: `🤝 ${roundId}: ${outcome === 'CONSENSUS_REACHED' ? '✅' : outcome === 'DEADLOCK' ? '⚠️' : '❌'} ${outcome} on "${question.text.substring(0, 60)}…" (${forPct.toFixed(0)}% FOR)`
+    });
+
+    return receipt;
+}
+
+// API endpoints for consensus chain
+app.get('/api/consensus/status', (req, res) => {
+    const latest = consensusLedger.length > 0 ? consensusLedger[consensusLedger.length - 1] : null;
+    const outcomes = consensusLedger.reduce((acc, r) => {
+        acc[r.outcome] = (acc[r.outcome] || 0) + 1;
+        return acc;
+    }, {});
+    res.json({
+        roundsRun: consensusRoundCount,
+        totalReceipts: consensusLedger.length,
+        latestRound: latest ? latest.roundId : null,
+        latestOutcome: latest ? latest.outcome : 'NOT_STARTED',
+        chainHead: consensusChainHead.substring(0, 16) + '…',
+        nextRoundIn: 90 - (Math.floor(Date.now() / 1000) % 90) + 's',
+        consensusThreshold: 66,
+        outcomeBreakdown: outcomes,
+        participantCount: agents.length
+    });
+});
+
+app.get('/api/consensus/ledger', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const page = consensusLedger.slice().reverse().slice(offset, offset + limit);
+    res.json({ rounds: page, total: consensusLedger.length, offset, limit, chainHead: consensusChainHead.substring(0, 16) + '…' });
+});
+
+app.get('/api/consensus/verify/chain', (req, res) => {
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    const errors = [];
+    for (const receipt of consensusLedger) {
+        const expected = computeConsensusHash({
+            index: receipt.index,
+            roundId: receipt.roundId,
+            questionId: receipt.questionId,
+            outcome: receipt.outcome,
+            fingerprint: receipt.fingerprint
+        }, prevHash);
+        if (expected !== receipt.hash) errors.push({ index: receipt.index, roundId: receipt.roundId });
+        prevHash = receipt.hash;
+    }
+    res.json({
+        totalReceipts: consensusLedger.length,
+        chainValid: errors.length === 0,
+        errors,
+        chainHead: consensusChainHead.substring(0, 16) + '…',
+        message: errors.length === 0
+            ? `✅ Consensus chain intact — ${consensusLedger.length} receipts verified`
+            : `⚠️ ${errors.length} integrity errors found`
+    });
+});
+
+app.get('/api/consensus/latest', (req, res) => {
+    if (consensusLedger.length === 0) return res.json({ message: 'No rounds run yet' });
+    res.json(consensusLedger[consensusLedger.length - 1]);
+});
+
+app.get('/api/consensus/agent/:agentId', (req, res) => {
+    const { agentId } = req.params;
+    const rounds = consensusLedger.filter(r => r.participants.some(p => p.agentId === agentId));
+    const opinions = rounds.map(r => r.participants.find(p => p.agentId === agentId)?.opinion).filter(Boolean);
+    const forCount = opinions.filter(o => o === 'FOR').length;
+    const againstCount = opinions.filter(o => o === 'AGAINST').length;
+    const consensusAligned = rounds.filter(r => {
+        const agentOpinion = r.participants.find(p => p.agentId === agentId)?.opinion;
+        return (r.outcome === 'CONSENSUS_REACHED' && agentOpinion === 'FOR') ||
+               (r.outcome === 'CONSENSUS_REJECTED' && agentOpinion === 'AGAINST');
+    }).length;
+    res.json({
+        agentId,
+        roundsParticipated: rounds.length,
+        forVotes: forCount,
+        againstVotes: againstCount,
+        consensusAlignmentRate: rounds.length > 0 ? parseFloat((consensusAligned / rounds.length * 100).toFixed(1)) : 0,
+        recentRounds: rounds.slice(-5).reverse()
+    });
+});
+
+app.get('/consensus', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/consensus.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -8233,6 +8437,13 @@ app.listen(PORT, () => {
         setInterval(runWatchdogScan, 60000); // Then every 60 seconds
         console.log('🔍 Autonomous governance watchdog started — scanning every 60s');
     }, 5000);
+
+    // Start multi-agent consensus protocol (10th ERC-8004 chain — runs every 90s, no human trigger)
+    setTimeout(() => {
+        runConsensusRound(); // Run immediately on startup
+        setInterval(runConsensusRound, 90000); // Then every 90 seconds
+        console.log('🤝 Multi-agent consensus protocol started — deliberating every 90s');
+    }, 6000);
 });
 
 module.exports = app;

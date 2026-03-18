@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthocracy — Multi-Agent Consensus Protocol</title>
+    <script src="/shared-nav.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-teal: #14b8a6;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-primary); color: var(--primary-text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+        .main-content { padding: 2rem 1rem; max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 1.8rem; font-weight: 700; color: var(--neural-cyan); margin-bottom: 0.5rem; }
+        .subtitle { color: var(--secondary-text); font-size: 0.95rem; margin-bottom: 2rem; }
+
+        /* Status bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-card .value { font-size: 1.6rem; font-weight: 700; color: var(--neural-cyan); }
+        .stat-card .label { font-size: 0.75rem; color: var(--secondary-text); margin-top: 0.25rem; }
+
+        /* Chain integrity bar */
+        .chain-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .chain-badge { font-size: 0.8rem; font-weight: 700; padding: 0.3rem 0.75rem; border-radius: 4px; background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid var(--neural-green); }
+        .chain-badge.invalid { background: rgba(239,68,68,0.15); color: var(--neural-red); border-color: var(--neural-red); }
+        .chain-info { color: var(--secondary-text); font-size: 0.85rem; }
+
+        /* Outcome breakdown */
+        .outcomes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .outcome-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .outcome-card.reached { border-color: var(--neural-green); }
+        .outcome-card.rejected { border-color: var(--neural-red); }
+        .outcome-card.deadlock { border-color: var(--neural-yellow); }
+        .outcome-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .outcome-count { font-size: 1.8rem; font-weight: 700; }
+        .outcome-card.reached .outcome-count { color: var(--neural-green); }
+        .outcome-card.rejected .outcome-count { color: var(--neural-red); }
+        .outcome-card.deadlock .outcome-count { color: var(--neural-yellow); }
+        .outcome-label { font-size: 0.8rem; color: var(--secondary-text); margin-top: 0.25rem; }
+
+        /* Latest round */
+        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--neural-purple); margin-bottom: 1rem; }
+        .latest-round {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .round-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .round-id { font-weight: 700; color: var(--neural-cyan); font-size: 1rem; }
+        .outcome-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+        }
+        .outcome-badge.CONSENSUS_REACHED { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid var(--neural-green); }
+        .outcome-badge.CONSENSUS_REJECTED { background: rgba(239,68,68,0.15); color: var(--neural-red); border: 1px solid var(--neural-red); }
+        .outcome-badge.DEADLOCK { background: rgba(245,158,11,0.15); color: var(--neural-yellow); border: 1px solid var(--neural-yellow); }
+        .round-question { color: var(--primary-text); font-size: 1rem; margin-bottom: 1rem; font-style: italic; }
+        .bloc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .bloc-card {
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            padding: 0.75rem;
+        }
+        .bloc-card.for { border-left: 3px solid var(--neural-green); }
+        .bloc-card.against { border-left: 3px solid var(--neural-red); }
+        .bloc-label { font-size: 0.75rem; font-weight: 700; color: var(--secondary-text); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .bloc-agents { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .agent-pill { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); color: var(--neural-purple); }
+        .vote-bar {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            height: 8px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+        .vote-fill-for {
+            height: 100%;
+            background: var(--neural-green);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .vote-pcts { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--secondary-text); }
+        .hash-chip { font-size: 0.7rem; color: var(--secondary-text); font-family: monospace; background: rgba(0,0,0,0.3); padding: 0.2rem 0.5rem; border-radius: 4px; margin-top: 0.75rem; word-break: break-all; }
+
+        /* Ledger table */
+        .ledger-table {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .ledger-row {
+            display: grid;
+            grid-template-columns: 110px 1fr 120px 90px;
+            gap: 1rem;
+            padding: 0.85rem 1.25rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            align-items: center;
+            font-size: 0.82rem;
+        }
+        .ledger-row:last-child { border-bottom: none; }
+        .ledger-row.header { color: var(--secondary-text); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-neural); }
+        .ledger-row .round-col { color: var(--neural-cyan); font-weight: 600; font-family: monospace; }
+        .ledger-row .question-col { color: var(--primary-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ledger-row .pct-col { color: var(--neural-green); font-weight: 600; text-align: right; }
+        .loading { color: var(--secondary-text); text-align: center; padding: 2rem; font-size: 0.9rem; }
+
+        /* ERC-8004 badge */
+        .erc-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(59,130,246,0.15);
+            color: var(--neural-blue);
+            border: 1px solid var(--neural-blue);
+            margin-left: 0.5rem;
+        }
+        .auto-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(16,185,129,0.1);
+            color: var(--neural-green);
+            border: 1px solid rgba(16,185,129,0.4);
+        }
+        @media (max-width: 600px) {
+            .bloc-grid { grid-template-columns: 1fr; }
+            .outcomes-grid { grid-template-columns: 1fr; }
+            .ledger-row { grid-template-columns: 80px 1fr 80px; }
+            .ledger-row .pct-col { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="main-content">
+    <h1>🤝 Multi-Agent Consensus Protocol <span class="erc-badge">ERC-8004 ⛓ Chain #10</span></h1>
+    <p class="subtitle">
+        Agents autonomously deliberate on governance micro-questions every 90 seconds — no human trigger.
+        Trust-weighted bloc formation, quadratic vote tallying, and tamper-evident SHA-256 chained receipts.
+        <span class="auto-badge">⚡ AUTONOMOUS</span>
+    </p>
+
+    <!-- Status cards -->
+    <div class="status-bar" id="status-bar">
+        <div class="stat-card"><div class="value" id="stat-rounds">—</div><div class="label">Rounds Run</div></div>
+        <div class="stat-card"><div class="value" id="stat-receipts">—</div><div class="label">Receipts Issued</div></div>
+        <div class="stat-card"><div class="value" id="stat-next">—</div><div class="label">Next Round</div></div>
+        <div class="stat-card"><div class="value" id="stat-agents">—</div><div class="label">Participants</div></div>
+        <div class="stat-card"><div class="value">66%</div><div class="label">Consensus Threshold</div></div>
+    </div>
+
+    <!-- Chain integrity -->
+    <div class="chain-bar">
+        <div class="chain-badge" id="chain-badge">⏳ Verifying…</div>
+        <div>
+            <div class="chain-info" id="chain-msg">Checking SHA-256 chain integrity…</div>
+            <div class="chain-info" style="font-family:monospace;font-size:0.75rem;margin-top:0.2rem;color:#64748b;" id="chain-head">—</div>
+        </div>
+    </div>
+
+    <!-- Outcome breakdown -->
+    <div class="outcomes-grid" id="outcomes-grid">
+        <div class="outcome-card reached"><div class="outcome-icon">✅</div><div class="outcome-count" id="count-reached">—</div><div class="outcome-label">Consensus Reached</div></div>
+        <div class="outcome-card rejected"><div class="outcome-icon">❌</div><div class="outcome-count" id="count-rejected">—</div><div class="outcome-label">Consensus Rejected</div></div>
+        <div class="outcome-card deadlock"><div class="outcome-icon">⚠️</div><div class="outcome-count" id="count-deadlock">—</div><div class="outcome-label">Deadlock</div></div>
+    </div>
+
+    <!-- Latest round -->
+    <div class="section-title">Latest Deliberation Round</div>
+    <div class="latest-round" id="latest-round">
+        <div class="loading">Loading latest round…</div>
+    </div>
+
+    <!-- Receipt ledger -->
+    <div class="section-title">Receipt Chain Ledger</div>
+    <div class="ledger-table">
+        <div class="ledger-row header">
+            <div>Round</div>
+            <div>Question</div>
+            <div>Outcome</div>
+            <div class="pct-col">FOR %</div>
+        </div>
+        <div id="ledger-body"><div class="loading">Loading ledger…</div></div>
+    </div>
+</div>
+
+<script>
+injectNavigation('consensus');
+
+const BASE = '';
+
+function outcomeBadge(o) {
+    return `<span class="outcome-badge ${o}">${o.replace(/_/g,' ')}</span>`;
+}
+
+function renderLatest(r) {
+    const forPct = r.forPct || 0;
+    const pctDisplay = forPct.toFixed(1);
+    const blocs = {
+        for: r.forBloc || [],
+        against: r.againstBloc || []
+    };
+    return `
+        <div class="round-header">
+            <span class="round-id">${r.roundId}</span>
+            ${outcomeBadge(r.outcome)}
+            <span style="color:var(--secondary-text);font-size:0.8rem;">${new Date(r.timestamp).toLocaleString()}</span>
+            <span class="auto-badge">⚡ No Human Trigger</span>
+        </div>
+        <div class="round-question">❓ "${r.question}"</div>
+        <div class="vote-bar"><div class="vote-fill-for" style="width:${forPct}%"></div></div>
+        <div class="vote-pcts">
+            <span style="color:var(--neural-green)">✅ FOR: ${pctDisplay}% (weight ${(r.forWeight||0).toFixed(1)})</span>
+            <span style="color:var(--neural-red)">❌ AGAINST: ${(100-forPct).toFixed(1)}% (weight ${(r.againstWeight||0).toFixed(1)})</span>
+        </div>
+        <div class="bloc-grid" style="margin-top:1rem;">
+            <div class="bloc-card for">
+                <div class="bloc-label">✅ FOR bloc</div>
+                <div class="bloc-agents">${blocs.for.map(a=>`<span class="agent-pill">${a}</span>`).join('')||'<span style="color:var(--secondary-text);font-size:0.75rem;">none</span>'}</div>
+            </div>
+            <div class="bloc-card against">
+                <div class="bloc-label">❌ AGAINST bloc</div>
+                <div class="bloc-agents">${blocs.against.map(a=>`<span class="agent-pill">${a}</span>`).join('')||'<span style="color:var(--secondary-text);font-size:0.75rem;">none</span>'}</div>
+            </div>
+        </div>
+        <div class="hash-chip">🔗 SHA-256: ${r.hash} | Prev: ${r.prevHash.substring(0,20)}…</div>
+    `;
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch(`${BASE}/api/consensus/status`).then(r=>r.json());
+        document.getElementById('stat-rounds').textContent = r.roundsRun ?? '—';
+        document.getElementById('stat-receipts').textContent = r.totalReceipts ?? '—';
+        document.getElementById('stat-next').textContent = r.nextRoundIn ?? '—';
+        document.getElementById('stat-agents').textContent = r.participantCount ?? '—';
+        const ob = r.outcomeBreakdown || {};
+        document.getElementById('count-reached').textContent = ob.CONSENSUS_REACHED ?? 0;
+        document.getElementById('count-rejected').textContent = ob.CONSENSUS_REJECTED ?? 0;
+        document.getElementById('count-deadlock').textContent = ob.DEADLOCK ?? 0;
+    } catch(e) {}
+}
+
+async function loadChain() {
+    try {
+        const r = await fetch(`${BASE}/api/consensus/verify/chain`).then(r=>r.json());
+        const badge = document.getElementById('chain-badge');
+        badge.textContent = r.chainValid ? `✅ Chain Intact (${r.totalReceipts} receipts)` : `⚠️ ${r.errors.length} errors`;
+        badge.className = 'chain-badge' + (r.chainValid ? '' : ' invalid');
+        document.getElementById('chain-msg').textContent = r.message;
+        document.getElementById('chain-head').textContent = `Chain head: ${r.chainHead}`;
+    } catch(e) {}
+}
+
+async function loadLatest() {
+    try {
+        const r = await fetch(`${BASE}/api/consensus/latest`).then(r=>r.json());
+        if (r.message) {
+            document.getElementById('latest-round').innerHTML = `<div class="loading">${r.message}</div>`;
+        } else {
+            document.getElementById('latest-round').innerHTML = renderLatest(r);
+        }
+    } catch(e) {
+        document.getElementById('latest-round').innerHTML = '<div class="loading">Error loading round data.</div>';
+    }
+}
+
+async function loadLedger() {
+    try {
+        const r = await fetch(`${BASE}/api/consensus/ledger?limit=20`).then(r=>r.json());
+        const rounds = r.rounds || [];
+        if (rounds.length === 0) {
+            document.getElementById('ledger-body').innerHTML = '<div class="loading">No rounds yet.</div>';
+            return;
+        }
+        document.getElementById('ledger-body').innerHTML = rounds.map(rnd => `
+            <div class="ledger-row">
+                <div class="round-col">${rnd.roundId}</div>
+                <div class="question-col" title="${rnd.question}">${rnd.question.substring(0,70)}${rnd.question.length>70?'…':''}</div>
+                <div>${outcomeBadge(rnd.outcome)}</div>
+                <div class="pct-col">${(rnd.forPct||0).toFixed(1)}%</div>
+            </div>
+        `).join('');
+    } catch(e) {}
+}
+
+async function refreshAll() {
+    await Promise.all([loadStatus(), loadChain(), loadLatest(), loadLedger()]);
+}
+
+setTimeout(() => {
+    refreshAll();
+    setInterval(refreshAll, 10000);
+}, 100);
+</script>
+</body>
+</html>

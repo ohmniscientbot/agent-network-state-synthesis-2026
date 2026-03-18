@@ -26,7 +26,8 @@ const NAV_CONFIG = {
         { href: "/council", text: "🏛️ Council", mobileText: "🏛️ Emergency Council", id: "council" },
         { href: "/attestations", text: "🤝 Attestations", mobileText: "🤝 Peer Attestations", id: "attestations" },
         { href: "/passport", text: "🪪 Passport", mobileText: "🪪 Agent Passport", id: "passport" },
-        { href: "/watchdog", text: "🔍 Watchdog", mobileText: "🔍 Autonomous Watchdog", id: "watchdog" }
+        { href: "/watchdog", text: "🔍 Watchdog", mobileText: "🔍 Autonomous Watchdog", id: "watchdog" },
+        { href: "/consensus", text: "🤝 Consensus", mobileText: "🤝 Multi-Agent Consensus", id: "consensus" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

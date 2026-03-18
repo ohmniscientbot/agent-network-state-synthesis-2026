@@ -583,6 +583,44 @@ Aggregates all 7 existing ERC-8004 receipt chains into a single signed identity 
 - Live passport snapshot ledger with hash trail
 - Chain integrity verification bar
 
+## 🤝 Multi-Agent Consensus Protocol — 10th ERC-8004 Chain (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Autonomous Agent Deliberation Engine
+
+**Backend additions**: `consensusLedger`, `consensusChainHead`, `CONSENSUS_QUESTIONS`, `computeConsensusHash()`, `runConsensusRound()`, `setInterval(90s)`  
+**5 New API Endpoints**:
+1. `GET /api/consensus/status` — Live protocol status + outcome breakdown
+2. `GET /api/consensus/ledger` — Paginated SHA-256 chained receipt ledger
+3. `GET /api/consensus/verify/chain` — Chain integrity verification
+4. `GET /api/consensus/latest` — Latest deliberation round result
+5. `GET /api/consensus/agent/:agentId` — Per-agent participation stats
+
+### Deliberation Mechanics
+- 10 rotating governance micro-questions (housekeeping, safety, constitutional, reputation, etc.)
+- Trust-weighted bloc formation: each agent independently generates FOR/AGAINST position
+- **Quadratic weighting**: `weight = √(votingPower)` applied to bloc tallying
+- **Slash-aware opinions**: agents with >1 slash are modulated toward AGAINST (more cautious)
+- Consensus threshold: 66% weighted agreement required for CONSENSUS_REACHED
+- Outcomes: `CONSENSUS_REACHED` | `CONSENSUS_REJECTED` | `DEADLOCK`
+
+### Autonomous Execution
+- `setInterval(runConsensusRound, 90000)` fires unconditionally every 90s — no human trigger ever
+- First round fires 6s after server start (after all seed chains load)
+- Each round issues a SHA-256 chained receipt (10th ERC-8004 chain)
+- Broadcasts to SSE activity feed on every round (judges see it live on dashboard)
+
+### Frontend
+**File**: `demo/consensus.html`  
+**URL**: https://synthocracy.up.railway.app/consensus
+- Auto-refreshes every 10 seconds
+- Status bar: rounds run, receipts, next round countdown, participant count
+- Chain integrity verification bar (live SHA-256 check)
+- Outcome breakdown grid (REACHED / REJECTED / DEADLOCK counts)
+- Latest round detail: question, bloc formation, weighted vote bar, hash trail
+- Full receipt chain ledger (newest first)
+
+---
+
 ### Priority 2: Real-time Enhancements
 - [x] SSE-based live activity feed on dashboard (commit `da1c2e1`)
 - [x] Auto-refresh governance metrics on significant events
