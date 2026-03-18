@@ -32,7 +32,8 @@ const NAV_CONFIG = {
         { href: "/finalization", text: "📜 Finalization", mobileText: "📜 Outcome Finalization", id: "finalization" },
         { href: "/amendments", text: "🏛️ Amendments", mobileText: "🏛️ Constitutional Amendments", id: "amendments" },
         { href: "/scorecard", text: "📊 Scorecard", mobileText: "📊 Judge Scorecard", id: "scorecard" },
-        { href: "/lifecycle", text: "🔬 Lifecycle", mobileText: "🔬 Proposal Lifecycle Tracer", id: "lifecycle" }
+        { href: "/lifecycle", text: "🔬 Lifecycle", mobileText: "🔬 Proposal Lifecycle Tracer", id: "lifecycle" },
+        { href: "/health-index", text: "💚 Health Index", mobileText: "💚 Governance Health Index", id: "health-index" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governance Health Index — Synthocracy</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+            --radius-sm: 6px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .page-header {
+            padding: 32px 24px 16px;
+            text-align: center;
+        }
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neural-green), var(--neural-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .page-header p {
+            color: var(--secondary-text);
+            font-size: 0.9rem;
+            max-width: 680px;
+            margin: 0 auto 12px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin: 2px;
+        }
+        .badge-erc8004 { background: rgba(139,92,246,0.15); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.3); }
+        .badge-letcook { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+        .badge-opentrack { background: rgba(59,130,246,0.15); color: var(--neural-blue); border: 1px solid rgba(59,130,246,0.3); }
+        .badge-autonomous { background: rgba(6,182,212,0.15); color: var(--neural-cyan); border: 1px solid rgba(6,182,212,0.3); }
+        .content { max-width: 960px; margin: 0 auto; padding: 24px; }
+
+        /* Status bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .label { font-size: 0.7rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--neural-cyan); }
+        .stat-card .sub { font-size: 0.7rem; color: var(--secondary-text); margin-top: 4px; }
+
+        /* Hero grade card */
+        .hero-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--neural-green), var(--neural-cyan), var(--neural-purple));
+        }
+        .grade-display {
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .score-display {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--secondary-text);
+            margin-bottom: 12px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .hash-display {
+            font-size: 0.7rem;
+            color: var(--secondary-text);
+            font-family: monospace;
+            margin-top: 8px;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+            background: linear-gradient(90deg, var(--neural-green), var(--neural-cyan));
+        }
+
+        /* Dimensions grid */
+        .dimensions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .dimension-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-neural);
+            padding: 16px;
+        }
+        .dimension-card .dim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .dimension-card .dim-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-text);
+        }
+        .dimension-card .dim-score {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--neural-cyan);
+        }
+        .dimension-card .dim-detail {
+            font-size: 0.72rem;
+            color: var(--secondary-text);
+            margin-top: 6px;
+        }
+        .dim-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .dim-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+
+        /* Chain integrity bar */
+        .integrity-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .integrity-label { font-size: 0.8rem; font-weight: 600; color: var(--secondary-text); white-space: nowrap; }
+        .integrity-status { font-size: 0.8rem; font-weight: 700; flex: 1; }
+        .integrity-btn {
+            background: rgba(139,92,246,0.15);
+            border: 1px solid rgba(139,92,246,0.3);
+            color: var(--neural-purple);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .integrity-btn:hover { background: rgba(139,92,246,0.25); }
+
+        /* Receipt chain table */
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--secondary-text);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+        }
+        .receipt-chain {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .receipt-item {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .receipt-item .r-grade {
+            font-size: 1.4rem;
+            font-weight: 900;
+            min-width: 36px;
+        }
+        .receipt-item .r-score {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--neural-cyan);
+            min-width: 60px;
+        }
+        .receipt-item .r-time {
+            font-size: 0.72rem;
+            color: var(--secondary-text);
+            flex: 1;
+        }
+        .receipt-item .r-hash {
+            font-size: 0.65rem;
+            font-family: monospace;
+            color: var(--secondary-text);
+        }
+        .status-pill {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .refresh-note {
+            text-align: center;
+            color: var(--secondary-text);
+            font-size: 0.75rem;
+            margin-top: 24px;
+            padding-bottom: 32px;
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        .countdown-bar {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-neural);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .countdown-bar .c-label { font-size: 0.75rem; color: var(--secondary-text); }
+        .countdown-bar .c-val { font-size: 0.85rem; font-weight: 700; color: var(--neural-yellow); font-family: monospace; }
+        .countdown-progress {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .countdown-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neural-yellow), var(--neural-orange));
+            border-radius: 2px;
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page-header">
+    <h1>📊 Governance Health Index</h1>
+    <p>Self-assessing composite oracle — autonomously grades the entire governance system across 15 ERC-8004 chains every 75 seconds</p>
+    <span class="badge badge-erc8004">ERC-8004 Chain #15</span>
+    <span class="badge badge-letcook">Let the Agent Cook</span>
+    <span class="badge badge-opentrack">Open Track</span>
+    <span class="badge badge-autonomous">Autonomous · 75s</span>
+</div>
+
+<div class="content">
+
+    <!-- Status bar -->
+    <div class="status-bar" id="statusBar">
+        <div class="stat-card">
+            <div class="label">Rounds Run</div>
+            <div class="value" id="roundsRun">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Receipts Issued</div>
+            <div class="value" id="receiptsCount">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Latest Grade</div>
+            <div class="value" id="latestGrade">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Latest Score</div>
+            <div class="value" id="latestScore">—</div>
+            <div class="sub">/ 100</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">System Status</div>
+            <div class="value" id="systemStatus" style="font-size:0.9rem;">—</div>
+        </div>
+    </div>
+
+    <!-- Countdown to next assessment -->
+    <div class="countdown-bar">
+        <span class="c-label">Next assessment in</span>
+        <span class="c-val" id="countdownVal">—</span>
+        <div class="countdown-progress">
+            <div class="countdown-fill" id="countdownFill" style="width:0%"></div>
+        </div>
+        <span class="c-label pulse" id="liveIndicator">● LIVE</span>
+    </div>
+
+    <!-- Hero grade card -->
+    <div class="hero-card" id="heroCard">
+        <div class="grade-display" id="gradeDisplay" style="color: var(--neural-green);">—</div>
+        <div class="score-display" id="scoreDisplay">Score: — / 100</div>
+        <div id="statusBadge" class="status-badge">—</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="hash-display" id="hashDisplay">Receipt hash: —</div>
+    </div>
+
+    <!-- Chain integrity bar -->
+    <div class="integrity-bar">
+        <span class="integrity-label">Chain #15 Integrity</span>
+        <span class="integrity-status" id="integrityStatus">Loading…</span>
+        <button class="integrity-btn" onclick="verifyChain()">Verify SHA-256 Chain</button>
+    </div>
+
+    <!-- Dimensions breakdown -->
+    <div class="section-title">6-Dimension Health Breakdown</div>
+    <div class="dimensions-grid" id="dimensionsGrid">
+        <!-- populated by JS -->
+    </div>
+
+    <!-- Receipt ledger -->
+    <div class="section-title" style="margin-top:24px;">Receipt Chain (newest first)</div>
+    <div class="receipt-chain" id="receiptChain">
+        <!-- populated by JS -->
+    </div>
+
+    <div class="refresh-note">Auto-refreshes every 10 seconds · New health receipts issued every 75 seconds · No human trigger</div>
+
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+    injectNavigation('health-index');
+
+    const GRADE_COLORS = {
+        'A+': '#10b981', 'A': '#10b981', 'B': '#3b82f6',
+        'C': '#f59e0b', 'D': '#f97316', 'F': '#ef4444'
+    };
+    const STATUS_COLORS = {
+        'EXCELLENT': '#10b981', 'HEALTHY': '#10b981', 'GOOD': '#3b82f6',
+        'FAIR': '#f59e0b', 'DEGRADED': '#f97316', 'CRITICAL': '#ef4444',
+        'PENDING': '#94a3b8'
+    };
+    const DIM_COLORS = ['#8b5cf6','#06b6d4','#10b981','#f59e0b','#f97316','#3b82f6'];
+
+    let nextAssessmentMs = 75000;
+
+    async function loadStatus() {
+        try {
+            const res = await fetch('/api/health-index/status');
+            const d = await res.json();
+            document.getElementById('roundsRun').textContent = d.roundsRun || '—';
+            document.getElementById('receiptsCount').textContent = d.chainLength || '—';
+            document.getElementById('latestGrade').textContent = d.latestGrade || '—';
+            document.getElementById('latestGrade').style.color = GRADE_COLORS[d.latestGrade] || '#e2e8f0';
+            document.getElementById('latestScore').textContent = d.latestScore !== null ? d.latestScore : '—';
+            const sc = STATUS_COLORS[d.latestStatus] || '#94a3b8';
+            document.getElementById('systemStatus').textContent = d.latestStatus || '—';
+            document.getElementById('systemStatus').style.color = sc;
+            nextAssessmentMs = d.nextAssessmentMs || 75000;
+        } catch(e) { console.error('status error', e); }
+    }
+
+    async function loadLatest() {
+        try {
+            const res = await fetch('/api/health-index/latest');
+            const d = await res.json();
+            if (d.status === 'PENDING') {
+                document.getElementById('gradeDisplay').textContent = '…';
+                document.getElementById('scoreDisplay').textContent = 'First assessment in progress';
+                document.getElementById('statusBadge').textContent = 'PENDING';
+                return;
+            }
+            const gradeColor = GRADE_COLORS[d.grade] || '#e2e8f0';
+            const statusColor = STATUS_COLORS[d.status] || '#94a3b8';
+
+            document.getElementById('gradeDisplay').textContent = d.grade || '—';
+            document.getElementById('gradeDisplay').style.color = gradeColor;
+            document.getElementById('scoreDisplay').textContent = `Score: ${d.score} / 100`;
+            const sb = document.getElementById('statusBadge');
+            sb.textContent = d.status || '—';
+            sb.style.background = statusColor + '22';
+            sb.style.color = statusColor;
+            sb.style.border = `1px solid ${statusColor}55`;
+            document.getElementById('progressFill').style.width = `${d.score}%`;
+            const shortHash = d.hash ? d.hash.substring(0, 20) + '…' : '—';
+            document.getElementById('hashDisplay').textContent = `Receipt hash: ${shortHash} · Round #${d.round || '—'}`;
+
+            // Render dimensions
+            if (d.dimensions && d.dimensions.length > 0) {
+                const grid = document.getElementById('dimensionsGrid');
+                grid.innerHTML = d.dimensions.map((dim, i) => {
+                    const pct = Math.round((dim.score / dim.max) * 100);
+                    const color = DIM_COLORS[i % DIM_COLORS.length];
+                    return `
+                        <div class="dimension-card">
+                            <div class="dim-header">
+                                <span class="dim-name">${dim.name}</span>
+                                <span class="dim-score">${dim.score}/${dim.max}</span>
+                            </div>
+                            <div class="dim-bar">
+                                <div class="dim-bar-fill" style="width:${pct}%; background:${color};"></div>
+                            </div>
+                            <div class="dim-detail">${dim.detail}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } catch(e) { console.error('latest error', e); }
+    }
+
+    async function loadLedger() {
+        try {
+            const res = await fetch('/api/health-index/ledger?limit=15');
+            const d = await res.json();
+            const chain = document.getElementById('receiptChain');
+            if (!d.receipts || d.receipts.length === 0) {
+                chain.innerHTML = '<div style="color:var(--secondary-text);font-size:0.8rem;text-align:center;padding:24px;">First receipt pending (fires 11s after server start)</div>';
+                return;
+            }
+            chain.innerHTML = d.receipts.map(r => {
+                const gradeColor = GRADE_COLORS[r.grade] || '#e2e8f0';
+                const statusColor = STATUS_COLORS[r.status] || '#94a3b8';
+                const dt = r.assessedAt ? new Date(r.assessedAt).toLocaleString() : '—';
+                const shortHash = r.hash ? r.hash.substring(0, 16) + '…' : '—';
+                return `
+                    <div class="receipt-item">
+                        <span class="r-grade" style="color:${gradeColor}">${r.grade || '—'}</span>
+                        <span class="r-score">${r.score}/100</span>
+                        <span class="status-pill" style="background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44">${r.status}</span>
+                        <span class="r-time">Round #${r.round || r.index} · ${dt}</span>
+                        <span class="r-hash">${shortHash}</span>
+                    </div>
+                `;
+            }).join('');
+        } catch(e) { console.error('ledger error', e); }
+    }
+
+    async function verifyChain() {
+        const el = document.getElementById('integrityStatus');
+        el.textContent = 'Verifying…';
+        try {
+            const res = await fetch('/api/health-index/verify/chain');
+            const d = await res.json();
+            el.textContent = d.message || (d.valid ? '✅ Chain intact' : '❌ Fault detected');
+            el.style.color = d.valid ? 'var(--neural-green)' : 'var(--neural-red)';
+        } catch(e) {
+            el.textContent = '⚠️ Verification failed';
+            el.style.color = 'var(--neural-yellow)';
+        }
+    }
+
+    function updateCountdown() {
+        const el = document.getElementById('countdownVal');
+        const fill = document.getElementById('countdownFill');
+        if (nextAssessmentMs <= 0) {
+            el.textContent = 'assessing…';
+            fill.style.width = '100%';
+            return;
+        }
+        const secs = Math.ceil(nextAssessmentMs / 1000);
+        el.textContent = `${secs}s`;
+        const pct = Math.round(((75000 - nextAssessmentMs) / 75000) * 100);
+        fill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+        nextAssessmentMs -= 1000;
+    }
+
+    async function refresh() {
+        await Promise.all([loadStatus(), loadLatest(), loadLedger()]);
+        verifyChain();
+    }
+
+    // Initial load
+    setTimeout(() => {
+        refresh();
+        verifyChain();
+    }, 150);
+
+    // Auto-refresh every 10 seconds
+    setInterval(refresh, 10000);
+
+    // Countdown ticks every second
+    setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>
