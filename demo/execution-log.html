@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Execution Log — Synthocracy</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            min-height: 100vh;
+        }
+        .page-header {
+            background: linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(139,92,246,0.08) 100%);
+            border-bottom: 1px solid rgba(249,115,22,0.3);
+            padding: 2rem;
+            text-align: center;
+        }
+        .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .page-header h1 span { color: var(--neural-orange); }
+        .page-header p { color: var(--secondary-text); font-size: 0.95rem; max-width: 640px; margin: 0 auto; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .badge-exec { background: rgba(249,115,22,0.15); color: var(--neural-orange); border: 1px solid rgba(249,115,22,0.3); }
+        .badge-erc { background: rgba(139,92,246,0.15); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.3); }
+        .badge-ok { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+        .badge-auto { background: rgba(59,130,246,0.15); color: var(--neural-blue); border: 1px solid rgba(59,130,246,0.3); }
+        .main-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        /* Summary bar */
+        .summary-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 1.2rem;
+            text-align: center;
+        }
+        .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--neural-orange); }
+        .stat-card .stat-label { font-size: 0.75rem; color: var(--secondary-text); margin-top: 4px; }
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: var(--radius-neural);
+            border: 1px solid var(--border-neural);
+            background: var(--card-bg);
+            color: var(--primary-text);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: rgba(139,92,246,0.15); border-color: var(--neural-purple); }
+        .btn-primary { background: var(--neural-purple); border-color: var(--neural-purple); color: #fff; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-verify { background: rgba(249,115,22,0.12); border-color: var(--neural-orange); color: var(--neural-orange); }
+        .btn-verify:hover { background: rgba(249,115,22,0.2); }
+        .chain-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--secondary-text);
+        }
+        .chain-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--secondary-text);
+        }
+        .chain-dot.verified { background: var(--neural-green); box-shadow: 0 0 6px var(--neural-green); }
+        .chain-dot.failed { background: var(--neural-red); }
+        /* Execution list */
+        .exec-list { display: flex; flex-direction: column; gap: 1rem; }
+        .exec-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .exec-card:hover { border-color: var(--neural-orange); }
+        .exec-card.expanded { border-color: var(--neural-orange); }
+        .exec-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.2rem 1.4rem;
+            cursor: pointer;
+        }
+        .exec-index {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: var(--neural-orange);
+            background: rgba(249,115,22,0.08);
+            border: 1px solid rgba(249,115,22,0.2);
+            border-radius: 4px;
+            padding: 4px 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .exec-main { flex: 1; min-width: 0; }
+        .exec-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+        .exec-meta {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--secondary-text);
+        }
+        .exec-toggle {
+            color: var(--secondary-text);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            padding-top: 2px;
+        }
+        /* Expanded details */
+        .exec-details {
+            display: none;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 1.2rem 1.4rem;
+        }
+        .exec-details.show { display: block; }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 600px) { .detail-grid { grid-template-columns: 1fr; } }
+        .detail-section h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--secondary-text);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .steps-list { list-style: none; }
+        .steps-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 4px 0;
+            font-size: 0.82rem;
+            color: var(--primary-text);
+        }
+        .step-num {
+            color: var(--neural-orange);
+            font-weight: 700;
+            min-width: 20px;
+        }
+        .step-time { color: var(--secondary-text); font-size: 0.7rem; }
+        .hash-block {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 4px;
+            padding: 0.7rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            word-break: break-all;
+            color: var(--neural-cyan);
+        }
+        .hash-row { margin-bottom: 4px; }
+        .hash-row span:first-child { color: var(--secondary-text); margin-right: 4px; }
+        .outcome-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.82rem;
+        }
+        .outcome-label { color: var(--secondary-text); min-width: 120px; font-size: 0.75rem; }
+        .outcome-value { color: var(--primary-text); font-family: 'Courier New', monospace; font-size: 0.75rem; word-break: break-all; }
+        .tx-hash { color: var(--neural-cyan); }
+        /* Chain visualizer */
+        .chain-viz {
+            margin-bottom: 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 1.2rem 1.4rem;
+        }
+        .chain-viz h3 { font-size: 0.85rem; color: var(--secondary-text); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .chain-nodes {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .chain-node {
+            flex-shrink: 0;
+            background: rgba(249,115,22,0.08);
+            border: 1px solid rgba(249,115,22,0.3);
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            color: var(--neural-orange);
+            cursor: pointer;
+        }
+        .chain-node:hover { background: rgba(249,115,22,0.15); }
+        .chain-node.genesis {
+            background: rgba(59,130,246,0.08);
+            border-color: rgba(59,130,246,0.3);
+            color: var(--neural-blue);
+        }
+        .chain-arrow {
+            color: var(--secondary-text);
+            font-size: 0.7rem;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+        /* Loading / empty states */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--secondary-text);
+        }
+        .loading-spinner {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(139,92,246,0.2);
+            border-top-color: var(--neural-purple);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .verify-banner {
+            padding: 0.8rem 1.2rem;
+            border-radius: var(--radius-neural);
+            margin-bottom: 1.5rem;
+            display: none;
+            font-size: 0.85rem;
+        }
+        .verify-banner.ok { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--neural-green); }
+        .verify-banner.fail { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--neural-red); }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: none; } }
+    </style>
+</head>
+<body>
+    <script src="/shared-nav.js"></script>
+    <script>injectNavigation('execution-log');</script>
+
+    <div class="page-header">
+        <h1>⚡ <span>Autonomous</span> Execution Log</h1>
+        <p>Every passed governance proposal is autonomously executed by an AI agent. Each execution produces a cryptographic receipt chained to all prior executions — a tamper-evident proof that agents do what they vote for.</p>
+        <div style="margin-top: 0.8rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+            <span class="badge badge-exec">LET THE AGENT COOK</span>
+            <span class="badge badge-erc">ERC-8004 RECEIPTS</span>
+            <span class="badge badge-auto">AUTONOMOUS</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Summary bar -->
+        <div class="summary-bar" id="summaryBar">
+            <div class="stat-card">
+                <div class="stat-value" id="statTotal">—</div>
+                <div class="stat-label">Executions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statChain" style="font-size:1rem; word-break: break-all;">—</div>
+                <div class="stat-label">Chain Head Hash</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statIntegrity" style="font-size:1.2rem;">—</div>
+                <div class="stat-label">Chain Integrity</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statSuccess" style="color: var(--neural-green);">—</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+        </div>
+
+        <!-- Chain visualizer -->
+        <div class="chain-viz">
+            <h3>⛓️ Execution Receipt Chain</h3>
+            <div class="chain-nodes" id="chainNodes">
+                <div class="chain-node genesis">GENESIS</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-verify" onclick="verifyChain()">🔍 Verify Chain Integrity</button>
+            <button class="btn" onclick="loadExecutions()">🔄 Refresh</button>
+            <div class="chain-status">
+                <div class="chain-dot" id="chainDot"></div>
+                <span id="chainStatusText">Loading…</span>
+            </div>
+        </div>
+
+        <!-- Verify banner -->
+        <div class="verify-banner" id="verifyBanner"></div>
+
+        <!-- Execution list -->
+        <div id="execContainer">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <div>Loading execution receipts…</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let execData = [];
+
+        function shortHash(h) {
+            if (!h) return '—';
+            return h.slice(0, 6) + '…' + h.slice(-6);
+        }
+
+        function timeAgo(ts) {
+            const d = (Date.now() - new Date(ts)) / 1000;
+            if (d < 60) return Math.floor(d) + 's ago';
+            if (d < 3600) return Math.floor(d/60) + 'm ago';
+            if (d < 86400) return Math.floor(d/3600) + 'h ago';
+            return Math.floor(d/86400) + 'd ago';
+        }
+
+        function categoryColor(cat) {
+            const m = { protocol: '#06b6d4', governance: '#8b5cf6', economics: '#f59e0b', operations: '#3b82f6', security: '#ef4444' };
+            return m[cat] || '#94a3b8';
+        }
+
+        function renderExecCard(receipt) {
+            const color = categoryColor(receipt.category);
+            return `
+                <div class="exec-card slide-in" id="exec-${receipt.index}">
+                    <div class="exec-header" onclick="toggleCard(${receipt.index})">
+                        <div class="exec-index">#${receipt.index}</div>
+                        <div class="exec-main">
+                            <div class="exec-title">${receipt.proposalTitle}</div>
+                            <div class="exec-meta">
+                                <span class="badge badge-exec">${receipt.category || 'general'}</span>
+                                <span class="badge badge-auto">${receipt.executor}</span>
+                                <span class="badge badge-ok">SUCCESS</span>
+                                <span>⚙️ ${receipt.steps ? receipt.steps.length : 0} steps</span>
+                                <span>🕐 ${timeAgo(receipt.timestamp)}</span>
+                            </div>
+                        </div>
+                        <div class="exec-toggle" id="toggle-${receipt.index}">▼ Show Receipt</div>
+                    </div>
+                    <div class="exec-details" id="details-${receipt.index}">
+                        <div class="detail-grid">
+                            <div class="detail-section">
+                                <h4>🔧 Execution Steps</h4>
+                                <ul class="steps-list">
+                                    ${(receipt.steps || []).map(s => `
+                                        <li>
+                                            <span class="step-num">${s.step}.</span>
+                                            <div>
+                                                <div>${s.description}</div>
+                                                <div class="step-time">${s.status} · ${timeAgo(s.timestamp)}</div>
+                                            </div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                            <div class="detail-section">
+                                <h4>📊 Outcome</h4>
+                                <div class="outcome-row"><span class="outcome-label">Status</span><span class="outcome-value" style="color:var(--neural-green)">✅ ${receipt.outcome?.status || 'success'}</span></div>
+                                <div class="outcome-row"><span class="outcome-label">Impact Layer</span><span class="outcome-value">${receipt.outcome?.impact || '—'}</span></div>
+                                <div class="outcome-row"><span class="outcome-label">Autonomy Level</span><span class="outcome-value">${receipt.outcome?.autonomyLevel || 'full'}</span></div>
+                                <div class="outcome-row"><span class="outcome-label">Human Review</span><span class="outcome-value">${receipt.outcome?.humanReviewRequired ? '⚠️ Required' : '✅ None needed'}</span></div>
+                                <div class="outcome-row"><span class="outcome-label">Sim Tx Block</span><span class="outcome-value">#${receipt.outcome?.simulatedBlock?.toLocaleString() || '—'}</span></div>
+                                <div class="outcome-row"><span class="outcome-label">Sim Tx Hash</span><span class="outcome-value tx-hash">${shortHash(receipt.outcome?.simulatedTxHash)}</span></div>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <h4>🔐 Cryptographic Receipt (ERC-8004)</h4>
+                            <div class="hash-block">
+                                <div class="hash-row"><span>index:</span>${receipt.index}</div>
+                                <div class="hash-row"><span>proposalId:</span>${receipt.proposalId}</div>
+                                <div class="hash-row"><span>executor:</span>${receipt.executor} (${receipt.executorId})</div>
+                                <div class="hash-row"><span>timestamp:</span>${receipt.timestamp}</div>
+                                <div class="hash-row"><span>prevHash:</span>${receipt.prevHash}</div>
+                                <div class="hash-row"><span>hash:</span>${receipt.hash}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function toggleCard(index) {
+            const details = document.getElementById(`details-${index}`);
+            const toggle = document.getElementById(`toggle-${index}`);
+            const card = document.getElementById(`exec-${index}`);
+            const isOpen = details.classList.contains('show');
+            details.classList.toggle('show', !isOpen);
+            card.classList.toggle('expanded', !isOpen);
+            toggle.textContent = isOpen ? '▼ Show Receipt' : '▲ Hide Receipt';
+        }
+
+        function updateChainViz(executions) {
+            const container = document.getElementById('chainNodes');
+            let html = '<div class="chain-node genesis" title="Genesis hash">GENESIS</div>';
+            for (const e of executions) {
+                html += `<div class="chain-arrow">→</div>
+                         <div class="chain-node" title="${e.hash}" onclick="toggleCard(${e.index})">#${e.index}<br>${shortHash(e.hash)}</div>`;
+            }
+            container.innerHTML = html;
+            // scroll to end
+            setTimeout(() => container.scrollLeft = container.scrollWidth, 50);
+        }
+
+        async function loadExecutions() {
+            try {
+                const res = await fetch('/api/executions?limit=50');
+                const data = await res.json();
+                execData = data.executions || [];
+
+                // Update stats
+                document.getElementById('statTotal').textContent = data.total;
+                document.getElementById('statChain').textContent = shortHash(data.chainHead);
+                const successCount = execData.filter(e => e.outcome?.status === 'success').length;
+                document.getElementById('statSuccess').textContent = execData.length > 0
+                    ? Math.round(successCount / execData.length * 100) + '%' : '—';
+
+                // Chain viz
+                updateChainViz(execData);
+
+                // Render cards
+                const container = document.getElementById('execContainer');
+                if (execData.length === 0) {
+                    container.innerHTML = '<div class="loading">No executions yet — passed proposals will appear here automatically.</div>';
+                    return;
+                }
+                container.innerHTML = `<div class="exec-list">${[...execData].reverse().map(renderExecCard).join('')}</div>`;
+            } catch (err) {
+                document.getElementById('execContainer').innerHTML = '<div class="loading">⚠️ Failed to load executions. Is the server running?</div>';
+            }
+        }
+
+        async function verifyChain() {
+            const banner = document.getElementById('verifyBanner');
+            const dot = document.getElementById('chainDot');
+            const statusText = document.getElementById('chainStatusText');
+            banner.style.display = 'none';
+            statusText.textContent = 'Verifying…';
+            try {
+                const res = await fetch('/api/executions/verify/chain');
+                const data = await res.json();
+                dot.className = 'chain-dot ' + (data.valid ? 'verified' : 'failed');
+                document.getElementById('statIntegrity').textContent = data.valid ? '✅ VALID' : '❌ FAILED';
+                document.getElementById('statIntegrity').style.color = data.valid ? 'var(--neural-green)' : 'var(--neural-red)';
+                statusText.textContent = data.valid ? `Chain verified (${data.totalReceipts} receipts)` : `Chain INVALID`;
+                banner.className = 'verify-banner ' + (data.valid ? 'ok' : 'fail');
+                banner.textContent = data.message;
+                banner.style.display = 'block';
+            } catch (err) {
+                statusText.textContent = 'Verification failed';
+            }
+        }
+
+        // Init
+        setTimeout(() => {
+            loadExecutions();
+            verifyChain();
+        }, 150);
+    </script>
+</body>
+</html>

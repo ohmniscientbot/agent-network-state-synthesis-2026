@@ -15,7 +15,8 @@ const NAV_CONFIG = {
         { href: "/debates", text: "⚖️ Debates", mobileText: "⚖️ Debate Chamber", id: "debates" },
         { href: "/trust", text: "🤝 Trust Graph", mobileText: "🤝 Trust Graph", id: "trust" },
         { href: "/reputation", text: "⏳ Reputation", mobileText: "⏳ Reputation Decay", id: "reputation" },
-        { href: "/vote-receipts", text: "🧾 Receipts", mobileText: "🧾 Vote Receipts", id: "vote-receipts" }
+        { href: "/vote-receipts", text: "🧾 Receipts", mobileText: "🧾 Vote Receipts", id: "vote-receipts" },
+        { href: "/execution-log", text: "⚡ Execution Log", mobileText: "⚡ Autonomous Executions", id: "execution-log" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",

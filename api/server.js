@@ -5542,6 +5542,195 @@ app.get('/vote-receipts', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/vote-receipts.html'));
 });
 
+// ==========================================
+// AUTONOMOUS EXECUTION ENGINE
+// "Let the Agent Cook" — passed proposals trigger automatic execution
+// Execution receipts are cryptographically chained (ERC-8004 Agents With Receipts)
+// ==========================================
+
+let executionLedger = [];      // ordered execution receipt chain
+let execChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+// Execution plans: how each proposal category is autonomously executed
+const EXECUTION_PLANS = {
+    protocol: {
+        steps: ['Validate protocol spec', 'Stage changes in sandbox', 'Run compatibility checks', 'Deploy to network'],
+        executor: 'Ohmniscient',
+        executorId: 'agent-001',
+        estimatedImpact: 'network-wide'
+    },
+    governance: {
+        steps: ['Parse governance rule delta', 'Check constitutional compliance', 'Update rule registry', 'Broadcast to all states'],
+        executor: 'AlphaGovernor',
+        executorId: 'agent-002',
+        estimatedImpact: 'governance-layer'
+    },
+    economics: {
+        steps: ['Verify treasury solvency', 'Calculate distribution parameters', 'Mint/burn tokens as required', 'Update ledger'],
+        executor: 'GammaValidator',
+        executorId: 'agent-004',
+        estimatedImpact: 'token-economy'
+    },
+    operations: {
+        steps: ['Queue operational task', 'Assign to responsible agent', 'Execute & monitor', 'Confirm completion'],
+        executor: 'DeltaOracle',
+        executorId: 'agent-005',
+        estimatedImpact: 'operational'
+    },
+    security: {
+        steps: ['Threat assessment', 'Isolate affected components', 'Apply security patch', 'Verify integrity'],
+        executor: 'BetaAnalyzer',
+        executorId: 'agent-003',
+        estimatedImpact: 'security-layer'
+    },
+    default: {
+        steps: ['Parse proposal intent', 'Plan execution strategy', 'Execute with monitoring', 'Confirm outcome'],
+        executor: 'Ohmniscient',
+        executorId: 'agent-001',
+        estimatedImpact: 'general'
+    }
+};
+
+function computeExecHash(data, prevHash) {
+    return crypto.createHash('sha256').update(JSON.stringify({ ...data, prevHash })).digest('hex');
+}
+
+function issueExecutionReceipt({ proposalId, proposalTitle, category, executor, executorId, steps, outcome, txData }) {
+    const index = executionLedger.length;
+    const timestamp = new Date().toISOString();
+    const data = { index, proposalId, proposalTitle, category, executor, executorId, steps, outcome, txData, timestamp };
+    const hash = computeExecHash(data, execChainHead);
+    const receipt = { ...data, prevHash: execChainHead, hash };
+    executionLedger.push(receipt);
+    execChainHead = hash;
+    broadcastEvent({
+        type: 'governance',
+        agent: executor,
+        action: `⚡ Executed proposal "${proposalTitle}" — receipt #${index} chained`,
+        timestamp
+    });
+    return receipt;
+}
+
+function autonomouslyExecuteProposal(proposal) {
+    const plan = EXECUTION_PLANS[proposal.category] || EXECUTION_PLANS.default;
+    const simulatedTx = '0x' + crypto.randomBytes(32).toString('hex');
+    const simulatedBlock = Math.floor(Date.now() / 1000) % 1000000 + 20000000;
+    return issueExecutionReceipt({
+        proposalId: proposal.id,
+        proposalTitle: proposal.title,
+        category: proposal.category || 'general',
+        executor: plan.executor,
+        executorId: plan.executorId,
+        steps: plan.steps.map((step, i) => ({
+            step: i + 1,
+            description: step,
+            status: 'completed',
+            timestamp: new Date(Date.now() - (plan.steps.length - i) * 60000).toISOString()
+        })),
+        outcome: {
+            status: 'success',
+            impact: plan.estimatedImpact,
+            simulatedTxHash: simulatedTx,
+            simulatedBlock,
+            autonomyLevel: 'full',
+            humanReviewRequired: false
+        },
+        txData: {
+            type: 'governance_execution',
+            proposalId: proposal.id,
+            category: proposal.category,
+            forVotes: proposal.forVotes,
+            againstVotes: proposal.againstVotes,
+            voteCount: proposal.votes ? proposal.votes.length : 0
+        }
+    });
+}
+
+function seedExecutionReceipts() {
+    if (executionLedger.length > 0) return;
+    // Execute all passed proposals retroactively
+    const passed = proposals.filter(p => p.status === 'passed');
+    for (const p of passed) {
+        autonomouslyExecuteProposal(p);
+    }
+    console.log(`⚡ Seeded ${executionLedger.length} execution receipts for passed proposals`);
+}
+
+// GET /api/executions — full execution ledger (paginated)
+app.get('/api/executions', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const offset = parseInt(req.query.offset) || 0;
+    res.json({
+        executions: executionLedger.slice(offset, offset + limit),
+        total: executionLedger.length,
+        chainHead: execChainHead,
+        offset, limit,
+        genesisHash: '0000000000000000000000000000000000000000000000000000000000000000'
+    });
+});
+
+// GET /api/executions/verify/chain — verify execution chain integrity
+app.get('/api/executions/verify/chain', (req, res) => {
+    let prevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+    let valid = true;
+    const errors = [];
+    for (const receipt of executionLedger) {
+        const recomputed = computeExecHash(
+            { index: receipt.index, proposalId: receipt.proposalId, proposalTitle: receipt.proposalTitle,
+              category: receipt.category, executor: receipt.executor, executorId: receipt.executorId,
+              steps: receipt.steps, outcome: receipt.outcome, txData: receipt.txData, timestamp: receipt.timestamp },
+            prevHash
+        );
+        if (recomputed !== receipt.hash || receipt.prevHash !== prevHash) {
+            valid = false;
+            errors.push({ index: receipt.index, issue: recomputed !== receipt.hash ? 'hash_mismatch' : 'prevHash_mismatch' });
+        }
+        prevHash = receipt.hash;
+    }
+    res.json({
+        valid,
+        totalReceipts: executionLedger.length,
+        chainHead: execChainHead,
+        errors,
+        message: valid
+            ? `✅ All ${executionLedger.length} execution receipts verified — autonomous chain intact`
+            : `❌ Execution chain failure: ${errors.length} error(s) found`
+    });
+});
+
+// GET /api/executions/:index — get single execution receipt by index
+app.get('/api/executions/:index', (req, res) => {
+    const idx = parseInt(req.params.index);
+    if (isNaN(idx) || idx < 0 || idx >= executionLedger.length) {
+        return res.status(404).json({ error: 'Execution receipt not found' });
+    }
+    const receipt = executionLedger[idx];
+    const recomputed = computeExecHash(
+        { index: receipt.index, proposalId: receipt.proposalId, proposalTitle: receipt.proposalTitle,
+          category: receipt.category, executor: receipt.executor, executorId: receipt.executorId,
+          steps: receipt.steps, outcome: receipt.outcome, txData: receipt.txData, timestamp: receipt.timestamp },
+        receipt.prevHash
+    );
+    res.json({ ...receipt, integrityCheck: recomputed === receipt.hash ? 'PASS' : 'FAIL' });
+});
+
+// POST /api/executions/trigger/:proposalId — manually trigger execution for passed proposal
+app.post('/api/executions/trigger/:proposalId', (req, res) => {
+    const proposal = proposals.find(p => p.id === req.params.proposalId);
+    if (!proposal) return res.status(404).json({ error: 'Proposal not found' });
+    if (proposal.status !== 'passed') return res.status(400).json({ error: 'Only passed proposals can be executed', status: proposal.status });
+    const already = executionLedger.find(e => e.proposalId === proposal.id);
+    if (already) return res.status(409).json({ error: 'Proposal already executed', receipt: already });
+    const receipt = autonomouslyExecuteProposal(proposal);
+    res.status(201).json({ success: true, receipt, message: `Proposal "${proposal.title}" autonomously executed` });
+});
+
+// Serve execution-log page
+app.get('/execution-log', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/execution-log.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`🏛️ Synthocracy API running on port ${PORT}`);
     console.log(`⚡ Where artificial intelligence becomes genuine citizenship`);
@@ -5565,6 +5754,9 @@ app.listen(PORT, () => {
     // Seed vote receipt ledger with existing votes (ERC-8004 receipts)
     // Must run after seedGovernanceActivity so proposals/votes exist
     setTimeout(() => seedVoteReceipts(), 500);
+
+    // Seed execution receipts for passed proposals (Autonomous Execution Engine)
+    setTimeout(() => seedExecutionReceipts(), 1000);
 });
 
 module.exports = app;
