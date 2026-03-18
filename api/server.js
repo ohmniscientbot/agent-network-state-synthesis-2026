@@ -9673,7 +9673,7 @@ setTimeout(seedLifecycleLedger, 10500);
 
 // ── Lifecycle API Endpoints ────────────────────────────────────────────────────
 
-// GET /api/lifecycle/status — protocol overview
+// GET /api/lifecycle/status — protocol overview (MUST be before /:proposalId)
 app.get('/api/lifecycle/status', (req, res) => {
     res.json({
         totalTraces: lifecycleLedger.length,
@@ -9687,15 +9687,7 @@ app.get('/api/lifecycle/status', (req, res) => {
     });
 });
 
-// GET /api/lifecycle/:proposalId — full lifecycle trace for a proposal (live query)
-app.get('/api/lifecycle/:proposalId', (req, res) => {
-    const { proposalId } = req.params;
-    const trace = buildProposalTrace(proposalId);
-    if (!trace) return res.status(404).json({ error: 'Proposal not found', proposalId });
-    res.json({ ...trace, generatedAt: new Date().toISOString(), chainId: 14, standard: 'ERC-8004' });
-});
-
-// GET /api/lifecycle/verify/chain — verify 14th chain integrity
+// GET /api/lifecycle/verify/chain — verify 14th chain integrity (MUST be before /:proposalId)
 app.get('/api/lifecycle/verify/chain', (req, res) => {
     if (lifecycleLedger.length === 0) {
         return res.json({ valid: true, receipts: 0, message: 'Chain empty (seeding in progress)' });
@@ -9708,7 +9700,7 @@ app.get('/api/lifecycle/verify/chain', (req, res) => {
             valid = false;
             faults.push({ index: receipt.index, expected: prevHash.substring(0, 8), got: receipt.prevHash.substring(0, 8) });
         }
-        const { hash, trace, ...dataOnly } = receipt;
+        const { hash: _h, trace: _t, prevHash: _ph, ...dataOnly } = receipt;
         const recomputed = computeLifecycleHash(dataOnly, prevHash);
         if (recomputed !== receipt.hash) {
             valid = false;
@@ -9728,7 +9720,7 @@ app.get('/api/lifecycle/verify/chain', (req, res) => {
     });
 });
 
-// GET /api/lifecycle/ledger — all trace receipts (without full trace events for brevity)
+// GET /api/lifecycle/ledger — all trace receipts (MUST be before /:proposalId)
 app.get('/api/lifecycle/ledger', (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -9744,6 +9736,14 @@ app.get('/api/lifecycle/ledger', (req, res) => {
         hash: r.hash
     }));
     res.json({ receipts: slice, total: lifecycleLedger.length, page, limit, chainHead: lifecycleChainHead });
+});
+
+// GET /api/lifecycle/:proposalId — full lifecycle trace for a proposal (live query, MUST be after specific routes)
+app.get('/api/lifecycle/:proposalId', (req, res) => {
+    const { proposalId } = req.params;
+    const trace = buildProposalTrace(proposalId);
+    if (!trace) return res.status(404).json({ error: 'Proposal not found', proposalId });
+    res.json({ ...trace, generatedAt: new Date().toISOString(), chainId: 14, standard: 'ERC-8004' });
 });
 
 // Serve lifecycle frontend
