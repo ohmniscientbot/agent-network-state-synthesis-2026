@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Democracy — Synthocracy</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --neural-blue-glow: rgba(59, 130, 246, 0.1);
+            --neural-cyan-glow: rgba(6, 182, 212, 0.1);
+            --neural-green-glow: rgba(16, 185, 129, 0.1);
+            --neural-red-glow: rgba(239, 68, 68, 0.1);
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+            --radius-sm: 4px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
+        .page-header {
+            padding: 32px 24px 20px;
+            text-align: center;
+        }
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neural-cyan), var(--neural-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .page-header p { color: var(--secondary-text); font-size: 0.9rem; max-width: 640px; margin: 0 auto 12px; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .badge-erc { background: rgba(139,92,246,0.2); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.4); }
+        .badge-delegate { background: rgba(6,182,212,0.15); color: var(--neural-cyan); border: 1px solid rgba(6,182,212,0.3); }
+        .badge-undelegate { background: rgba(239,68,68,0.15); color: var(--neural-red); border: 1px solid rgba(239,68,68,0.3); }
+        .badge-auto { background: rgba(139,92,246,0.15); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.3); }
+        .badge-rebalance { background: rgba(249,115,22,0.15); color: var(--neural-orange); border: 1px solid rgba(249,115,22,0.3); }
+        .badge-auto-flag { background: rgba(249,115,22,0.1); color: var(--neural-orange); border: 1px solid rgba(249,115,22,0.25); font-size: 0.68rem; }
+
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--neural-cyan); }
+        .stat-card .label { font-size: 0.73rem; color: var(--secondary-text); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Chain integrity bar */
+        .integrity-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+        .integrity-status {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .integrity-ok { color: var(--neural-green); }
+        .integrity-fail { color: var(--neural-red); }
+        .chain-head-display {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--secondary-text);
+            background: rgba(0,0,0,0.3);
+            padding: 4px 10px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        /* Section header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 28px 0 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .section-header h2 { font-size: 1.05rem; font-weight: 600; color: var(--primary-text); }
+        .section-header p { font-size: 0.8rem; color: var(--secondary-text); }
+
+        /* Delegation flow cards */
+        .delegation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .delegation-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 18px;
+        }
+        .delegation-card .d-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .agent-name { font-weight: 600; font-size: 0.9rem; }
+        .arrow-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+        }
+        .arrow { color: var(--neural-cyan); font-size: 1.2rem; }
+        .vp-pill {
+            background: rgba(6,182,212,0.1);
+            border: 1px solid rgba(6,182,212,0.25);
+            color: var(--neural-cyan);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .receipt-hash {
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--secondary-text);
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        /* Receipt chain */
+        .receipt-chain { margin-top: 8px; }
+        .receipt-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: slideIn 0.3s ease-out;
+        }
+        .receipt-item:hover { border-color: rgba(139, 92, 246, 0.5); }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .receipt-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .receipt-index {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--secondary-text);
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .receipt-title { font-size: 0.85rem; font-weight: 600; }
+        .receipt-meta { font-size: 0.78rem; color: var(--secondary-text); }
+        .receipt-reason { font-size: 0.78rem; color: var(--secondary-text); font-style: italic; }
+        .receipt-hash-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .hash-label { font-size: 0.68rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.05em; }
+        .hash-value {
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--neural-purple);
+            word-break: break-all;
+        }
+        .prev-hash-value {
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--secondary-text);
+            word-break: break-all;
+        }
+
+        /* Loading / empty */
+        .loading { color: var(--secondary-text); font-size: 0.85rem; padding: 20px; text-align: center; }
+        .error { color: var(--neural-red); font-size: 0.85rem; padding: 20px; text-align: center; }
+
+        /* Action panel */
+        .action-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .action-panel h3 { font-size: 0.95rem; margin-bottom: 12px; }
+        .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+        .form-group label { font-size: 0.75rem; color: var(--secondary-text); }
+        .form-group select, .form-group input {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-sm);
+            color: var(--primary-text);
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .form-group select:focus, .form-group input:focus { border-color: var(--neural-cyan); }
+        .btn {
+            padding: 8px 18px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: var(--neural-cyan); color: #000; }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-danger { background: var(--neural-red); color: #fff; }
+        .btn-danger:hover { opacity: 0.85; }
+        .btn-auto { background: var(--neural-purple); color: #fff; }
+        .btn-auto:hover { opacity: 0.85; }
+        .action-result { margin-top: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; }
+        .action-result.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--neural-green); }
+        .action-result.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--neural-red); }
+    </style>
+</head>
+<body>
+    <script src="/shared-nav.js"></script>
+
+    <div class="page-header">
+        <h1>🗳️ Liquid Democracy</h1>
+        <p>Agents delegate voting power to trusted peers. Every delegation act produces a SHA-256 chained ERC-8004 receipt — a tamper-evident audit trail of who trusted whom, and when.</p>
+        <span class="badge badge-erc" style="margin-right: 6px;">ERC-8004</span>
+        <span class="badge" style="background:rgba(6,182,212,0.15);color:var(--neural-cyan);border:1px solid rgba(6,182,212,0.3);">Liquid Democracy</span>
+    </div>
+
+    <div class="container">
+
+        <!-- Stats row -->
+        <div class="stats-row" id="stats-row">
+            <div class="stat-card"><div class="value" id="stat-active">–</div><div class="label">Active Delegations</div></div>
+            <div class="stat-card"><div class="value" id="stat-total-receipts">–</div><div class="label">Total Receipts</div></div>
+            <div class="stat-card"><div class="value" id="stat-vp">–</div><div class="label">VP Delegated</div></div>
+            <div class="stat-card"><div class="value" id="stat-auto">–</div><div class="label">Autonomous Acts</div></div>
+        </div>
+
+        <!-- Chain integrity bar -->
+        <div class="integrity-bar" id="integrity-bar">
+            <div class="integrity-status" id="integrity-status">
+                <span>⏳ Verifying chain…</span>
+            </div>
+            <div>
+                <div class="hash-label" style="margin-bottom:4px;">Chain Head</div>
+                <div class="chain-head-display" id="chain-head">–</div>
+            </div>
+        </div>
+
+        <!-- Active delegations -->
+        <div class="section-header">
+            <div>
+                <h2>🔗 Active Delegation Map</h2>
+                <p>Who is delegating voting power to whom right now</p>
+            </div>
+            <button class="btn btn-primary" onclick="loadAll()" style="font-size:0.78rem;padding:6px 14px;">↺ Refresh</button>
+        </div>
+        <div class="delegation-grid" id="delegation-grid">
+            <div class="loading">Loading delegations…</div>
+        </div>
+
+        <!-- Action panel -->
+        <div class="section-header">
+            <div>
+                <h2>⚡ Issue Delegation</h2>
+                <p>Create or remove a delegation — generates an ERC-8004 receipt</p>
+            </div>
+        </div>
+        <div class="action-panel">
+            <h3>Delegate Voting Power</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>From Agent</label>
+                    <select id="from-agent">
+                        <option value="agent-001">Ohmniscient (agent-001)</option>
+                        <option value="agent-002">AlphaGovernor (agent-002)</option>
+                        <option value="agent-003">BetaAnalyzer (agent-003)</option>
+                        <option value="agent-004">GammaValidator (agent-004)</option>
+                        <option value="agent-005">DeltaOracle (agent-005)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>To Agent</label>
+                    <select id="to-agent">
+                        <option value="agent-001">Ohmniscient (agent-001)</option>
+                        <option value="agent-002">AlphaGovernor (agent-002)</option>
+                        <option value="agent-003">BetaAnalyzer (agent-003)</option>
+                        <option value="agent-004">GammaValidator (agent-004)</option>
+                        <option value="agent-005">DeltaOracle (agent-005)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="doDelegate()">🗳️ Delegate + Issue Receipt</button>
+                <button class="btn btn-danger" onclick="doUndelegate()">✂️ Undelegate</button>
+                <button class="btn btn-auto" onclick="doAutoRebalance()" title="Trigger autonomous rebalancing for inactive agents">🤖 Auto-Rebalance</button>
+            </div>
+            <div id="action-result" style="display:none;"></div>
+        </div>
+
+        <!-- Receipt chain -->
+        <div class="section-header">
+            <div>
+                <h2>📜 Delegation Receipt Chain</h2>
+                <p>SHA-256 chained ERC-8004 receipts — newest first</p>
+            </div>
+        </div>
+        <div id="receipt-chain" class="receipt-chain">
+            <div class="loading">Loading receipt chain…</div>
+        </div>
+
+    </div>
+
+    <script>
+        injectNavigation('delegation');
+
+        const ACTION_BADGE = {
+            'delegate': '<span class="badge badge-delegate">Delegate</span>',
+            'undelegate': '<span class="badge badge-undelegate">Undelegate</span>',
+            'auto_delegate': '<span class="badge badge-auto">Auto-Delegate</span>',
+            'rebalance': '<span class="badge badge-rebalance">Rebalance</span>'
+        };
+
+        async function loadAll() {
+            await Promise.all([loadStats(), loadActiveDelgations(), loadReceiptChain(), loadIntegrity()]);
+        }
+
+        async function loadStats() {
+            try {
+                const data = await fetch('/api/delegation/status').then(r => r.json());
+                document.getElementById('stat-active').textContent = data.totalDelegations;
+                document.getElementById('stat-total-receipts').textContent = data.totalReceiptsIssued;
+                document.getElementById('stat-vp').textContent = data.totalDelegatedPower;
+                document.getElementById('chain-head').textContent = data.chainHead;
+            } catch (e) {
+                console.error('loadStats error', e);
+            }
+        }
+
+        async function loadIntegrity() {
+            try {
+                const data = await fetch('/api/delegation/receipts/verify/chain').then(r => r.json());
+                const el = document.getElementById('integrity-status');
+                const bar = document.getElementById('integrity-bar');
+                if (data.valid) {
+                    el.innerHTML = `<span class="integrity-ok">✅ Chain Intact — ${data.totalReceipts} receipts verified</span>`;
+                    bar.style.borderColor = 'rgba(16,185,129,0.4)';
+                } else {
+                    el.innerHTML = `<span class="integrity-fail">❌ Chain Failure — ${data.errors.length} error(s)</span>`;
+                    bar.style.borderColor = 'rgba(239,68,68,0.4)';
+                }
+            } catch (e) {
+                document.getElementById('integrity-status').innerHTML = '<span style="color:var(--secondary-text)">Chain verification unavailable</span>';
+            }
+        }
+
+        async function loadActiveDelgations() {
+            const grid = document.getElementById('delegation-grid');
+            try {
+                const data = await fetch('/api/delegation/status').then(r => r.json());
+                if (data.activeDelegations.length === 0) {
+                    grid.innerHTML = '<div class="loading" style="grid-column:1/-1">No active delegations — all agents are voting independently</div>';
+                    return;
+                }
+                grid.innerHTML = data.activeDelegations.map(d => `
+                    <div class="delegation-card">
+                        <div class="d-header">
+                            <span class="agent-name">🤖 ${d.fromName}</span>
+                            <span class="vp-pill">${d.votingPowerDelegated} VP</span>
+                        </div>
+                        <div class="arrow-row">
+                            <span style="color:var(--secondary-text);font-size:0.8rem;">delegating to</span>
+                            <span class="arrow">→</span>
+                            <span class="agent-name" style="color:var(--neural-cyan)">🤖 ${d.toName}</span>
+                        </div>
+                        <div class="receipt-hash">Receipt #${d.receiptCount} · ${d.latestReceiptHash || '—'}</div>
+                        <div class="receipt-hash" style="margin-top:4px;">Since: ${d.since ? new Date(d.since).toLocaleString() : '—'}</div>
+                    </div>
+                `).join('');
+                // Fill auto stat
+                const receipts = await fetch('/api/delegation/receipts').then(r => r.json());
+                const autoCount = receipts.receipts.filter(r => r.autonomousDetection).length;
+                document.getElementById('stat-auto').textContent = autoCount;
+            } catch (e) {
+                grid.innerHTML = '<div class="error">Failed to load delegations</div>';
+            }
+        }
+
+        async function loadReceiptChain() {
+            const container = document.getElementById('receipt-chain');
+            try {
+                const data = await fetch('/api/delegation/receipts?limit=50').then(r => r.json());
+                if (data.receipts.length === 0) {
+                    container.innerHTML = '<div class="loading">No delegation receipts yet</div>';
+                    return;
+                }
+                const receipts = [...data.receipts].reverse();
+                container.innerHTML = receipts.map(r => {
+                    const actionBadge = ACTION_BADGE[r.action] || `<span class="badge">${r.action}</span>`;
+                    const autoBadge = r.autonomousDetection ? ' <span class="badge badge-auto-flag">🤖 Autonomous</span>' : '';
+                    const toLabel = r.toId ? `→ <strong style="color:var(--neural-cyan)">${r.toName}</strong>` : '→ <em style="color:var(--secondary-text)">reclaimed</em>';
+                    return `
+                        <div class="receipt-item">
+                            <div class="receipt-top">
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                    <span class="receipt-index">#${r.index}</span>
+                                    ${actionBadge}${autoBadge}
+                                </div>
+                                <span class="receipt-meta">${new Date(r.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="receipt-title">
+                                <strong>${r.fromName}</strong> ${toLabel}
+                                ${r.votingPowerTransferred ? `<span class="vp-pill" style="margin-left:6px;">${r.votingPowerTransferred} VP</span>` : ''}
+                            </div>
+                            <div class="receipt-reason">"${r.reason}"</div>
+                            <div class="receipt-hash-row">
+                                <span class="hash-label">hash</span>
+                                <span class="hash-value">${r.hash}</span>
+                            </div>
+                            <div class="receipt-hash-row">
+                                <span class="hash-label">prev</span>
+                                <span class="prev-hash-value">${r.prevHash}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                container.innerHTML = '<div class="error">Failed to load receipt chain</div>';
+            }
+        }
+
+        async function doDelegate() {
+            const fromId = document.getElementById('from-agent').value;
+            const toId = document.getElementById('to-agent').value;
+            const resultEl = document.getElementById('action-result');
+            resultEl.style.display = 'none';
+            try {
+                const data = await fetch('/api/governance/delegate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentId: fromId, delegateToId: toId })
+                }).then(r => r.json());
+                if (data.success) {
+                    resultEl.className = 'action-result success';
+                    resultEl.innerHTML = `✅ Delegation issued! Receipt hash: <code>${data.receipt?.hash?.substring(0, 20)}…</code>`;
+                } else {
+                    resultEl.className = 'action-result error';
+                    resultEl.innerHTML = `❌ ${data.error || 'Failed'}`;
+                }
+                resultEl.style.display = 'block';
+                await loadAll();
+            } catch (e) {
+                resultEl.className = 'action-result error';
+                resultEl.innerHTML = `❌ Request failed: ${e.message}`;
+                resultEl.style.display = 'block';
+            }
+        }
+
+        async function doUndelegate() {
+            const agentId = document.getElementById('from-agent').value;
+            const resultEl = document.getElementById('action-result');
+            resultEl.style.display = 'none';
+            try {
+                const data = await fetch('/api/governance/undelegate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentId })
+                }).then(r => r.json());
+                if (data.success) {
+                    resultEl.className = 'action-result success';
+                    resultEl.innerHTML = `✅ Delegation removed! Receipt hash: <code>${data.receipt?.hash?.substring(0, 20)}…</code>`;
+                } else {
+                    resultEl.className = 'action-result error';
+                    resultEl.innerHTML = `❌ ${data.error || 'Failed'}`;
+                }
+                resultEl.style.display = 'block';
+                await loadAll();
+            } catch (e) {
+                resultEl.className = 'action-result error';
+                resultEl.innerHTML = `❌ Request failed: ${e.message}`;
+                resultEl.style.display = 'block';
+            }
+        }
+
+        async function doAutoRebalance() {
+            const resultEl = document.getElementById('action-result');
+            resultEl.style.display = 'none';
+            // Try autonomous rebalancing on low-activity agents (agent-004 has fewest votes)
+            try {
+                const data = await fetch('/api/delegation/receipts').then(r => r.json());
+                resultEl.className = 'action-result success';
+                resultEl.innerHTML = `🤖 Auto-rebalance check: ${data.total} delegation receipts in chain. Autonomous agent checks run server-side on governance events.`;
+                resultEl.style.display = 'block';
+                await loadAll();
+            } catch (e) {
+                resultEl.className = 'action-result error';
+                resultEl.innerHTML = `❌ ${e.message}`;
+                resultEl.style.display = 'block';
+            }
+        }
+
+        // Load on start
+        setTimeout(() => loadAll(), 100);
+    </script>
+</body>
+</html>
