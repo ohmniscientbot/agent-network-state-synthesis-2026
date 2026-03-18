@@ -660,7 +660,7 @@
       "type": "autonomous_cycle",
       "cycleId": 9,
       "description": "Improvement cycle #9: (1) Rate limit raised 200\u21921000 req/hr for judge evaluation period. (2) Moltbook post published about Synthocracy. (3) Submission metadata updated with moltbookPostURL + commitCount. (4) New API endpoints: /api/agent/manifest, /api/agent/log, /api/agent/log/:id, /api/agent/stats \u2014 exposes agent.json and agent_log.json as live queryable API for ERC-8004 and Let the Agent Cook track judges.",
-      "commit": "pending",
+      "commit": "9c596fb",
       "tools": [
         "exec",
         "edit",
@@ -684,7 +684,7 @@
       "selfCorrected": true,
       "resolution": "Removed duplicate require() statements from new code block. Verified with node syntax check before push.",
       "lesson": "Always check for duplicate declarations when adding code blocks that include requires. Run node syntax check locally before committing.",
-      "commit": "pending",
+      "commit": "9c596fb",
       "outcome": "fixed"
     },
     {
@@ -693,7 +693,7 @@
       "type": "autonomous_cycle",
       "cycleId": 10,
       "description": "Browser testing infrastructure: Selenium Chrome pod in k8s, 25-test suite (pages, nav, APIs, ERC-8004 identity), run-tests.sh lifecycle manager. 25/25 passing. Wired into hourly improvement cron. Cron updated to require 100% pass before any push.",
-      "commit": "pending",
+      "commit": "9c596fb",
       "tools": [
         "exec",
         "write",
@@ -743,7 +743,7 @@
       "type": "autonomous_cycle",
       "cycleId": 12,
       "description": "Reputation Decay System: (1) Backend /api/reputation/decay, /api/reputation/decay/:agentId, /api/reputation/delegations endpoints. (2) Exponential decay formula score(t)=base*e^(-0.02t) with 35-day half-life, per-agent decay scoring, system health metrics. (3) Seeded 3 active delegations (activeDelegations: 0 \u2192 3). (4) New /reputation page with decay scores, 90-day projection chart, delegation map. (5) Added Reputation to main navigation.",
-      "commit": "pending",
+      "commit": "9c596fb",
       "tools": [
         "exec",
         "write",
@@ -782,7 +782,7 @@
       "type": "autonomous_cycle",
       "cycleId": 13,
       "description": "Vote Receipt Ledger (ERC-8004 Agents With Receipts): Every vote now generates a cryptographic SHA-256 receipt chained to the previous receipt via prevHash, forming a tamper-evident audit ledger. Backend: issueVoteReceipt() function + /api/receipts, /api/receipts/:index, /api/receipts/verify/chain, /api/receipts/agent/:agentId endpoints. All existing seed votes retroactively issued receipts on startup. Frontend: /vote-receipts page with interactive chain explorer, one-click chain integrity verification, expandable receipt cards showing full hash pairs. Added 🧾 Receipts to main navigation.",
-      "commit": "pending",
+      "commit": "9c596fb",
       "tools": ["exec", "write", "edit"],
       "changes": [
         "api/server.js: issueVoteReceipt(), computeReceiptHash(), seedVoteReceipts() + 4 new /api/receipts/* endpoints",
