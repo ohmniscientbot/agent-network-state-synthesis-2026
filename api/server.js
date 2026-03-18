@@ -7428,7 +7428,7 @@ function conveneEmergencyCouncil({ triggerType, subject, triggerDetails, severit
     councilLedger.unshift(receipt);
 
     // Emit to activity feed
-    addActivity({ type: 'governance', message: `🏛️ Emergency Council #${receipt.chainPosition} convened — ${triggerType} | Decision: ${councilDecision.toUpperCase()} (${majorityPct}% majority)` });
+    broadcastEvent({ type: 'governance', message: `🏛️ Emergency Council #${receipt.chainPosition} convened — ${triggerType} | Decision: ${councilDecision.toUpperCase()} (${majorityPct}% majority)`, timestamp: new Date().toISOString() });
 
     return receipt;
 }
