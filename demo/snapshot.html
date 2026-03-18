@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthocracy — Governance State Snapshot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255,255,255,0.02);
+            --card-bg-hover: rgba(255,255,255,0.04);
+            --border-neural: rgba(139,92,246,0.3);
+            --border-subtle: rgba(255,255,255,0.06);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+            --radius-sm: 6px;
+            --neural-cyan-glow: rgba(6,182,212,0.1);
+            --neural-blue-glow: rgba(59,130,246,0.1);
+            --neural-green-glow: rgba(16,185,129,0.1);
+            --neural-purple-glow: rgba(139,92,246,0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg-primary); color: var(--primary-text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+        .page-container { max-width: 1200px; margin: 0 auto; padding: 32px 20px; }
+
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .page-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; color: var(--neural-purple); margin-bottom: 8px; }
+        .page-header p { color: var(--secondary-text); font-size: 0.95rem; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+        .track-badges { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+        .track-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; }
+        .track-badge.erc { background: rgba(139,92,246,0.2); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.4); }
+        .track-badge.cook { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+        .track-badge.open { background: rgba(6,182,212,0.15); color: var(--neural-cyan); border: 1px solid rgba(6,182,212,0.3); }
+
+        .status-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 28px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 16px; text-align: center; }
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 600; color: var(--neural-cyan); }
+        .stat-label { font-size: 0.75rem; color: var(--secondary-text); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .section { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px; margin-bottom: 20px; }
+        .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 600; color: var(--primary-text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+        /* Countdown bar */
+        .countdown-wrap { margin-bottom: 20px; }
+        .countdown-label { font-size: 0.8rem; color: var(--secondary-text); margin-bottom: 6px; display: flex; justify-content: space-between; }
+        .countdown-bar-bg { height: 6px; background: var(--border-subtle); border-radius: 3px; overflow: hidden; }
+        .countdown-bar-fill { height: 100%; background: linear-gradient(90deg, var(--neural-purple), var(--neural-cyan)); border-radius: 3px; transition: width 1s linear; }
+
+        /* Merkle hero */
+        .merkle-hero { background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(6,182,212,0.04)); border: 1px solid rgba(139,92,246,0.25); border-radius: var(--radius-neural); padding: 24px; margin-bottom: 20px; text-align: center; }
+        .merkle-label { font-size: 0.75rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .merkle-root { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--neural-cyan); word-break: break-all; background: rgba(6,182,212,0.05); padding: 10px 16px; border-radius: 4px; border: 1px solid rgba(6,182,212,0.2); }
+        .merkle-sub { font-size: 0.78rem; color: var(--secondary-text); margin-top: 10px; }
+
+        /* Chain grid */
+        .chain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+        .chain-card { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px 14px; }
+        .chain-card.active { border-color: rgba(16,185,129,0.3); }
+        .chain-id { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--neural-purple); font-weight: 600; }
+        .chain-name { font-size: 0.82rem; color: var(--primary-text); margin: 3px 0; font-weight: 500; }
+        .chain-length { font-size: 0.75rem; color: var(--secondary-text); }
+        .chain-head { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--neural-cyan); margin-top: 5px; word-break: break-all; opacity: 0.8; }
+
+        /* Chain integrity bar */
+        .integrity-bar { display: flex; align-items: center; gap: 12px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 20px; }
+        .integrity-bar.fail { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+        .integrity-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--neural-green); flex-shrink: 0; animation: pulse 2s infinite; }
+        .integrity-dot.fail { background: var(--neural-red); }
+        .integrity-text { font-size: 0.82rem; color: var(--primary-text); flex: 1; }
+
+        /* Receipt chain */
+        .receipt-chain { display: flex; flex-direction: column; gap: 10px; }
+        .receipt-item { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; cursor: pointer; transition: all 0.2s; }
+        .receipt-item:hover { border-color: var(--border-neural); background: var(--card-bg-hover); }
+        .receipt-header { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+        .receipt-index { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--neural-purple); font-weight: 600; }
+        .receipt-time { font-size: 0.72rem; color: var(--secondary-text); }
+        .receipt-receipts { font-size: 0.78rem; color: var(--neural-green); }
+        .receipt-hash-row { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+        .hash-label { font-size: 0.65rem; color: var(--secondary-text); text-transform: uppercase; white-space: nowrap; }
+        .hash-val { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--neural-cyan); word-break: break-all; }
+        .receipt-detail { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle); display: none; }
+        .receipt-item.expanded .receipt-detail { display: block; }
+        .merkle-mini { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--neural-purple); word-break: break-all; background: rgba(139,92,246,0.05); padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.15); margin-bottom: 8px; }
+        .mini-chains { display: flex; flex-wrap: wrap; gap: 5px; }
+        .mini-chain-pill { font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; background: rgba(6,182,212,0.08); color: var(--neural-cyan); border: 1px solid rgba(6,182,212,0.2); }
+
+        .alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 12px; }
+        .alert.loading { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); color: var(--neural-blue); }
+        .alert.error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--neural-red); }
+
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+        @media (max-width:600px) { .status-bar{grid-template-columns:repeat(2,1fr);} .chain-grid{grid-template-columns:1fr;} }
+    </style>
+</head>
+<body>
+<script src="/shared-nav.js"></script>
+<script>injectNavigation('snapshot');</script>
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>📸 Governance State Snapshot</h1>
+        <p>All 16 ERC-8004 chain heads committed into a single Merkle tree every 45 seconds — the receipt for all receipts. One hash proves the entire governance state.</p>
+        <div class="track-badges">
+            <span class="track-badge erc">🪙 ERC-8004 Chain #17</span>
+            <span class="track-badge cook">🤖 Let the Agent Cook · 45s loop</span>
+            <span class="track-badge open">🌐 Open Track · Novel primitive</span>
+        </div>
+    </div>
+
+    <!-- Status stats -->
+    <div class="status-bar" id="status-bar">
+        <div class="stat-card"><div class="stat-value" id="stat-snapshots">—</div><div class="stat-label">Snapshots Taken</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-receipts">—</div><div class="stat-label">Total Receipts Committed</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-chains">—</div><div class="stat-label">Chains Monitored</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-next">—</div><div class="stat-label">Next Snapshot</div></div>
+    </div>
+
+    <!-- Countdown -->
+    <div class="countdown-wrap">
+        <div class="countdown-label">
+            <span>⏱ Next snapshot in</span>
+            <span id="countdown-text">—</span>
+        </div>
+        <div class="countdown-bar-bg"><div class="countdown-bar-fill" id="countdown-fill" style="width:50%"></div></div>
+    </div>
+
+    <!-- Chain integrity -->
+    <div class="integrity-bar" id="integrity-bar">
+        <div class="integrity-dot" id="integrity-dot"></div>
+        <div class="integrity-text" id="integrity-text">Verifying chain integrity…</div>
+    </div>
+
+    <!-- Latest Merkle root -->
+    <div class="merkle-hero" id="merkle-hero" style="display:none">
+        <div class="merkle-label">Latest Governance State Merkle Root</div>
+        <div class="merkle-root" id="merkle-root-val">—</div>
+        <div class="merkle-sub" id="merkle-sub">—</div>
+    </div>
+
+    <!-- Chain grid -->
+    <div class="section">
+        <div class="section-title">🔗 16 ERC-8004 Chains Committed Per Snapshot</div>
+        <div class="chain-grid" id="chain-grid">
+            <div class="alert loading">Loading chain manifest…</div>
+        </div>
+    </div>
+
+    <!-- Receipt chain -->
+    <div class="section">
+        <div class="section-title">📜 Snapshot Receipt Chain (newest first)</div>
+        <div class="receipt-chain" id="receipt-chain">
+            <div class="alert loading">Loading snapshot ledger…</div>
+        </div>
+    </div>
+</div>
+
+<script>
+const BASE = '';
+let nextMs = 45000;
+let lastCountdownMs = 45000;
+
+async function fetchStatus() {
+    try {
+        const r = await fetch(`${BASE}/api/snapshot/status`);
+        const d = await r.json();
+        document.getElementById('stat-snapshots').textContent = d.snapshotsTaken ?? '—';
+        document.getElementById('stat-receipts').textContent = d.totalReceiptsCommitted ?? '—';
+        document.getElementById('stat-chains').textContent = d.chainsMonitored ?? 16;
+        const nm = d.nextSnapshotMs ?? 45000;
+        nextMs = nm;
+        document.getElementById('stat-next').textContent = Math.round(nm / 1000) + 's';
+    } catch (e) { /* ignore */ }
+}
+
+async function fetchLatest() {
+    try {
+        const r = await fetch(`${BASE}/api/snapshot/latest`);
+        const d = await r.json();
+        if (!d.merkleRoot) return;
+        const hero = document.getElementById('merkle-hero');
+        hero.style.display = 'block';
+        document.getElementById('merkle-root-val').textContent = d.merkleRoot;
+        document.getElementById('merkle-sub').textContent =
+            `Snapshot #${d.index} · ${d.chainsCommitted} chains · ${d.totalReceipts} total receipts · ${new Date(d.timestamp).toLocaleString()}`;
+
+        // Render chain grid
+        if (d.chains && d.chains.length > 0) {
+            const grid = document.getElementById('chain-grid');
+            grid.innerHTML = d.chains.map(c => `
+                <div class="chain-card ${c.length > 0 ? 'active' : ''}">
+                    <div class="chain-id">Chain #${c.id}</div>
+                    <div class="chain-name">${c.name}</div>
+                    <div class="chain-length">${c.length} receipt${c.length !== 1 ? 's' : ''}</div>
+                    <div class="chain-head">${(c.head || '').substring(0, 24)}…</div>
+                </div>
+            `).join('');
+        }
+    } catch (e) { /* ignore */ }
+}
+
+async function fetchLedger() {
+    try {
+        const r = await fetch(`${BASE}/api/snapshot/ledger?limit=15`);
+        const d = await r.json();
+        const chain = document.getElementById('receipt-chain');
+        if (!d.snapshots || d.snapshots.length === 0) {
+            chain.innerHTML = '<div class="alert loading">⏳ First snapshot fires 15s after server startup…</div>';
+            return;
+        }
+        chain.innerHTML = d.snapshots.map(s => `
+            <div class="receipt-item" onclick="this.classList.toggle('expanded')">
+                <div class="receipt-header">
+                    <span class="receipt-index">📸 Snapshot #${s.index}</span>
+                    <span class="receipt-receipts">${s.totalReceipts} receipts committed</span>
+                    <span class="receipt-time">${new Date(s.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="receipt-hash-row">
+                    <span class="hash-label">HASH</span>
+                    <span class="hash-val">${(s.hash || '').substring(0, 32)}…</span>
+                </div>
+                <div class="receipt-detail">
+                    <div class="merkle-mini">🌳 Merkle Root: ${s.merkleRoot || '—'}</div>
+                    <div class="receipt-hash-row">
+                        <span class="hash-label">PREV</span>
+                        <span class="hash-val">${(s.prevHash || '').substring(0, 32)}…</span>
+                    </div>
+                    <div style="margin-top:8px; font-size:0.72rem; color:var(--secondary-text);">Chains committed:</div>
+                    <div class="mini-chains" style="margin-top:5px;">
+                        ${(s.chains || []).filter(c => c.length > 0).map(c =>
+                            `<span class="mini-chain-pill">#${c.id} ${c.name} (${c.length})</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        document.getElementById('receipt-chain').innerHTML = `<div class="alert error">Error loading ledger: ${e.message}</div>`;
+    }
+}
+
+async function verifyChain() {
+    try {
+        const r = await fetch(`${BASE}/api/snapshot/verify/chain`);
+        const d = await r.json();
+        const bar = document.getElementById('integrity-bar');
+        const dot = document.getElementById('integrity-dot');
+        const txt = document.getElementById('integrity-text');
+        if (d.valid) {
+            bar.classList.remove('fail');
+            dot.classList.remove('fail');
+            txt.textContent = d.message || `✅ All ${d.receipts} snapshot receipts verified — chain intact`;
+        } else {
+            bar.classList.add('fail');
+            dot.classList.add('fail');
+            txt.textContent = d.message || `❌ Chain faults detected`;
+        }
+    } catch (e) { /* ignore */ }
+}
+
+// Countdown update
+function updateCountdown() {
+    nextMs = Math.max(0, nextMs - 1000);
+    const secs = Math.round(nextMs / 1000);
+    document.getElementById('stat-next').textContent = secs + 's';
+    document.getElementById('countdown-text').textContent = secs + 's until next snapshot';
+    const pct = Math.max(0, Math.min(100, 100 - (nextMs / 45000 * 100)));
+    document.getElementById('countdown-fill').style.width = pct + '%';
+    if (nextMs <= 0) {
+        // Snapshot just fired — refresh everything
+        setTimeout(refresh, 1500);
+    }
+}
+
+async function refresh() {
+    await Promise.all([fetchStatus(), fetchLatest(), fetchLedger(), verifyChain()]);
+}
+
+refresh();
+setInterval(updateCountdown, 1000);
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

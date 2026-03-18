@@ -34,7 +34,8 @@ const NAV_CONFIG = {
         { href: "/scorecard", text: "📊 Scorecard", mobileText: "📊 Judge Scorecard", id: "scorecard" },
         { href: "/lifecycle", text: "🔬 Lifecycle", mobileText: "🔬 Proposal Lifecycle Tracer", id: "lifecycle" },
         { href: "/health-index", text: "💚 Health Index", mobileText: "💚 Governance Health Index", id: "health-index" },
-        { href: "/trust", text: "🤝 Trust Network", mobileText: "🤝 Trust Endorsement Network", id: "trust" }
+        { href: "/trust", text: "🤝 Trust Network", mobileText: "🤝 Trust Endorsement Network", id: "trust" },
+        { href: "/snapshot", text: "📸 Snapshot", mobileText: "📸 State Snapshot", id: "snapshot" }
     ],
     toolsDropdown: {
         text: "🛠️ Tools",
