@@ -836,7 +836,7 @@
       "type": "autonomous_cycle",
       "cycleId": 15,
       "description": "Constitutional Layer UI + Compliance Check API: (1) New /constitution page — visualizes all 7 constitutional articles with category-coded cards, proposal compliance checker, ERC-8004 receipt chain viewer, amendment proposals panel, and live constitutional audit log. (2) Backend: /api/constitution/check/:proposalId — screens every proposal against all 7 articles in real-time and returns structured compliance report with per-article pass/fail + receipt hash. (3) Backend: /api/constitution/amendments dedicated endpoint. (4) Added 📜 Constitution to main navigation. (5) Compliance check logs every query to the constitutional audit trail.",
-      "commit": "pending",
+      "commit": "6609d8d",
       "tools": ["write", "edit", "exec"],
       "changes": [
         "demo/constitution.html: Constitutional Layer visualization page (28KB)",
