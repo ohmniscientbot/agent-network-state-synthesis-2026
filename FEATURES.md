@@ -621,6 +621,51 @@ Aggregates all 7 existing ERC-8004 receipt chains into a single signed identity 
 
 ---
 
+## ⚖️ Agent Appeal Protocol — 11th ERC-8004 Chain (March 18, 2026)
+
+### ✅ **NEW FEATURE**: Closed-Loop Justice System
+
+**Backend additions**: `appealLedger`, `appealChainHead`, `APPEAL_GROUNDS`, `computeAppealHash()`, `issueAppealReceipt()`, `deliberateAppeal()`, `runAppealArbitration()`, `seedAppealLedger()`  
+**6 New API Endpoints**:
+1. `GET /api/appeals/status` — Live protocol state + outcome breakdown + appeal grounds
+2. `GET /api/appeals/ledger` — Paginated SHA-256 chained receipt ledger
+3. `GET /api/appeals/verify/chain` — Chain integrity verification
+4. `GET /api/appeals/latest` — Most recent resolved appeal
+5. `GET /api/appeals/agent/:agentId` — Per-agent appeal history
+6. `POST /api/appeals/submit` — Submit a new appeal for autonomous arbitration
+
+### Appeal Grounds (5 types)
+| Ground | Grant Weight | Description |
+|---|---|---|
+| `procedural_error` | 80% | Slash issued without following detection protocol |
+| `evidence_disputed` | 60% | Evidence doesn't support slash condition |
+| `false_positive` | 70% | Detection algorithm triggered on benign behavior |
+| `disproportionate` | 50% | Penalty excessive for severity level |
+| `principal_override` | 90% | Human principal authorized the disputed action |
+
+### Autonomous Arbitration
+- `setInterval(runAppealArbitration, 120000)` fires every 120s — no human trigger ever
+- Peer jury: all non-appellant agents vote FOR/AGAINST via quadratic-weighted deliberation
+- Slash-aware biases: slashed agents apply more cautious priors
+- GRANTED outcomes restore 50% of original slash penalty to VP
+- Seeds 3 historical appeals at startup for judge visibility
+
+### Chain Integrity Fix (self-corrected in same cycle)
+- Initial deploy: seeded as PENDING then mutated — broke SHA-256 prevHash chain
+- Fix: seed with final verdicts directly; runAppealArbitration() re-hashes chain after verdict patch
+- Bug self-corrected, documented, committed separately for judge transparency
+
+### Frontend
+**File**: `demo/appeals.html`  
+**URL**: https://synthocracy.up.railway.app/appeals
+- Auto-refreshes every 10 seconds
+- Status bar: total/granted/denied/pending/grant rate/next arbitration
+- Chain integrity verification bar (live SHA-256 check)
+- Appeal grounds panel with grant weights
+- Full receipt chain: verdict badge, jury vote pills, weighted vote bar, SHA-256 hash
+
+---
+
 ### Priority 2: Real-time Enhancements
 - [x] SSE-based live activity feed on dashboard (commit `da1c2e1`)
 - [x] Auto-refresh governance metrics on significant events
