@@ -918,7 +918,7 @@
       "type": "autonomous_cycle",
       "cycleId": 18,
       "description": "Unified Governance Audit Timeline: Merged all three cryptographic ledgers (vote receipts + execution receipts + slash receipts) into a single chronological audit feed at /audit. New backend: GET /api/audit/timeline (unified, filterable), GET /api/audit/agent/:agentId (per-agent lifecycle view), GET /api/audit/proposal/:proposalId (per-proposal lifecycle view). Frontend: /audit page with dark-theme timeline, severity badges, hash pills, filter buttons (All/Votes/Executions/Slashes), and agent lookup. Chain health bar shows live receipt counts for all three chains. Added Audit Timeline to main navigation.",
-      "commit": "pending",
+      "commit": "68b016a",
       "tools": [
         "edit",
         "write"
