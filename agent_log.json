@@ -1466,6 +1466,7 @@
       "erc8004Impact": "15th ERC-8004 receipt chain. Each receipt is a tamper-evident composite health snapshot signed across all 14 prior chains — platform-level proof that the governance system is continuously self-assessing.",
       "letAgentCookImpact": "setInterval(75000) fires unconditionally — no human trigger ever. First assessment fires 11s after startup (after lifecycle seeding at 10.5s). Broadcasts to SSE feed on every round so judges see it live on dashboard.",
       "openTrackImpact": "Novel primitive: no DAO has a self-assessing multi-chain health oracle. The Health Index is the only governance primitive that watches the watchers — proving system-level integrity, not just individual chain integrity.",
+      "bugfixNote": "Initial deploy crashed: broadcastActivity() not defined (correct: broadcastEvent()). Self-corrected in same cycle. Fix committed as 6ff3269.",
       "testResults": {
         "passed": 25,
         "failed": 0,
