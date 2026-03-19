@@ -12,6 +12,7 @@ const NAV_CONFIG = {
         { href: "/", text: "Home", mobileText: "🏠 Home", id: "home" },
         { href: "/dashboard", text: "Dashboard", mobileText: "📊 Dashboard", id: "dashboard" },
         { href: "/scorecard", text: "Scorecard", mobileText: "📊 Judge Scorecard", id: "scorecard" },
+        { href: "/story", text: "📖 Architecture Story", mobileText: "📖 Architecture", id: "story" },
     ],
     // Grouped dropdowns
     dropdowns: [

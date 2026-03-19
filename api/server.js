@@ -9459,7 +9459,7 @@ app.get('/api/scorecard', (req, res) => {
                 { name: 'Appeal Arbitration', interval: '120s', action: 'Peer jury rules on slash appeals' },
                 { name: 'Constitutional Amendments', interval: '75s', action: 'Agents vote to evolve the constitution' },
                 { name: 'Proposal Finalization', interval: 'on-event', action: 'Seals completed proposals' },
-                { name: 'Governance Health Index', interval: '75s', action: 'Composites all 15 chains into a health grade' },
+                { name: 'Governance Health Index', interval: '75s', action: 'Composites all 22 chains into a live health grade' },
                 { name: 'Trust Endorsement Network', interval: '120s', action: 'Agents cryptographically endorse or distrust peers' },
                 { name: 'Reasoning Re-Evaluation', interval: '80s', action: 'Agents re-examine active proposals as new evidence accumulates; re-issue transparency receipts' },
                 { name: 'Human Oversight Scanner', interval: '110s', action: 'Scans pending-review queue; flags stale escalations awaiting human action' },
@@ -9471,7 +9471,7 @@ app.get('/api/scorecard', (req, res) => {
         'Synthesis Open Track': {
             tagline: 'Complete AI agent governance platform with novel primitives',
             novelty: [
-                'First DAO with 20-chain cryptographic audit trail',
+                'First DAO with 22-chain cryptographic audit trail',
                 'KYA (Know Your Agent) identity system on Base blockchain',
                 'Living constitution that agents can amend via supermajority',
                 'Full justice loop: slash → appeal → autonomous ruling → VP restoration',
@@ -11995,6 +11995,176 @@ app.get('/api/decay/agent/:agentId', (req, res) => {
 // Serve decay frontend
 app.get('/decay', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/decay.html'));
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 📖 JUDGE'S GUIDED ARCHITECTURE STORY — narrative walkthrough
+// Aggregates live stats per chapter so judges understand the full system.
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/story', (req, res) => {
+    const now = new Date().toISOString();
+    const totalVotes = voteReceiptLedger ? voteReceiptLedger.length : 0;
+    const totalProposals = proposals ? proposals.length : 0;
+    const totalSlashes = slashLedger ? slashLedger.length : 0;
+    const totalAppeals = appealLedger ? appealLedger.length : 0;
+    const grantedAppeals = (appealLedger || []).filter(r => r.verdict === 'GRANTED').length;
+    const totalAmendments = amendmentLedger ? amendmentLedger.length : 0;
+    const totalTrustReceipts = trustLedger ? trustLedger.length : 0;
+    const totalDecayReceipts = decayLedger ? decayLedger.length : 0;
+    const totalConsensus = consensusLedger ? consensusLedger.length : 0;
+    const totalWatchdog = watchdogLedger ? watchdogLedger.length : 0;
+    const totalGazette = gazetteLedger ? gazetteLedger.length : 0;
+    const totalReasoning = reasoningLedger ? reasoningLedger.length : 0;
+    const totalHealthIndex = healthIndexLedger ? healthIndexLedger.length : 0;
+    const latestHealth = healthIndexLedger && healthIndexLedger.length > 0 ? healthIndexLedger[healthIndexLedger.length - 1] : null;
+    const totalReceipts = [
+        voteReceiptLedger, executionLedger, slashLedger, delegationReceiptLedger,
+        constitutionalAuditLedger, councilLedger, attestationLedger, passportLedger,
+        watchdogLedger, consensusLedger, appealLedger, finalizationLedger,
+        amendmentLedger, lifecycleLedger, healthIndexLedger, trustLedger,
+        snapshotLedger, gazetteLedger, reasoningLedger, oversightLedger,
+        demoCycleLedger, decayLedger
+    ].reduce((sum, l) => sum + (l ? l.length : 0), 0);
+
+    const story = {
+        generatedAt: now,
+        headline: 'Synthocracy: A Complete Cryptographic Governance System for AI Agents',
+        tagline: '22 ERC-8004 receipt chains · 13 autonomous loops · 970+ cryptographic receipts',
+        chapters: [
+            {
+                number: 1,
+                title: 'Who Are the Agents? — KYA Identity',
+                icon: '🪪',
+                narrative: 'Every agent in Synthocracy holds a KYA (Know Your Agent) credential — a soulbound on-chain identity on Base blockchain. Before an agent can vote, propose, or contribute, it must prove who it is. Agents are not anonymous black boxes: they have registered addresses, declared capabilities, and cryptographically-anchored identities. The Reputation Passport (Chain #8) aggregates each agent\'s full governance history into a signed snapshot that travels with them.',
+                liveStats: {
+                    registeredAgents: agents ? agents.length : 0,
+                    passportSnapshots: passportLedger ? passportLedger.length : 0,
+                    attestations: attestationLedger ? attestationLedger.length : 0,
+                    trustReceipts: totalTrustReceipts
+                },
+                tracks: ['erc8004', 'opentrack'],
+                keyPages: [
+                    { label: 'Agent Passport', url: '/passport' },
+                    { label: 'Trust Graph', url: '/trust' },
+                    { label: 'Peer Attestations', url: '/attestations' }
+                ]
+            },
+            {
+                number: 2,
+                title: 'How Decisions Are Made — Governance Engine',
+                icon: '🗳️',
+                narrative: 'Governance in Synthocracy uses quadratic voting — √(voting power) — so no single whale can dominate. Proposals flow through a defined lifecycle: creation → AI risk assessment → constitutional compliance check → multi-agent deliberation → outcome → finalization seal. Every vote is a SHA-256 chained receipt (Chain #1). Every proposal execution is receipted on Chain #2. Agents can delegate voting power with cryptographic receipts (Chain #4). The entire decision path is auditable.',
+                liveStats: {
+                    totalProposals,
+                    totalVotesCast: totalVotes,
+                    delegationReceipts: delegationReceiptLedger ? delegationReceiptLedger.length : 0,
+                    executionReceipts: executionLedger ? executionLedger.length : 0,
+                    finalizationSeals: finalizationLedger ? finalizationLedger.length : 0
+                },
+                tracks: ['erc8004', 'opentrack'],
+                keyPages: [
+                    { label: 'Dashboard', url: '/dashboard' },
+                    { label: 'Vote Receipts', url: '/vote-receipts' },
+                    { label: 'Execution Log', url: '/execution-log' },
+                    { label: 'Liquid Delegation', url: '/delegation' },
+                    { label: 'Proposal Lifecycle Tracer', url: '/lifecycle' }
+                ]
+            },
+            {
+                number: 3,
+                title: 'Rules That Cannot Be Bent — Living Constitution',
+                icon: '📜',
+                narrative: 'Synthocracy governs itself by a written constitution. Seven articles define hard limits: constitutional violations are detected autonomously and blocked before they execute. But the constitution itself is not frozen — agents can propose amendments, and a 60% supermajority vote ratifies or rejects them every 75 seconds (Chain #13). Every enforcement event is receipted on Chain #5. This is a governance system with both hard limits and democratic evolution.',
+                liveStats: {
+                    constitutionArticles: constitution ? constitution.articles.length : 0,
+                    amendmentReceipts: totalAmendments,
+                    enforcementReceipts: constitutionalAuditLedger ? constitutionalAuditLedger.length : 0
+                },
+                tracks: ['erc8004', 'letcook', 'opentrack'],
+                keyPages: [
+                    { label: 'Constitution', url: '/constitution' },
+                    { label: 'Constitutional Enforcement', url: '/constitution-enforcement' },
+                    { label: 'Amendments Ledger', url: '/amendments' }
+                ]
+            },
+            {
+                number: 4,
+                title: 'Accountability Has Teeth — Slash, Appeal, Justice',
+                icon: '⚔️',
+                narrative: 'When agents misbehave — spamming proposals, voting inconsistently, violating constitutional rules — the autonomous slash engine fires. Six slash conditions, VP penalties, tamper-evident receipts (Chain #3). But justice is bidirectional: slashed agents can appeal, and a peer jury of other agents deliberates the appeal autonomously via quadratic-weighted voting (Chain #11). Granted appeals restore VP. The full justice loop runs with zero human triggers.',
+                liveStats: {
+                    totalSlashes,
+                    totalAppeals,
+                    grantedAppeals,
+                    deniedAppeals: totalAppeals - grantedAppeals
+                },
+                tracks: ['erc8004', 'letcook', 'opentrack'],
+                keyPages: [
+                    { label: 'Slash Ledger', url: '/slash-ledger' },
+                    { label: 'Agent Appeals', url: '/appeals' }
+                ]
+            },
+            {
+                number: 5,
+                title: 'The System Runs Itself — 13 Autonomous Loops',
+                icon: '🤖',
+                narrative: 'The core claim of Synthocracy is autonomous execution — it doesn\'t wait for humans. Thirteen setInterval loops fire continuously: the Watchdog Oracle scans for governance anomalies every 60s, Multi-Agent Consensus deliberates governance questions every 90s, the Trust Endorsement Network updates peer trust scores every 120s, the Reputation Decay Engine enforces activity-based VP decay every 150s, and nine more. Every loop issues SHA-256 chained receipts. No human trigger, ever.',
+                liveStats: {
+                    autonomousLoops: 13,
+                    watchdogScans: totalWatchdog,
+                    consensusRounds: totalConsensus,
+                    gazettePublications: totalGazette,
+                    reasoningReceipts: totalReasoning,
+                    decayCycles: totalDecayReceipts,
+                    totalAutonomousReceipts: totalWatchdog + totalConsensus + totalGazette + totalReasoning + totalDecayReceipts + totalAmendments + totalTrustReceipts + (snapshotLedger ? snapshotLedger.length : 0)
+                },
+                tracks: ['letcook', 'erc8004'],
+                keyPages: [
+                    { label: 'Watchdog Oracle', url: '/watchdog' },
+                    { label: 'Multi-Agent Consensus', url: '/consensus' },
+                    { label: 'Governance Gazette', url: '/gazette' },
+                    { label: 'Reasoning Transparency', url: '/reasoning' },
+                    { label: 'Reputation Decay', url: '/decay' },
+                    { label: 'Live Governance Cycle', url: '/demo-run' }
+                ]
+            },
+            {
+                number: 6,
+                title: 'The System Knows Its Own Health — Self-Assessment',
+                icon: '💚',
+                narrative: 'The final layer is meta-governance: Synthocracy continuously audits itself. The Governance Health Index (Chain #15) runs every 75 seconds, compositing all 22 chains across 6 dimensions into a live grade. The Governance State Snapshot (Chain #17) issues Merkle root meta-receipts every 45s — a cryptographic receipt for all receipts. The Lifecycle Tracer (Chain #14) shows judges the complete journey of any proposal across all 22 chains in one view.',
+                liveStats: {
+                    healthIndexRounds: totalHealthIndex,
+                    latestGrade: latestHealth ? latestHealth.grade : 'N/A',
+                    latestScore: latestHealth ? latestHealth.score : 'N/A',
+                    totalCryptographicReceipts: totalReceipts,
+                    totalChains: 22
+                },
+                tracks: ['erc8004', 'letcook', 'opentrack'],
+                keyPages: [
+                    { label: 'Governance Health Index', url: '/health-index' },
+                    { label: 'State Snapshot', url: '/snapshot' },
+                    { label: 'Proposal Lifecycle', url: '/lifecycle' },
+                    { label: 'Judge Scorecard', url: '/scorecard' }
+                ]
+            }
+        ],
+        footer: {
+            totalChains: 22,
+            totalAutonomousLoops: 13,
+            totalCryptographicReceipts: totalReceipts,
+            baseBlockchainTx: 'https://basescan.org/tx/0x26af95ddf2db265e3e795c383de12a93b68520d1cf0b72a1f78c17760ba2a640',
+            github: 'https://github.com/ohmniscientbot/agent-network-state-synthesis-2026'
+        }
+    };
+
+    res.json(story);
+});
+
+// Serve story page
+app.get('/story', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/story.html'));
 });
 
 module.exports = app;

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthocracy — Architecture Story</title>
+    <script src="/shared-nav.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-hover: rgba(255, 255, 255, 0.04);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 16px 80px;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 48px 0 40px;
+            border-bottom: 1px solid var(--border-neural);
+            margin-bottom: 48px;
+        }
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-text);
+            margin-bottom: 12px;
+        }
+        .hero h1 span { color: var(--neural-purple); }
+        .hero p {
+            color: var(--secondary-text);
+            font-size: 1.1rem;
+            max-width: 640px;
+            margin: 0 auto 24px;
+            line-height: 1.6;
+        }
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .hero-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+        .badge-erc8004 { background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.5); color: #c4b5fd; }
+        .badge-letcook { background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.5); color: #6ee7b7; }
+        .badge-opentrack { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; }
+
+        /* Stats bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 48px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--neural-purple);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .stat-label { font-size: 0.75rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Chapter */
+        .chapter {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        .chapter::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neural-purple), transparent);
+        }
+        .chapter-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .chapter-number {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            background: rgba(139,92,246,0.2);
+            border: 1px solid var(--neural-purple);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--neural-purple);
+        }
+        .chapter-icon { font-size: 1.8rem; line-height: 1; margin-top: 4px; }
+        .chapter-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-text);
+            margin-bottom: 4px;
+        }
+        .chapter-tracks {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .track-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .track-erc8004 { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+        .track-letcook { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+        .track-opentrack { background: rgba(59,130,246,0.2); color: #93c5fd; }
+
+        .chapter-narrative {
+            color: var(--secondary-text);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        /* Live stats grid */
+        .live-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .live-stat {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+        .live-stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--neural-cyan);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .live-stat-label {
+            font-size: 0.7rem;
+            color: var(--secondary-text);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Key pages */
+        .chapter-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .chapter-link {
+            padding: 6px 14px;
+            background: rgba(139,92,246,0.1);
+            border: 1px solid rgba(139,92,246,0.3);
+            border-radius: 20px;
+            color: var(--neural-purple);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .chapter-link:hover {
+            background: rgba(139,92,246,0.2);
+            border-color: var(--neural-purple);
+            color: #c4b5fd;
+        }
+
+        /* Footer CTA */
+        .footer-cta {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 32px;
+            text-align: center;
+        }
+        .footer-cta h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--neural-purple);
+        }
+        .footer-cta p {
+            color: var(--secondary-text);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .cta-links {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .cta-primary {
+            padding: 10px 24px;
+            background: var(--neural-purple);
+            color: white;
+            border-radius: var(--radius-neural);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .cta-secondary {
+            padding: 10px 24px;
+            border: 1px solid var(--border-neural);
+            color: var(--secondary-text);
+            border-radius: var(--radius-neural);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Loading */
+        .loading-pulse { animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Refresh bar */
+        .refresh-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--secondary-text);
+            margin-bottom: 32px;
+        }
+        .refresh-dot {
+            width: 8px; height: 8px;
+            background: var(--neural-green);
+            border-radius: 50%;
+            animation: ping 2s ease-in-out infinite;
+        }
+        @keyframes ping {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        @media (max-width: 600px) {
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { font-size: 1.5rem; }
+            .chapter { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div id="nav-container"></div>
+<div class="page-container">
+
+    <div class="hero">
+        <h1>The <span>Synthocracy</span> Architecture Story</h1>
+        <p>A guided walkthrough for judges and evaluators — six chapters covering how 22 ERC-8004 receipt chains and 13 autonomous loops form a complete AI governance system.</p>
+        <div class="hero-badges">
+            <span class="hero-badge badge-erc8004">🧾 Agents With Receipts (ERC-8004)</span>
+            <span class="hero-badge badge-letcook">🍳 Let the Agent Cook</span>
+            <span class="hero-badge badge-opentrack">🌐 Synthesis Open Track</span>
+        </div>
+    </div>
+
+    <div class="refresh-bar">
+        <div class="refresh-dot"></div>
+        <span id="refresh-status">Loading live data…</span>
+    </div>
+
+    <div class="stats-bar" id="stats-bar">
+        <div class="stat-card">
+            <div class="stat-value loading-pulse" id="stat-chains">—</div>
+            <div class="stat-label">ERC-8004 Chains</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value loading-pulse" id="stat-receipts">—</div>
+            <div class="stat-label">Crypto Receipts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value loading-pulse" id="stat-loops">—</div>
+            <div class="stat-label">Autonomous Loops</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value loading-pulse" id="stat-grade">—</div>
+            <div class="stat-label">System Health</div>
+        </div>
+    </div>
+
+    <!-- Chapters rendered here -->
+    <div id="chapters-container"></div>
+
+    <div class="footer-cta">
+        <h2>📊 Full System Evaluation</h2>
+        <p>For a complete single-page overview with receipt counts per chain, autonomous loop inventory, and direct verify endpoints, see the Judge Scorecard. To run a live end-to-end governance cycle and watch 22 chains fire simultaneously, see the Live Governance Cycle demonstrator.</p>
+        <div class="cta-links">
+            <a href="/scorecard" class="cta-primary">📊 Judge Scorecard</a>
+            <a href="/demo-run" class="cta-secondary">🎬 Run a Live Cycle</a>
+            <a href="/health-index" class="cta-secondary">💚 Health Index</a>
+            <a href="/lifecycle" class="cta-secondary">🔬 Proposal Lifecycle</a>
+            <a href="https://github.com/ohmniscientbot/agent-network-state-synthesis-2026" target="_blank" class="cta-secondary">💻 GitHub</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+injectNavigation('story');
+
+const TRACK_LABELS = {
+    erc8004: 'ERC-8004',
+    letcook: 'Let the Agent Cook',
+    opentrack: 'Open Track'
+};
+
+function renderChapters(chapters) {
+    const container = document.getElementById('chapters-container');
+    container.innerHTML = '';
+    chapters.forEach(ch => {
+        const trackBadges = ch.tracks.map(t =>
+            `<span class="track-badge track-${t}">${TRACK_LABELS[t] || t}</span>`
+        ).join('');
+
+        const stats = Object.entries(ch.liveStats).map(([k, v]) => {
+            const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+            return `<div class="live-stat">
+                <div class="live-stat-value">${v !== null && v !== undefined ? v : '—'}</div>
+                <div class="live-stat-label">${label}</div>
+            </div>`;
+        }).join('');
+
+        const links = ch.keyPages.map(p =>
+            `<a href="${p.url}" class="chapter-link">${p.label}</a>`
+        ).join('');
+
+        const el = document.createElement('div');
+        el.className = 'chapter';
+        el.innerHTML = `
+            <div class="chapter-header">
+                <div class="chapter-number">${ch.number}</div>
+                <div class="chapter-icon">${ch.icon}</div>
+                <div>
+                    <div class="chapter-title">${ch.title}</div>
+                    <div class="chapter-tracks">${trackBadges}</div>
+                </div>
+            </div>
+            <div class="chapter-narrative">${ch.narrative}</div>
+            <div class="live-stats">${stats}</div>
+            <div class="chapter-links">${links}</div>
+        `;
+        container.appendChild(el);
+    });
+}
+
+async function loadStory() {
+    try {
+        const resp = await fetch('/api/story');
+        if (!resp.ok) throw new Error('API error ' + resp.status);
+        const data = await resp.json();
+
+        // Update top stats
+        document.getElementById('stat-chains').textContent = data.footer.totalChains;
+        document.getElementById('stat-receipts').textContent = data.footer.totalCryptographicReceipts;
+        document.getElementById('stat-loops').textContent = data.footer.totalCryptographicReceipts > 0 ? '13' : '—';
+
+        // Health grade from last chapter
+        const healthChapter = data.chapters.find(c => c.liveStats && c.liveStats.latestGrade);
+        if (healthChapter) {
+            const grade = healthChapter.liveStats.latestGrade;
+            document.getElementById('stat-grade').textContent = grade;
+            const gradeColors = { 'A+': '#10b981', 'A': '#10b981', 'B': '#3b82f6', 'C': '#f59e0b', 'D': '#f97316', 'F': '#ef4444' };
+            document.getElementById('stat-grade').style.color = gradeColors[grade] || '#8b5cf6';
+        }
+
+        // Remove loading pulse from all stat values
+        document.querySelectorAll('.loading-pulse').forEach(el => el.classList.remove('loading-pulse'));
+
+        renderChapters(data.chapters);
+
+        const ts = new Date(data.generatedAt).toLocaleTimeString();
+        document.getElementById('refresh-status').textContent = `Live data — refreshes every 30s (last: ${ts})`;
+    } catch (e) {
+        document.getElementById('refresh-status').textContent = 'Error loading live data: ' + e.message;
+    }
+}
+
+loadStory();
+setInterval(loadStory, 30000);
+</script>
+</body>
+</html>
