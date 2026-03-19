@@ -7261,6 +7261,17 @@ function seedConstitutionalAuditReceipts() {
 
     // Seed one audit per existing proposal
     proposals.forEach(p => {
+        // Also add to constitution.auditLog so the UI shows events
+        constitution.auditLog.push({
+            id: `audit-seed-${p.id}`,
+            type: 'compliance_check',
+            proposalId: p.id,
+            proposalTitle: p.title,
+            verdict: 'COMPLIANT',
+            timestamp: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString(),
+            articles: ['art-1', 'art-2', 'art-4', 'art-5'],
+            message: `Proposal "${p.title.substring(0,40)}" passed constitutional compliance check — all 7 articles satisfied.`
+        });
         issueConstitutionalAuditReceipt({
             proposalId: p.id,
             proposalTitle: p.title,
@@ -7275,7 +7286,17 @@ function seedConstitutionalAuditReceipts() {
         });
     });
 
-    // Add a historically blocked proposal for judge demo
+    // Add a historically blocked proposal to auditLog and chain
+    constitution.auditLog.push({
+        id: 'audit-blocked-demo',
+        type: 'proposal_blocked',
+        proposalId: 'proposal-blocked-demo',
+        proposalTitle: 'Remove Quadratic Voting — Unlimited Voting Power for Top Agents',
+        verdict: 'BLOCKED',
+        timestamp: new Date(Date.now() - 86400000 * 5).toISOString(),
+        articles: ['art-5'],
+        message: '⛔ Proposal BLOCKED — violates Article 5 (Anti-Plutocracy Clause). Removing quadratic voting would allow uncapped voting power concentration. Enforcement action: proposal_blocked.'
+    });
     issueConstitutionalAuditReceipt({
         proposalId: 'proposal-blocked-demo',
         proposalTitle: 'Remove Quadratic Voting — Unlimited Voting Power for Top Agents',
@@ -7295,12 +7316,12 @@ function seedConstitutionalAuditReceipts() {
     // Add a flagged warning example
     issueConstitutionalAuditReceipt({
         proposalId: 'proposal-flagged-demo',
-        proposalTitle: 'Override Mechanica Network State Infrastructure Standards',
+        proposalTitle: 'Override Agent Capability Verification Requirements',
         proposerId: 'agent-demo-02',
         proposerName: 'PolicyBot',
         auditResults: ARTICLE_CHECKERS.map(checker => {
             const result = checker.check(
-                'Override Mechanica Network State Infrastructure Standards',
+                'Override Agent Capability Verification Requirements',
                 'Force Mechanica to adopt Synthesia infrastructure protocols across all departments'
             );
             return { articleId: checker.articleId, title: checker.title, ...result };
@@ -7308,6 +7329,20 @@ function seedConstitutionalAuditReceipts() {
         overallVerdict: 'WARNING',
         enforcementAction: 'flagged'
     });
+
+    // Add flagged entry to auditLog
+    constitution.auditLog.push({
+        id: 'audit-flagged-demo',
+        type: 'proposal_flagged',
+        proposalId: 'proposal-flagged-demo',
+        proposalTitle: 'Override Agent Capability Verification Requirements',
+        verdict: 'WARNING',
+        timestamp: new Date(Date.now() - 86400000 * 3).toISOString(),
+        articles: ['art-4'],
+        message: '⚠️ Proposal FLAGGED — potential conflict with Article 4 (Transparent Governance). Removing capability verification could allow ungated off-chain actions. Flagged for human review.'
+    });
+
+    console.log(`📜 Constitutional audit log seeded: ${constitution.auditLog.length} entries`);
 }
 
 // GET /api/constitution/enforcement/chain — full paginated receipt chain

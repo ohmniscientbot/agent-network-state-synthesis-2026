@@ -1951,6 +1951,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L072",
+      "timestamp": "2026-03-19T17:14:00Z",
+      "type": "data_seeding",
+      "description": "Phase 2B: Seed constitution auditLog with compliance checks. Added 3 entries to constitution.auditLog (compliant check for seed proposals, blocked proposal demo, flagged warning demo). Updated demo proposal titles from stale Network States to current naming (Agent Capability Verification). AuditLog now shows entries on constitution page instead of 0.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }
