@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Systemic Risk Oracle - Synthocracy</title>
+    <script src="/shared-nav.js"></script>
+    <style>
+        :root {
+            --primary-bg: #0a0a0f;
+            --secondary-bg: #111118;
+            --accent-bg: #181825;
+            --card-bg: rgba(24, 24, 37, 0.8);
+            --glass-bg: rgba(31, 31, 47, 0.6);
+            --primary-text: #e6e7eb;
+            --secondary-text: #9ca3af;
+            --accent-text: #f3f4f6;
+            --muted-text: #6b7280;
+            --neural-blue: #3b82f6;
+            --neural-cyan: #06b6d4;
+            --neural-teal: #14b8a6;
+            --neural-purple: #8b5cf6;
+            --neural-pink: #ec4899;
+            --neural-green: #10b981;
+            --neural-orange: #f97316;
+            --neural-yellow: #f59e0b;
+            --neural-red: #ef4444;
+            --neural-green-glow: rgba(16, 185, 129, 0.12);
+            --neural-orange-glow: rgba(249, 115, 22, 0.12);
+            --neural-red-glow: rgba(239, 68, 68, 0.12);
+            --border-neural: rgba(75, 85, 99, 0.3);
+            --shadow-neural: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --radius-neural: 8px;
+            --radius-lg: 12px;
+        }
+
+        html, body {
+            background: var(--primary-bg) !important;
+            background-color: #0a0a0f !important;
+            color: var(--primary-text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        .header { text-align: center; margin: 40px 0 32px; }
+        .title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f97316, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .subtitle { color: var(--secondary-text); font-size: 0.9rem; max-width: 700px; margin: 0 auto; line-height: 1.6; }
+
+        .chain-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin: 8px 4px 0;
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            color: var(--neural-orange);
+        }
+
+        /* SRS Score Card */
+        .srs-hero {
+            background: var(--card-bg);
+            border: 2px solid rgba(249, 115, 22, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 32px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 40px rgba(249, 115, 22, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .srs-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(249,115,22,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .srs-score {
+            font-size: 5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 12px;
+            font-family: 'Space Grotesk', monospace;
+        }
+        .srs-label { font-size: 0.8rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+        .threat-badge {
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+        .srs-conclusion { font-size: 0.9rem; color: var(--secondary-text); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+        /* Dimensions Grid */
+        .dimensions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .dimension-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+        .dimension-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-neural); }
+        .dim-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .dim-label { font-size: 0.75rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.08em; }
+        .dim-chain { font-size: 0.7rem; color: var(--muted-text); }
+        .dim-score-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+        .dim-score { font-size: 2rem; font-weight: 700; }
+        .dim-max { font-size: 0.85rem; color: var(--secondary-text); }
+        .dim-status { font-size: 0.78rem; font-weight: 600; }
+        .dim-bar-bg { background: rgba(75,85,99,0.3); border-radius: 4px; height: 6px; margin-top: 10px; }
+        .dim-bar { height: 6px; border-radius: 4px; transition: width 0.5s ease; }
+
+        /* Risk Factors */
+        .risk-factors {
+            background: var(--card-bg);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .risk-factors-title { font-size: 1rem; font-weight: 600; color: var(--neural-red); margin-bottom: 16px; }
+        .risk-factor-item {
+            display: flex; align-items: center; gap: 16px;
+            padding: 12px;
+            background: rgba(239,68,68,0.05);
+            border: 1px solid rgba(239,68,68,0.15);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .risk-factor-item:last-child { margin-bottom: 0; }
+        .rf-score { font-size: 1.4rem; font-weight: 700; color: var(--neural-red); min-width: 48px; }
+        .rf-label { font-weight: 600; color: var(--primary-text); }
+        .rf-status { font-size: 0.78rem; color: var(--secondary-text); }
+        .rf-chain { font-size: 0.75rem; color: var(--muted-text); margin-left: auto; }
+        .no-risks {
+            text-align: center; padding: 20px;
+            color: var(--neural-green); font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* History */
+        .history-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .history-title { font-size: 1rem; font-weight: 600; color: var(--primary-text); margin-bottom: 16px; }
+        .history-row {
+            display: grid;
+            grid-template-columns: 100px 80px 160px 1fr;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-neural);
+            font-size: 0.82rem;
+            align-items: center;
+        }
+        .history-row:last-child { border-bottom: none; }
+        .history-row.header-row { color: var(--secondary-text); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+        /* Chain Verify */
+        .verify-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+            font-family: monospace;
+        }
+        .verify-title { font-size: 0.85rem; font-weight: 600; color: var(--neural-green); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .verify-content { font-size: 0.82rem; color: var(--secondary-text); line-height: 1.8; }
+        .verify-value { color: var(--primary-text); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .live-dot {
+            display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; background: var(--neural-orange);
+            animation: pulse 2s infinite; margin-right: 6px;
+        }
+
+        @media (max-width: 640px) {
+            .history-row { grid-template-columns: 80px 60px 1fr; }
+            .history-row > *:last-child { display: none; }
+            .srs-score { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title">🛡️ Governance Systemic Risk Oracle</div>
+        <div class="subtitle">Meta-intelligence primitive synthesizing signals from all 25 active ERC-8004 chains into a composite Systemic Risk Score (SRS). The DAO immune system — detecting systemic fragility before it becomes failure.</div>
+        <div>
+            <span class="chain-badge">ERC-8004 Chain #26</span>
+            <span class="chain-badge">17 Autonomous Loops</span>
+            <span class="chain-badge">8 Dimensions Synthesized</span>
+            <span class="chain-badge">SHA-256 Chained Receipts</span>
+        </div>
+    </div>
+
+    <!-- SRS Hero -->
+    <div class="srs-hero" id="srs-hero">
+        <div class="srs-label">Composite Systemic Risk Score</div>
+        <div class="srs-score" id="srs-score-val">—</div>
+        <div style="font-size: 0.8rem; color: var(--secondary-text); margin-bottom: 16px;">out of 100 (higher = safer)</div>
+        <div class="threat-badge" id="srs-threat-badge">Loading...</div>
+        <div style="height: 8px; background: rgba(75,85,99,0.3); border-radius: 4px; max-width: 400px; margin: 20px auto;">
+            <div id="srs-bar" style="height: 8px; border-radius: 4px; width: 0%; transition: width 1s ease; background: linear-gradient(90deg, #ef4444 0%, #f97316 40%, #f59e0b 60%, #10b981 100%);"></div>
+        </div>
+        <div class="srs-conclusion" id="srs-conclusion">Synthesizing governance intelligence...</div>
+        <div style="margin-top: 16px; font-size: 0.75rem; color: var(--muted-text);" id="srs-meta">—</div>
+    </div>
+
+    <!-- Dimension Cards -->
+    <div style="font-size: 0.85rem; font-weight: 600; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
+        <span class="live-dot"></span> Live Dimension Analysis
+    </div>
+    <div class="dimensions-grid" id="dimensions-grid">
+        <div class="dimension-card" style="text-align:center; padding: 40px;">
+            <div style="color: var(--secondary-text);">Loading dimensions...</div>
+        </div>
+    </div>
+
+    <!-- Risk Factors -->
+    <div class="risk-factors" id="risk-factors-section">
+        <div class="risk-factors-title">⚠️ Active Risk Factors</div>
+        <div id="risk-factors-list"><div style="color:var(--secondary-text);font-size:0.85rem;">Loading...</div></div>
+    </div>
+
+    <!-- Receipt History -->
+    <div class="history-card">
+        <div class="history-title">📋 Recent Systemic Risk Assessments</div>
+        <div class="history-row header-row">
+            <div>Cycle ID</div>
+            <div>SRS</div>
+            <div>Threat Level</div>
+            <div>Conclusion</div>
+        </div>
+        <div id="history-list"><div style="color:var(--secondary-text);font-size:0.85rem;padding:12px 0;">Loading...</div></div>
+    </div>
+
+    <!-- Chain Verification -->
+    <div class="verify-card">
+        <div class="verify-title">🔗 Chain #26 Cryptographic Integrity</div>
+        <div class="verify-content" id="verify-content">Verifying...</div>
+    </div>
+
+    <!-- How It Works -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 32px;">
+        <div style="font-size: 1rem; font-weight: 600; color: var(--primary-text); margin-bottom: 16px;">⚙️ How the Systemic Risk Oracle Works</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; font-size: 0.85rem; color: var(--secondary-text); line-height: 1.7;">
+            <div>
+                <div style="color: var(--neural-orange); font-weight: 600; margin-bottom: 6px;">Multi-Chain Synthesis</div>
+                Every 140 seconds, the Oracle queries 8 active ERC-8004 chains, extracting key risk signals: collusion correlation (Chain #25), alignment drift CBC scores (Chain #24), watchdog anomaly counts (Chain #9), consensus deadlock rates (Chain #10), velocity momentum grades (Chain #23), oversight escalation load (Chain #20), reputation decay rates (Chain #22), and composite health scores (Chain #15).
+            </div>
+            <div>
+                <div style="color: var(--neural-orange); font-weight: 600; margin-bottom: 6px;">Weighted Composite Score</div>
+                Each dimension receives a 0–100 score and a weight reflecting its systemic importance: Collusion (20%), Alignment (18%), Watchdog (15%), Consensus (12%), Velocity (12%), Oversight (10%), Decay (7%), Health (6%). The weighted average produces the final Systemic Risk Score (SRS).
+            </div>
+            <div>
+                <div style="color: var(--neural-orange); font-weight: 600; margin-bottom: 6px;">Cryptographic Receipts & Escalation</div>
+                Every assessment is sealed as a SHA-256 chained receipt on Chain #26. When threat level reaches HIGH or CRITICAL, the Oracle automatically escalates to Chain #20 (Human Principal Oversight Ledger) — creating a cryptographic record of every systemic threat event. No human trigger required.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const THREAT_CONFIG = {
+        HEALTHY:  { color: '#10b981', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.4)', label: '🛡️ HEALTHY — All Systems Nominal' },
+        NOMINAL:  { color: '#06b6d4', bg: 'rgba(6,182,212,0.15)',  border: 'rgba(6,182,212,0.4)',  label: '✅ NOMINAL — Low Risk' },
+        ELEVATED: { color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.4)', label: '⚠️ ELEVATED — Watch Required' },
+        HIGH:     { color: '#f97316', bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.4)', label: '🔴 HIGH — Intervention Advised' },
+        CRITICAL: { color: '#ef4444', bg: 'rgba(239,68,68,0.15)',  border: 'rgba(239,68,68,0.4)',  label: '🚨 CRITICAL — Systemic Threat' }
+    };
+
+    const DIM_LABELS = {
+        collusion:  { emoji: '🕵️', label: 'Collusion Risk',       weight: '20%' },
+        alignment:  { emoji: '🔬', label: 'Alignment Drift',       weight: '18%' },
+        watchdog:   { emoji: '🔍', label: 'Watchdog Health',       weight: '15%' },
+        consensus:  { emoji: '🤝', label: 'Consensus Fragility',   weight: '12%' },
+        velocity:   { emoji: '⚡', label: 'Velocity Momentum',     weight: '12%' },
+        oversight:  { emoji: '👁️', label: 'Oversight Load',        weight: '10%' },
+        decay:      { emoji: '📉', label: 'Reputation Decay',      weight: '7%'  },
+        health:     { emoji: '💚', label: 'Health Index',          weight: '6%'  }
+    };
+
+    function scoreColor(s) {
+        if (s >= 85) return '#10b981';
+        if (s >= 70) return '#06b6d4';
+        if (s >= 55) return '#f59e0b';
+        if (s >= 35) return '#f97316';
+        return '#ef4444';
+    }
+
+    async function loadLiveData() {
+        try {
+            const r = await fetch('/api/systemic-risk/live');
+            if (!r.ok) return;
+            const d = await r.json();
+
+            // Hero
+            const srs = d.systemicRiskScore;
+            const threat = d.threatLevel || 'NOMINAL';
+            const cfg = THREAT_CONFIG[threat] || THREAT_CONFIG.NOMINAL;
+
+            document.getElementById('srs-score-val').textContent = srs;
+            document.getElementById('srs-score-val').style.color = cfg.color;
+
+            const badge = document.getElementById('srs-threat-badge');
+            badge.textContent = cfg.label;
+            badge.style.background = cfg.bg;
+            badge.style.border = '2px solid ' + cfg.border;
+            badge.style.color = cfg.color;
+
+            document.getElementById('srs-bar').style.width = srs + '%';
+            document.getElementById('srs-conclusion').textContent =
+                (d.riskFactors || []).length === 0
+                    ? 'All governance dimensions nominal — zero systemic risk factors detected'
+                    : (d.riskFactors.length) + ' risk factor(s) active — primary: ' + (d.riskFactors[0]?.dimension || '?') + ' (Chain #' + (d.riskFactors[0]?.chain || '?') + ')';
+
+            document.getElementById('srs-meta').textContent =
+                'Generated: ' + new Date(d.generatedAt).toLocaleTimeString() +
+                ' · ' + d.receipts + ' receipts on chain · Chain head: ' + (d.chainHead || '—');
+
+            // Dimensions
+            if (d.dimensions) {
+                const grid = document.getElementById('dimensions-grid');
+                grid.innerHTML = '';
+                for (const [key, dim] of Object.entries(d.dimensions)) {
+                    const meta = DIM_LABELS[key] || { emoji: '📊', label: key, weight: '?' };
+                    const col = scoreColor(dim.score);
+                    const card = document.createElement('div');
+                    card.className = 'dimension-card';
+                    card.style.borderColor = col + '44';
+                    card.innerHTML = `
+                        <div class="dim-header">
+                            <div>
+                                <div class="dim-label">${meta.emoji} ${meta.label}</div>
+                                <div class="dim-chain">Chain #${dim.chain} · weight ${meta.weight}</div>
+                            </div>
+                        </div>
+                        <div class="dim-score-row">
+                            <div class="dim-score" style="color:${col}">${dim.score}</div>
+                            <div class="dim-max">/100</div>
+                        </div>
+                        <div class="dim-status" style="color:${col}">${dim.status}</div>
+                        <div class="dim-bar-bg">
+                            <div class="dim-bar" style="width:${dim.score}%;background:${col};"></div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                }
+            }
+
+            // Risk Factors
+            const rfList = document.getElementById('risk-factors-list');
+            const section = document.getElementById('risk-factors-section');
+            if ((d.riskFactors || []).length === 0) {
+                section.style.borderColor = 'rgba(16,185,129,0.3)';
+                document.querySelector('.risk-factors-title').textContent = '✅ No Active Risk Factors';
+                document.querySelector('.risk-factors-title').style.color = 'var(--neural-green)';
+                rfList.innerHTML = '<div class="no-risks">All 8 governance dimensions operating within safe parameters.</div>';
+            } else {
+                rfList.innerHTML = d.riskFactors.map(rf => `
+                    <div class="risk-factor-item">
+                        <div class="rf-score">${rf.score}</div>
+                        <div>
+                            <div class="rf-label">${rf.dimension}</div>
+                            <div class="rf-status">${rf.status}</div>
+                        </div>
+                        <div class="rf-chain">Chain #${rf.chain}</div>
+                    </div>
+                `).join('');
+            }
+        } catch(e) {
+            console.warn('Live data failed:', e.message);
+        }
+    }
+
+    async function loadHistory() {
+        try {
+            const r = await fetch('/api/systemic-risk/ledger?limit=10');
+            if (!r.ok) return;
+            const d = await r.json();
+            const list = document.getElementById('history-list');
+            if (!d.receipts || d.receipts.length === 0) {
+                list.innerHTML = '<div style="color:var(--secondary-text);font-size:0.85rem;padding:12px 0;">No receipts yet — chain seeding in progress</div>';
+                return;
+            }
+            list.innerHTML = d.receipts.map(r => {
+                const p = r.payload;
+                const cfg = THREAT_CONFIG[p.threatLevel] || THREAT_CONFIG.NOMINAL;
+                return `<div class="history-row">
+                    <div style="color:var(--secondary-text);font-family:monospace;">${p.cycleId}</div>
+                    <div style="font-weight:700;color:${cfg.color}">${p.systemicRiskScore}/100</div>
+                    <div style="color:${cfg.color};font-size:0.78rem;font-weight:600;">${p.threatLevel}</div>
+                    <div style="color:var(--secondary-text);font-size:0.78rem;">${(p.conclusion||'').substring(0,80)}${(p.conclusion||'').length>80?'…':''}</div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            console.warn('History load failed:', e.message);
+        }
+    }
+
+    async function verifyChain() {
+        try {
+            const r = await fetch('/api/systemic-risk/verify/chain');
+            if (!r.ok) return;
+            const d = await r.json();
+            const el = document.getElementById('verify-content');
+            el.innerHTML = `
+                <span class="verify-value">${d.message}</span><br>
+                Chain: <span class="verify-value">#26 Governance Systemic Risk Oracle</span><br>
+                Receipts: <span class="verify-value">${d.receipts}</span><br>
+                Integrity: <span class="verify-value" style="color:${d.valid?'#10b981':'#ef4444'}">${d.valid ? '✅ Valid — all SHA-256 links intact' : '❌ BROKEN at receipt #' + d.brokenAt}</span><br>
+                Head hash: <span class="verify-value" style="font-size:0.78rem;">${(d.chainHead||'—').substring(0,48)}…</span><br>
+                <br>
+                <a href="/api/systemic-risk/verify/chain" target="_blank" style="color:var(--neural-green);text-decoration:none;font-size:0.78rem;">
+                    → Verify raw JSON: /api/systemic-risk/verify/chain
+                </a>
+                &nbsp;&nbsp;
+                <a href="/api/systemic-risk/ledger" target="_blank" style="color:var(--neural-cyan);text-decoration:none;font-size:0.78rem;">
+                    → Browse ledger: /api/systemic-risk/ledger
+                </a>
+            `;
+        } catch(e) {
+            document.getElementById('verify-content').textContent = 'Verification pending...';
+        }
+    }
+
+    // Load everything
+    loadLiveData();
+    loadHistory();
+    verifyChain();
+
+    // Refresh live data every 30s
+    setInterval(loadLiveData, 30000);
+    setInterval(loadHistory, 60000);
+</script>
+</body>
+</html>

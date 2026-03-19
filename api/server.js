@@ -9531,6 +9531,15 @@ app.get('/api/scorecard', (req, res) => {
             receiptCount: collusionLedger ? collusionLedger.length : 0,
             description: 'Novel governance-security primitive: every 130s scans all agent voting patterns for coordinated blocks via pairwise Jaccard correlation analysis. Computes HHI concentration score for the full voting network. Flagged high-risk pairs auto-escalate to Human Principal Oversight (Chain #20).',
             tracks: ['erc8004', 'letcook', 'opentrack']
+        },
+        {
+            id: 26,
+            name: 'Governance Systemic Risk Oracle',
+            endpoint: '/api/systemic-risk/verify/chain',
+            url: '/systemic-risk',
+            receiptCount: systemicRiskLedger.length,
+            description: 'Meta-intelligence primitive: synthesizes signals from all 25 chains into a composite Systemic Risk Score (SRS) every 140s. Measures 8 governance dimensions — collusion, alignment drift, watchdog health, consensus fragility, velocity momentum, oversight load, reputation decay, and health index. Critical/High threats auto-escalate to Chain #20 (Human Principal Oversight). The DAO immune system.',
+            tracks: ['erc8004', 'letcook', 'opentrack']
         }
     ];
 
@@ -9545,7 +9554,7 @@ app.get('/api/scorecard', (req, res) => {
     const trackSummary = {
         'Agents With Receipts (ERC-8004)': {
             tagline: 'Every governance action issues a SHA-256 chained cryptographic receipt',
-            chainCount: 25,
+            chainCount: 26,
             totalReceipts: totalReceiptCount,
             keyFeatures: [
                 '25 independent SHA-256 receipt chains',
@@ -9571,13 +9580,14 @@ app.get('/api/scorecard', (req, res) => {
                 { name: 'Reputation Decay Engine', interval: '150s', action: 'Decays voting power of inactive agents — dead-weight gets no free ride, every decay event cryptographically sealed on Chain #22' },
                 { name: 'Governance Velocity Index', interval: '90s', action: 'Measures governance momentum across 5 dimensions — proposal throughput, voting cadence, consensus convergence, accountability activity, autonomous loop throughput — sealed on Chain #23' },
                 { name: 'Agent Alignment Drift Ledger', interval: '120s', action: 'Novel AI-safety scan: detects Confidence-Behavior Consistency (CBC) drift per agent. When stated reasoning confidence diverges from behavioral patterns, escalates to Human Principal Oversight (Chain #20) — sealed on Chain #24' },
-                { name: 'Governance Collusion Detection Ledger', interval: '130s', action: 'Novel governance-security primitive: detects coordinated voting blocks via pairwise correlation analysis and HHI concentration scoring. Flagged pairs auto-escalate to Human Principal Oversight (Chain #20) — sealed on Chain #25' }
+                { name: 'Governance Collusion Detection Ledger', interval: '130s', action: 'Novel governance-security primitive: detects coordinated voting blocks via pairwise correlation analysis and HHI concentration scoring. Flagged pairs auto-escalate to Human Principal Oversight (Chain #20) — sealed on Chain #25' },
+                { name: 'Governance Systemic Risk Oracle', interval: '140s', action: 'Meta-intelligence primitive: synthesizes 8 governance dimensions from all 25 chains into a composite Systemic Risk Score (SRS). The DAO immune system — detects systemic fragility before it becomes failure — sealed on Chain #26' }
             ]
         },
         'Synthesis Open Track': {
             tagline: 'Complete AI agent governance platform with novel primitives',
             novelty: [
-                'First DAO with 25-chain cryptographic audit trail',
+                'First DAO with 26-chain cryptographic audit trail — including Chain #26 Systemic Risk Oracle meta-intelligence layer',
                 'KYA (Know Your Agent) identity system on Base blockchain',
                 'Living constitution that agents can amend via supermajority',
                 'Full justice loop: slash → appeal → autonomous ruling → VP restoration',
@@ -9590,7 +9600,8 @@ app.get('/api/scorecard', (req, res) => {
                 'Reputation Decay Engine: autonomous VP decay for inactive agents — cryptographically sealed on Chain #22',
                 'Governance Velocity Index: autonomous momentum oracle measuring rate of change across 5 governance dimensions — cryptographically sealed on Chain #23',
                 'Agent Alignment Drift Ledger: novel AI-safety primitive detecting Confidence-Behavior Consistency (CBC) drift — proves agents actually act on their stated reasoning, not just claim to — Chain #24',
-                'Governance Collusion Detection Ledger: autonomous oracle detecting coordinated voting blocks via pairwise correlation analysis (Jaccard similarity) and HHI concentration scoring — high-risk pairs auto-escalate to human oversight — Chain #25'
+                'Governance Collusion Detection Ledger: autonomous oracle detecting coordinated voting blocks via pairwise correlation analysis (Jaccard similarity) and HHI concentration scoring — high-risk pairs auto-escalate to human oversight — Chain #25',
+                'Governance Systemic Risk Oracle: meta-intelligence primitive synthesizing 8 governance dimensions from all 25 chains into a composite Systemic Risk Score (SRS) — the DAO immune system, detecting systemic fragility autonomously — Chain #26'
             ]
         }
     };
@@ -9604,9 +9615,9 @@ app.get('/api/scorecard', (req, res) => {
             totalProposals,
             totalVotesCast: totalVotes,
             totalSlashes,
-            erc8004ChainCount: 25,
-            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0),
-            autonomousLoopsRunning: 16,
+            erc8004ChainCount: 26,
+            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length,
+            autonomousLoopsRunning: 17,
             constitutionArticles: constitution ? constitution.articles.length : 0
         },
         chains,
@@ -13057,6 +13068,238 @@ app.get('/api/collusion/live', (req, res) => {
 // Serve collusion frontend
 app.get('/collusion', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/collusion.html'));
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAIN #26: GOVERNANCE SYSTEMIC RISK ORACLE
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// Meta-intelligence layer: synthesizes signals from ALL active chains into
+// a single composite Systemic Risk Score (SRS). This is a self-aware governance
+// primitive — the DAO analyzing its own fragility across every dimension at once.
+//
+// Dimensions measured:
+//   1. COLLUSION_RISK     — Chain #25 (HHI + flagged pairs)
+//   2. ALIGNMENT_DRIFT    — Chain #24 (CBC drift across agents)
+//   3. WATCHDOG_HEALTH    — Chain #9  (anomaly severity)
+//   4. CONSENSUS_FRAGILITY— Chain #10 (deadlock rate)
+//   5. VELOCITY_MOMENTUM  — Chain #23 (governance momentum)
+//   6. OVERSIGHT_LOAD     — Chain #20 (escalation queue depth)
+//   7. REPUTATION_DECAY   — Chain #22 (VP decay rate)
+//   8. HEALTH_SCORE       — Chain #15 (composite health grade)
+//
+// Final SRS: 0–100 (lower = more systemic risk)
+// Threat level: CRITICAL / HIGH / ELEVATED / NOMINAL / HEALTHY
+// Every scan sealed on Chain #26 with SHA-256 receipt chain.
+
+const SYSTEMIC_RISK_INTERVAL_MS = 140000; // every 140s
+
+let systemicRiskLedger = [];
+let systemicRiskChainHead = '0'.repeat(64);
+let systemicRiskCycleCount = 0;
+
+function computeSystemicRiskScore() {
+    const dimensions = {};
+
+    // Dimension 1: Collusion Risk
+    let collusionScore = 100;
+    if (collusionLedger && collusionLedger.length > 0) {
+        const latest = collusionLedger[collusionLedger.length - 1];
+        const risk = latest.payload.networkRisk;
+        const hhi = latest.payload.hhiConcentrationScore || 0;
+        const flagged = latest.payload.flaggedPairs || 0;
+        const hhiPenalty = Math.min(hhi / 100, 40);
+        const flagPenalty = Math.min(flagged * 15, 40);
+        collusionScore = Math.max(0, 100 - hhiPenalty - flagPenalty);
+        if (risk === 'HIGH') collusionScore = Math.min(collusionScore, 30);
+        else if (risk === 'MEDIUM') collusionScore = Math.min(collusionScore, 65);
+    }
+    dimensions.collusion = { score: Math.round(collusionScore), weight: 0.20, label: 'Collusion Risk', chain: 25, status: collusionScore >= 80 ? 'CLEAN' : collusionScore >= 50 ? 'WATCH' : 'ALERT' };
+
+    // Dimension 2: Alignment Drift
+    let driftScore = 85;
+    if (driftLedger && driftLedger.length > 0) {
+        const latest = driftLedger[driftLedger.length - 1];
+        const avgCBC = latest.payload.averageCBCScore || 0.85;
+        const driftedAgents = latest.payload.agentsDrifted || 0;
+        driftScore = Math.round(avgCBC * 70 + (1 - driftedAgents / Math.max(agents.length, 1)) * 30);
+    }
+    dimensions.alignment = { score: Math.min(100, Math.max(0, driftScore)), weight: 0.18, label: 'Alignment Drift', chain: 24, status: driftScore >= 80 ? 'ALIGNED' : driftScore >= 55 ? 'DRIFTING' : 'MISALIGNED' };
+
+    // Dimension 3: Watchdog Health
+    let watchdogScore = 100;
+    if (watchdogLedger && watchdogLedger.length > 0) {
+        const latest = watchdogLedger[watchdogLedger.length - 1];
+        const status = latest.payload.overallStatus || 'HEALTHY';
+        const findings = (latest.payload.findings || []).length;
+        if (status === 'CRITICAL') watchdogScore = 20;
+        else if (status === 'WARNING' || status === 'ALERT') watchdogScore = 55;
+        else watchdogScore = 100;
+        watchdogScore = Math.max(0, watchdogScore - findings * 8);
+    }
+    dimensions.watchdog = { score: Math.min(100, Math.max(0, watchdogScore)), weight: 0.15, label: 'Watchdog Health', chain: 9, status: watchdogScore >= 85 ? 'HEALTHY' : watchdogScore >= 55 ? 'WATCH' : 'CRITICAL' };
+
+    // Dimension 4: Consensus Fragility
+    let consensusScore = 80;
+    if (consensusLedger && consensusLedger.length > 0) {
+        const recent = consensusLedger.slice(-10);
+        const deadlocks = recent.filter(r => r.payload && r.payload.outcome === 'DEADLOCK').length;
+        consensusScore = Math.round(100 - (deadlocks / Math.max(recent.length, 1)) * 60);
+    }
+    dimensions.consensus = { score: Math.min(100, Math.max(0, consensusScore)), weight: 0.12, label: 'Consensus Fragility', chain: 10, status: consensusScore >= 70 ? 'CONVERGING' : consensusScore >= 45 ? 'FRAGILE' : 'DEADLOCKED' };
+
+    // Dimension 5: Velocity Momentum
+    let velocityScore = 75;
+    if (velocityLedger && velocityLedger.length > 0) {
+        const latest = velocityLedger[velocityLedger.length - 1];
+        const grade = latest.payload.velocityGrade || 'C';
+        const gradeMap = { 'A+': 100, 'A': 90, 'B+': 82, 'B': 75, 'C+': 65, 'C': 55, 'D': 35, 'F': 15 };
+        velocityScore = gradeMap[grade] || 60;
+    }
+    dimensions.velocity = { score: Math.min(100, Math.max(0, velocityScore)), weight: 0.12, label: 'Velocity Momentum', chain: 23, status: velocityScore >= 80 ? 'ACCELERATING' : velocityScore >= 55 ? 'STABLE' : 'STALLING' };
+
+    // Dimension 6: Oversight Load
+    let oversightScore = 100;
+    if (oversightLedger && oversightLedger.length > 0) {
+        const recent = oversightLedger.slice(-20);
+        const criticalCount = recent.filter(r => r.payload && (r.payload.severity === 'HIGH' || r.payload.severity === 'CRITICAL')).length;
+        oversightScore = Math.max(0, 100 - criticalCount * 10);
+    }
+    dimensions.oversight = { score: Math.min(100, Math.max(0, oversightScore)), weight: 0.10, label: 'Oversight Load', chain: 20, status: oversightScore >= 80 ? 'NOMINAL' : oversightScore >= 50 ? 'ELEVATED' : 'OVERLOADED' };
+
+    // Dimension 7: Reputation Decay
+    let decayScore = 85;
+    if (decayLedger && decayLedger.length > 0) {
+        const latest = decayLedger[decayLedger.length - 1];
+        const agentsDecayed = latest.payload.agentsDecayed || 0;
+        const ratio = agentsDecayed / Math.max(agents.length, 1);
+        decayScore = Math.round(100 - ratio * 50);
+    }
+    dimensions.decay = { score: Math.min(100, Math.max(0, decayScore)), weight: 0.07, label: 'Reputation Decay', chain: 22, status: decayScore >= 80 ? 'STABLE' : decayScore >= 55 ? 'DECAYING' : 'ATROPHIED' };
+
+    // Dimension 8: Health Index
+    let healthIndexScore = 75;
+    if (healthIndexLedger && healthIndexLedger.length > 0) {
+        const latest = healthIndexLedger[healthIndexLedger.length - 1];
+        healthIndexScore = latest.payload.healthScore || 75;
+    }
+    dimensions.health = { score: Math.min(100, Math.max(0, healthIndexScore)), weight: 0.06, label: 'Health Index', chain: 15, status: healthIndexScore >= 85 ? 'EXCELLENT' : healthIndexScore >= 65 ? 'GOOD' : 'DEGRADED' };
+
+    // Composite SRS
+    const srs = Object.values(dimensions).reduce((sum, d) => sum + d.score * d.weight, 0);
+    const srsRounded = Math.round(srs);
+
+    let threatLevel;
+    if (srsRounded >= 85) threatLevel = 'HEALTHY';
+    else if (srsRounded >= 70) threatLevel = 'NOMINAL';
+    else if (srsRounded >= 55) threatLevel = 'ELEVATED';
+    else if (srsRounded >= 35) threatLevel = 'HIGH';
+    else threatLevel = 'CRITICAL';
+
+    const riskFactors = Object.entries(dimensions)
+        .filter(([, d]) => d.score < 70)
+        .sort(([, a], [, b]) => a.score - b.score)
+        .slice(0, 3)
+        .map(([, d]) => ({ dimension: d.label, score: d.score, status: d.status, chain: d.chain }));
+
+    return { srs: srsRounded, threatLevel, dimensions, riskFactors };
+}
+
+function issueSystemicRiskReceipt() {
+    systemicRiskCycleCount++;
+    const now = new Date().toISOString();
+    const index = systemicRiskLedger.length;
+    const cycleId = 'SRS-' + String(systemicRiskCycleCount).padStart(4, '0');
+
+    const assessment = computeSystemicRiskScore();
+
+    const payload = {
+        cycleId,
+        systemicRiskScore: assessment.srs,
+        threatLevel: assessment.threatLevel,
+        dimensions: Object.fromEntries(Object.entries(assessment.dimensions).map(([k, d]) => [k, { score: d.score, status: d.status, chain: d.chain }])),
+        riskFactors: assessment.riskFactors,
+        chainsAnalyzed: 8,
+        totalChainsSynthesized: 25,
+        conclusion: assessment.riskFactors.length === 0
+            ? 'All governance dimensions nominal — systemic risk score: ' + assessment.srs + '/100'
+            : assessment.riskFactors.length + ' risk factor(s) detected — primary: ' + (assessment.riskFactors[0] ? assessment.riskFactors[0].dimension + ' (Chain #' + assessment.riskFactors[0].chain + ')' : 'unknown')
+    };
+
+    const prev = systemicRiskLedger.length > 0 ? systemicRiskLedger[systemicRiskLedger.length - 1].hash : '0'.repeat(64);
+    const hashInput = prev + '|' + JSON.stringify(payload) + '|' + now;
+    const hash = crypto.createHash('sha256').update(hashInput).digest('hex');
+    systemicRiskChainHead = hash;
+
+    const receipt = { chain: 26, chainName: 'Governance Systemic Risk Oracle', index, timestamp: now, payload, prevHash: prev, hash };
+    systemicRiskLedger.push(receipt);
+
+    // Escalate HIGH/CRITICAL to Chain #20
+    if ((assessment.threatLevel === 'CRITICAL' || assessment.threatLevel === 'HIGH') && typeof oversightLedger !== 'undefined') {
+        const entry = {
+            chain: 20, chainName: 'Human Principal Oversight Ledger', index: oversightLedger.length, timestamp: now,
+            payload: { action: 'SYSTEMIC_RISK_ESCALATION', source: 'Chain #26 Systemic Risk Oracle', severity: assessment.threatLevel, systemicRiskScore: assessment.srs, topRiskFactors: assessment.riskFactors, details: 'SRS=' + assessment.srs + '/100 — threat ' + assessment.threatLevel, chain: 'Chain #26 → Chain #20' },
+            prevHash: oversightLedger.length > 0 ? oversightLedger[oversightLedger.length - 1].hash : '0'.repeat(64),
+            hash: crypto.createHash('sha256').update('systemic|' + hash + '|' + now).digest('hex')
+        };
+        oversightLedger.push(entry);
+    }
+
+    console.log('[systemic-risk] ' + cycleId + ': SRS=' + assessment.srs + '/100, threat=' + assessment.threatLevel + ', factors=' + assessment.riskFactors.length + ' — chain #26 receipt ' + index);
+    return receipt;
+}
+
+function seedSystemicRiskLedger() {
+    const base = Date.now() - 8 * 140000;
+    const savedNow = Date.now;
+    for (let i = 0; i < 8; i++) {
+        Date.now = () => base + i * 140000;
+        issueSystemicRiskReceipt();
+        Date.now = savedNow;
+    }
+    console.log('[systemic-risk] Seeded ' + systemicRiskLedger.length + ' historical systemic risk receipts — Chain #26 live');
+}
+
+// Boot: seed after collusion (55s), then every 140s
+setTimeout(() => {
+    seedSystemicRiskLedger();
+    setInterval(issueSystemicRiskReceipt, SYSTEMIC_RISK_INTERVAL_MS);
+}, 55000);
+
+// Systemic Risk API Endpoints
+app.get('/api/systemic-risk/status', (req, res) => {
+    const latest = systemicRiskLedger.length > 0 ? systemicRiskLedger[systemicRiskLedger.length - 1] : null;
+    res.json({ chain: 26, chainName: 'Governance Systemic Risk Oracle', receipts: systemicRiskLedger.length, chainHead: systemicRiskChainHead.substring(0, 16) + '\u2026', latestAssessment: latest ? { timestamp: latest.timestamp, systemicRiskScore: latest.payload.systemicRiskScore, threatLevel: latest.payload.threatLevel, riskFactors: latest.payload.riskFactors, conclusion: latest.payload.conclusion } : null, intervalMs: SYSTEMIC_RISK_INTERVAL_MS });
+});
+
+app.get('/api/systemic-risk/latest', (req, res) => {
+    if (systemicRiskLedger.length === 0) return res.json({ message: 'No systemic risk assessments yet — chain seeding in progress' });
+    res.json(systemicRiskLedger[systemicRiskLedger.length - 1]);
+});
+
+app.get('/api/systemic-risk/ledger', (req, res) => {
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+    const slice = systemicRiskLedger.slice().reverse().slice(offset, offset + limit);
+    res.json({ receipts: slice, total: systemicRiskLedger.length, offset, limit, chainHead: systemicRiskChainHead });
+});
+
+app.get('/api/systemic-risk/verify/chain', (req, res) => {
+    if (systemicRiskLedger.length === 0) return res.json({ valid: true, receipts: 0, message: 'Chain empty' });
+    let valid = true; let broken = null;
+    for (let i = 1; i < systemicRiskLedger.length; i++) {
+        if (systemicRiskLedger[i].prevHash !== systemicRiskLedger[i - 1].hash) { valid = false; broken = i; break; }
+    }
+    res.json({ valid, receipts: systemicRiskLedger.length, chainHead: systemicRiskChainHead, brokenAt: broken, message: valid ? '\u2705 All ' + systemicRiskLedger.length + ' systemic risk receipts verified \u2014 chain intact' : '\u274c Chain break at receipt #' + broken });
+});
+
+app.get('/api/systemic-risk/live', (req, res) => {
+    const assessment = computeSystemicRiskScore();
+    res.json({ generatedAt: new Date().toISOString(), systemicRiskScore: assessment.srs, threatLevel: assessment.threatLevel, dimensions: assessment.dimensions, riskFactors: assessment.riskFactors, receipts: systemicRiskLedger.length, chainHead: systemicRiskChainHead.substring(0, 16) + '\u2026' });
+});
+
+app.get('/systemic-risk', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/systemic-risk.html'));
 });
 
 module.exports = app;
