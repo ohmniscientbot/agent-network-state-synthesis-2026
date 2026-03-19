@@ -382,6 +382,7 @@ function saveState() {
             agents,
             contributions,
             proposals,
+            debates,
             governanceTokenBalances,
             delegations,
             predictionMarkets,
@@ -432,8 +433,9 @@ function loadState() {
             if (state.kyaCredentials) kyaCredentials = state.kyaCredentials;
             if (state.kyaVerifications) kyaVerifications = state.kyaVerifications;
             if (state.kyaTrustScores) kyaTrustScores = state.kyaTrustScores;
+            if (state.debates) debates = state.debates;
             
-            console.log(`✅ State loaded successfully (${agents.length} agents, ${contributions.length} contributions, ${proposals.length} proposals)`);
+            console.log(`✅ State loaded successfully (${agents.length} agents, ${contributions.length} contributions, ${proposals.length} proposals, ${debates.length} debates)`);
         } else {
             console.log('ℹ️ No saved state found, starting fresh');
         }
@@ -4723,6 +4725,7 @@ function seedGovernanceActivity() {
         }
 
         // Seed debates for the first two proposals if no debates exist
+        console.log(`🗣️ Debate seeding: ${debates.length} existing, ${proposals.length} proposals`);
         if (debates.length === 0 && proposals.length >= 2) {
             const debateProposals = proposals.slice(0, 2);
             debateProposals.forEach((proposal, pi) => {
