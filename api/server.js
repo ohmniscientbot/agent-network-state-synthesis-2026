@@ -75,6 +75,15 @@ app.use(express.json());
 app.use(rateLimit); // Apply rate limiting to all endpoints
 
 // 🌐 Serve frontend static files (for Railway deployment)
+// Force no-cache on all HTML/JS responses — covers both express.static AND res.sendFile routes
+app.use((req, res, next) => {
+    const ext = req.path.split('.').pop().toLowerCase();
+    if (ext === 'html' || ext === 'js' || req.path === '/' || !req.path.includes('.')) {
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+    next();
+});
+
 // Serve static assets: HTML no-cache (always revalidate), JS/CSS fingerprinted long-cache
 app.use(express.static(path.join(__dirname, '../demo'), {
     setHeaders(res, filePath) {
