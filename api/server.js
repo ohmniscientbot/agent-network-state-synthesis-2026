@@ -11440,7 +11440,8 @@ app.post('/api/demo-cycle/run', async (req, res) => {
             aiAnalysis = governanceAI ? governanceAI.analyzeProposal(newProposal) : null;
         } catch (_) {}
         const riskLevel = aiAnalysis?.riskLevel || (topic.category === 'constitutional' ? 'HIGH' : 'MEDIUM');
-        const qualityScore = aiAnalysis?.qualityScore || (6 + Math.floor(Math.random() * 4));
+        const rawQS = aiAnalysis?.qualityScore;
+        const qualityScore = (rawQS && typeof rawQS === 'object') ? (rawQS.score || 0) : (rawQS || (6 + Math.floor(Math.random() * 4)));
         step('AI_ANALYSIS', 'risk_assess', {
             riskLevel, qualityScore,
             grade: qualityScore >= 8 ? 'A' : qualityScore >= 6 ? 'B' : 'C',
