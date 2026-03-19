@@ -9817,7 +9817,7 @@ function buildProposalTrace(proposalId) {
     const forWeight = forVotes.reduce((s, v) => s + (v.quadraticWeight || 0), 0);
     const againstWeight = againstVotes.reduce((s, v) => s + (v.quadraticWeight || 0), 0);
 
-    const chainsInvolved = [...new Set(events.filter(e => e.chainId).map(e => e.chainId))].sort((a,b) => a-b);
+    const chainsInvolved = [...new Set(events.filter(e => typeof e.chainId === 'number').map(e => e.chainId))].sort((a,b) => a-b);
 
     return {
         proposalId,

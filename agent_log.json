@@ -1961,6 +1961,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L073",
+      "timestamp": "2026-03-19T17:18:00Z",
+      "type": "bug_fix",
+      "description": "Phase 2C: Fix lifecycle chain breakdown rendering. Root cause: chainsInvolved array included non-numeric chainId=\"submission\" from proposal submission stage marker. Fixed filter to only include numeric chain IDs.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }
