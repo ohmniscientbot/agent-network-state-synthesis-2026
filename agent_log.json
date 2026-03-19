@@ -2172,6 +2172,17 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L091",
+      "timestamp": "2026-03-19T22:58:00Z",
+      "type": "feature",
+      "description": "Agent Profile page at /agent-profile. Agent selector dropdown, governance stats (voting power, contributions, reputation, status), voting record, proposal history. Works in demo mode showing all agents. Added to Tools dropdown in nav.",
+      "tools": [
+        "write",
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

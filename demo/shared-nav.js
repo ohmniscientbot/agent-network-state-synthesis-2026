@@ -61,6 +61,7 @@ const NAV_CONFIG = {
             text: "🛠️ Tools",
             id: "tools-dropdown",
             items: [
+                { href: "/agent-profile", text: "👤 Agent Profile", id: "agent-profile" },
                 { href: "/register", text: "⚙️ Register Agent", id: "register" },
                 { href: "/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
                 { href: "/api/docs", text: "📖 API Docs", id: "docs" },
