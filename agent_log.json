@@ -54,7 +54,7 @@
       "letAgentCookImpact": "13th autonomous loop added. setInterval(runDecayCycle, 150000) fires unconditionally \u2014 no human trigger ever. Judges see decay events appear on the SSE activity feed in real time.",
       "openTrackImpact": "Closes the dead-weight governance attack vector. Without decay, inactive agents accumulate perpetual VP. With Chain #22, every decay is a cryptographic accountability record.",
       "researchRationale": "Real DAOs (Compound, Colony) suffer from inactive whale dominance. Agents that stop voting retain full VP forever \u2014 classic capture risk. Reputation Decay with cryptographic receipts is the correct governance primitive: it enforces participation as a condition of influence, and every enforcement action is verifiably on-chain.",
-      "commit": "TBD"
+      "commit": "7103483"
     },
     {
       "id": "L001",
