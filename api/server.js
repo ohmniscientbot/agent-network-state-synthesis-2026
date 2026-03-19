@@ -8544,6 +8544,16 @@ app.listen(PORT, () => {
         seedFinalizationLedger();
         console.log(`📜 Governance Outcome Finalization Protocol started — ${finalizationLedger.length} outcomes sealed`);
     }, 7500);
+
+    // Pre-warm AI governance analysis cache so dashboard shows non-zero risk distribution on first load
+    setTimeout(() => {
+        if (governanceAI && proposals.length > 0) {
+            try {
+                governanceAI.batchAnalyzeProposals(proposals);
+                console.log(`🤖 AI Governance analysis pre-warmed — ${proposals.length} proposals analyzed`);
+            } catch(e) { console.warn('AI pre-warm failed:', e.message); }
+        }
+    }, 8000);
 });
 
 // ============================================================

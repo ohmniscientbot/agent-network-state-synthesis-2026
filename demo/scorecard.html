@@ -222,9 +222,9 @@ body {
 
     <!-- Summary Metrics -->
     <div id="metrics-grid" class="metrics-grid">
-        <div class="metric-card purple"><div class="metric-value" id="m-chains">13</div><div class="metric-label">ERC-8004 Chains</div></div>
+        <div class="metric-card purple"><div class="metric-value" id="m-chains">22</div><div class="metric-label">ERC-8004 Chains</div></div>
         <div class="metric-card cyan"><div class="metric-value" id="m-receipts">—</div><div class="metric-label">Total Receipts</div></div>
-        <div class="metric-card green"><div class="metric-value" id="m-loops">5</div><div class="metric-label">Autonomous Loops</div></div>
+        <div class="metric-card green"><div class="metric-value" id="m-loops">14</div><div class="metric-label">Autonomous Loops</div></div>
         <div class="metric-card blue"><div class="metric-value" id="m-agents">—</div><div class="metric-label">Registered Agents</div></div>
         <div class="metric-card orange"><div class="metric-value" id="m-proposals">—</div><div class="metric-label">Proposals</div></div>
         <div class="metric-card red"><div class="metric-value" id="m-votes">—</div><div class="metric-label">Votes Cast</div></div>
@@ -388,6 +388,8 @@ async function loadScorecard() {
 
         // Summary metrics
         document.getElementById('m-receipts').textContent = data.summary.totalCryptographicReceipts.toLocaleString();
+        document.getElementById('m-chains').textContent = data.summary.erc8004ChainCount || 22;
+        document.getElementById('m-loops').textContent = data.summary.autonomousLoopsRunning || 14;
         document.getElementById('m-agents').textContent = data.summary.registeredAgents;
         document.getElementById('m-proposals').textContent = data.summary.totalProposals;
         document.getElementById('m-votes').textContent = data.summary.totalVotesCast;

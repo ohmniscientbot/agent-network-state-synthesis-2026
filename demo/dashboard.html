@@ -470,7 +470,7 @@
                 // Risk Distribution
                 const riskEl = document.getElementById('risk-distribution');
                 if (batchData) {
-                    const risks = batchData.aggregate?.riskDistribution || {};
+                    const rd = batchData.stats?.riskDistribution || {}; const risks = { HIGH: rd.high||0, MEDIUM: rd.medium||0, LOW: rd.low||0, MINIMAL: rd.minimal||0 };
                     const total = Object.values(risks).reduce((a, b) => a + b, 0) || 1;
                     
                     const riskColors = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#3b82f6', MINIMAL: '#10b981' };
