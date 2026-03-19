@@ -2142,6 +2142,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L088",
+      "timestamp": "2026-03-19T22:30:00Z",
+      "type": "polish",
+      "description": "Update README.md: all hardcoded chain/loop references updated from 23/14 to 26/17. Main intro, section headers, chain table, summary table, server.js comment all current.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }
