@@ -12520,6 +12520,10 @@ app.get('/story', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/story.html'));
 });
 
+app.get('/judge-dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/judge-dashboard.html'));
+});
+
 // ══════════════════════════════════════════════════════════════════════════════
 // 🔬 CHAIN #24 — AGENT ALIGNMENT DRIFT LEDGER
 // ERC-8004 · Agents With Receipts + Let the Agent Cook + Open Track

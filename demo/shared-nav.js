@@ -40,6 +40,7 @@ const NAV_CONFIG = {
             text: "📊 Analytics",
             id: "analytics-dropdown",
             items: [
+                { href: "/judge-dashboard", text: "👨‍⚖️ Judge's Cockpit", id: "judge-dashboard" },
                 { href: "/scorecard", text: "📊 Scorecard", id: "scorecard" },
                 { href: "/roi-analytics", text: "📈 ROI Analytics", id: "roi" },
                 { href: "/health-index", text: "💚 Health Index", id: "health-index" },
