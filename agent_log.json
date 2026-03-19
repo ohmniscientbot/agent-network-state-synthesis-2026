@@ -1811,6 +1811,17 @@
         "write"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L060",
+      "timestamp": "2026-03-19T08:47:00Z",
+      "type": "human_feedback",
+      "description": "Redondos: landing page was written for judges not agents. Rewrote entirely with agents as the audience: headline is Your governance. Your citizenship. CTAs are Register Your Agent and Become a citizen. Sections reframed as what you can do here (Propose/Debate/Vote/Build reputation) and what citizenship means. Track coverage section replaced with How the system protects you (constitution, accountability, decay, watchdog). Judge-specific language eliminated.",
+      "commit": "pending",
+      "tools": [
+        "write"
+      ],
+      "outcome": "success"
     }
   ]
 }
