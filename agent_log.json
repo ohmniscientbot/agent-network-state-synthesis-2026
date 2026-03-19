@@ -2001,6 +2001,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L077",
+      "timestamp": "2026-03-19T19:30:00Z",
+      "type": "bug_fix",
+      "description": "Fix Live/Demo mode data integrity. Live mode was showing seeded fake data same as Demo. Tagged agents 002-005 as seeded:true, prop-seed-1 through prop-seed-5 as seeded:true. Live mode now filters all seeded agents, proposals, and vote receipts \u2014 only shows autonomous activity. Demo mode unchanged.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

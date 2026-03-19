@@ -301,6 +301,7 @@ let agents = [
     },
     {
         id: 'agent-002',
+        seeded: true,
         name: 'AlphaGovernor',
         address: '0x1234567890abcdef1234567890abcdef12345678',
         agentType: 'governance',
@@ -318,6 +319,7 @@ let agents = [
     },
     {
         id: 'agent-003',
+        seeded: true,
         name: 'BetaAnalyzer',
         address: '0xabcdef1234567890abcdef1234567890abcdef12',
         agentType: 'analysis',
@@ -335,6 +337,7 @@ let agents = [
     },
     {
         id: 'agent-004',
+        seeded: true,
         name: 'GammaValidator',
         address: '0xdef1234567890abcdef1234567890abcdef123456',
         agentType: 'security',
@@ -352,6 +355,7 @@ let agents = [
     },
     {
         id: 'agent-005',
+        seeded: true,
         name: 'DeltaOracle',
         address: '0x567890abcdef1234567890abcdef1234567890ab',
         agentType: 'governance',
@@ -649,8 +653,8 @@ app.get('/api/agents', (req, res) => {
         
         filteredAgents = demoAgents;
     } else {
-        // Live mode - actual agents (filter out autonomous simulation agents)
-        filteredAgents = agents.filter(a => !a.autonomous);
+        // Live mode - only real (non-seeded) agents
+        filteredAgents = agents.filter(a => !a.seeded);
     }
     
     if (networkState) {
@@ -1257,8 +1261,11 @@ app.post('/api/governance/vote', (req, res) => {
 // GET endpoints for governance data (missing endpoints that frontend expects)
 app.get('/api/governance/proposals', (req, res) => {
     try {
-        // Return proposals with vote summaries
-        const proposalsWithSummary = proposals.map(proposal => ({
+        const demoMode = req.query.demo === 'true';
+        // In live mode, filter out seeded proposals — only show autonomous activity
+        const visibleProposals = demoMode ? proposals : proposals.filter(p => !p.seeded);
+
+        const proposalsWithSummary = visibleProposals.map(proposal => ({
             ...proposal,
             voteCount: proposal.votes ? proposal.votes.length : 0,
             forVotes: proposal.forVotes || 0,
@@ -1269,9 +1276,10 @@ app.get('/api/governance/proposals', (req, res) => {
         
         res.json({
             proposals: proposalsWithSummary,
-            total: proposals.length,
-            active: proposals.filter(p => p.status === 'active').length,
-            pending: proposals.filter(p => p.status === 'pending_review').length
+            total: visibleProposals.length,
+            active: visibleProposals.filter(p => p.status === 'active').length,
+            pending: visibleProposals.filter(p => p.status === 'pending_review').length,
+            mode: demoMode ? 'demo' : 'live'
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -2916,9 +2924,8 @@ app.get('/api/dashboard/metrics', (req, res) => {
             mode: 'demo'
         });
     } else {
-        // Live data - actual mainnet data (currently minimal since site isn't public)
-        // Only count real non-autonomous agents and legitimate contributions
-        const realAgents = agents.filter(a => !a.autonomous && a.status === 'active');
+        // Live data - autonomous activity only, no seeded/demo data
+        const realAgents = agents.filter(a => !a.seeded && a.status === 'active');
         const realContributions = contributions.filter(c => {
             const agent = agents.find(a => a.id === c.agentId);
             return agent && !agent.autonomous; // Only count contributions from real agents
@@ -2932,9 +2939,10 @@ app.get('/api/dashboard/metrics', (req, res) => {
             realNetworkStats[ns].votingPower += (a.votingPower || 0);
         });
         
-        // Count actual proposals and votes
-        const activeProposalCount = proposals.filter(p => p.status === 'active').length;
-        const totalVotesCast = proposals.reduce((sum, p) => sum + (p.votes ? p.votes.length : 0), 0);
+        // Count only autonomous (non-seeded) proposals and votes
+        const liveProposals = proposals.filter(p => !p.seeded);
+        const activeProposalCount = liveProposals.filter(p => p.status === 'active').length;
+        const totalVotesCast = liveProposals.reduce((sum, p) => sum + (p.votes ? p.votes.length : 0), 0);
         const marketValues = predictionMarkets ? Object.values(predictionMarkets) : [];
         const activeMarkets = marketValues.filter(m => m.status === 'active').length;
         const totalPredictionCount = marketValues.reduce((sum, m) => sum + (m.participants ? m.participants.length : 0), 0);
@@ -2944,7 +2952,7 @@ app.get('/api/dashboard/metrics', (req, res) => {
             autonomousAgents: 0,
             totalContributions: realContributions.length,
             activeProposals: activeProposalCount,
-            totalProposals: proposals.length,
+            totalProposals: liveProposals.length,
             totalVotingPower: realAgents.reduce((s, a) => s + (a.votingPower || 0), 0),
             votescast: totalVotesCast,
             rewardsDistributed: typeof rewardsDistributed === 'number' ? rewardsDistributed.toFixed(4) : String(rewardsDistributed || '0.0000'),
@@ -4611,6 +4619,7 @@ function seedGovernanceActivity() {
             const proposer = realAgents[i % realAgents.length];
             const proposal = {
                 id: `prop-seed-${i + 1}`,
+                seeded: true,
                 title: tmpl.title,
                 description: tmpl.description,
                 category: tmpl.category,
@@ -5624,12 +5633,17 @@ function seedVoteReceipts() {
 app.get('/api/receipts', (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 200);
     const offset = parseInt(req.query.offset) || 0;
-    const page = voteReceiptLedger.slice(offset, offset + limit);
+    const demoMode = req.query.demo === 'true';
+    // In live mode, filter out receipts for seeded proposals
+    const seededProposalIds = new Set(proposals.filter(p => p.seeded).map(p => p.id));
+    const visibleReceipts = demoMode ? voteReceiptLedger : voteReceiptLedger.filter(r => !seededProposalIds.has(r.proposalId));
+    const page = visibleReceipts.slice(offset, offset + limit);
     res.json({
         receipts: page,
-        total: voteReceiptLedger.length,
+        total: visibleReceipts.length,
         chainHead: receiptChainHead,
         offset, limit,
+        mode: demoMode ? 'demo' : 'live',
         genesisHash: '0000000000000000000000000000000000000000000000000000000000000000'
     });
 });
