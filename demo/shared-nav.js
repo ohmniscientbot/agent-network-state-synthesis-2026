@@ -47,6 +47,7 @@ const NAV_CONFIG = {
                 { href: "/gazette", text: "📰 Governance Gazette", id: "gazette" },
                 { href: "/reasoning", text: "🧠 Reasoning Transparency", id: "reasoning" },
                 { href: "/oversight", text: "🧑‍⚖️ Human Oversight Ledger", id: "oversight" },
+                { href: "/demo-run", text: "🎬 Live Governance Cycle", id: "demo-run" },
             ]
         },
         {

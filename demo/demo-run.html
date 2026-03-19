@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthocracy — Live Governance Cycle</title>
+<script src="/shared-nav.js"></script>
+<style>
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111115;
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --border-neural: rgba(139, 92, 246, 0.3);
+    --neural-blue: #3b82f6;
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --radius-neural: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg-primary); color: var(--primary-text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+.page-header { text-align: center; padding: 2rem 1rem 1rem; }
+.page-header h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, var(--neural-purple), var(--neural-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.page-header p { color: var(--secondary-text); margin-top: 0.5rem; font-size: 0.95rem; }
+.container { max-width: 1000px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+
+/* Run button */
+.run-section { text-align: center; margin: 1.5rem 0; }
+.run-btn {
+    background: linear-gradient(135deg, var(--neural-purple), var(--neural-blue));
+    color: white; border: none; padding: 1rem 2.5rem; border-radius: 12px;
+    font-size: 1.1rem; font-weight: 700; cursor: pointer; letter-spacing: 0.5px;
+    transition: opacity 0.2s, transform 0.1s; box-shadow: 0 4px 20px rgba(139,92,246,0.4);
+}
+.run-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.run-btn.running { animation: pulse-btn 1.2s infinite; }
+@keyframes pulse-btn { 0%,100%{box-shadow:0 4px 20px rgba(139,92,246,0.4)} 50%{box-shadow:0 4px 30px rgba(139,92,246,0.8)} }
+
+/* Status bar */
+.status-bar { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }
+.stat-pill { background: var(--bg-secondary); border: 1px solid var(--border-neural); border-radius: 20px; padding: 0.4rem 1rem; font-size: 0.85rem; color: var(--secondary-text); }
+.stat-pill strong { color: var(--primary-text); }
+
+/* Progress bar */
+.progress-wrap { margin: 1.5rem 0; display: none; }
+.progress-label { font-size: 0.85rem; color: var(--secondary-text); margin-bottom: 0.4rem; }
+.progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--neural-purple), var(--neural-cyan)); border-radius: 3px; transition: width 0.3s ease; width: 0%; }
+
+/* Cycle feed */
+.feed-wrap { margin-top: 1.5rem; }
+.feed-title { font-size: 1rem; font-weight: 600; color: var(--secondary-text); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.step-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.step-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 0.8rem 1rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.8rem;
+    align-items: start;
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn { from { opacity:0; transform: translateX(-10px); } to { opacity:1; transform: translateX(0); } }
+.step-icon { font-size: 1.2rem; margin-top: 2px; }
+.step-body {}
+.step-phase { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem; }
+.step-action { font-size: 0.9rem; color: var(--primary-text); }
+.step-details { font-size: 0.8rem; color: var(--secondary-text); margin-top: 0.3rem; font-family: monospace; }
+.step-time { font-size: 0.75rem; color: var(--secondary-text); white-space: nowrap; }
+
+/* Phase colors */
+.phase-PROPOSAL { color: var(--neural-purple); }
+.phase-AI_ANALYSIS { color: var(--neural-blue); }
+.phase-CONSTITUTIONAL_AUDIT { color: var(--neural-cyan); }
+.phase-ESCALATION { color: var(--neural-yellow); }
+.phase-VOTING { color: var(--neural-green); }
+.phase-OUTCOME { color: var(--neural-orange); }
+.phase-SLASH_CHECK { color: var(--neural-red); }
+.phase-EXECUTION { color: var(--neural-green); }
+.phase-WATCHDOG { color: var(--neural-cyan); }
+.phase-CONSENSUS { color: var(--neural-purple); }
+.phase-LIFECYCLE_TRACE { color: var(--neural-blue); }
+.phase-CYCLE_RECEIPT { color: var(--neural-yellow); }
+
+/* Phase icons */
+.icon-PROPOSAL::before { content: '📋'; }
+.icon-AI_ANALYSIS::before { content: '🤖'; }
+.icon-CONSTITUTIONAL_AUDIT::before { content: '⚖️'; }
+.icon-ESCALATION::before { content: '🚨'; }
+.icon-VOTING::before { content: '🗳️'; }
+.icon-OUTCOME::before { content: '📊'; }
+.icon-SLASH_CHECK::before { content: '⚔️'; }
+.icon-EXECUTION::before { content: '⚡'; }
+.icon-WATCHDOG::before { content: '🔍'; }
+.icon-CONSENSUS::before { content: '🤝'; }
+.icon-LIFECYCLE_TRACE::before { content: '🔬'; }
+.phase-CYCLE_RECEIPT .step-icon::before { content: '🔐'; }
+
+/* Outcome banner */
+.outcome-banner {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid;
+    text-align: center;
+    display: none;
+}
+.outcome-banner.approved { border-color: var(--neural-green); background: rgba(16,185,129,0.08); }
+.outcome-banner.rejected { border-color: var(--neural-red); background: rgba(239,68,68,0.08); }
+.outcome-banner.constitutionally_blocked { border-color: var(--neural-yellow); background: rgba(245,158,11,0.08); }
+.outcome-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem; }
+.outcome-banner.approved .outcome-title { color: var(--neural-green); }
+.outcome-banner.rejected .outcome-title { color: var(--neural-red); }
+.outcome-banner.constitutionally_blocked .outcome-title { color: var(--neural-yellow); }
+.outcome-meta { font-size: 0.85rem; color: var(--secondary-text); }
+.outcome-hash { font-family: monospace; font-size: 0.8rem; margin-top: 0.5rem; color: var(--secondary-text); }
+
+/* Receipt chain section */
+.chain-section { margin-top: 2rem; }
+.chain-title { font-size: 1rem; font-weight: 600; color: var(--secondary-text); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.chain-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 1rem;
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;
+}
+.chain-index { background: var(--neural-purple); color: white; border-radius: 50%; width: 28px; height: 28px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0; }
+.chain-info { flex: 1; }
+.chain-id { font-size: 0.85rem; color: var(--primary-text); }
+.chain-hash { font-family: monospace; font-size: 0.75rem; color: var(--secondary-text); }
+.chain-outcome { font-size: 0.8rem; font-weight: 600; }
+.chain-outcome.approved { color: var(--neural-green); }
+.chain-outcome.rejected { color: var(--neural-red); }
+.chain-outcome.constitutionally_blocked { color: var(--neural-yellow); }
+
+/* Verify bar */
+.verify-bar {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 0.8rem 1rem;
+    display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+.verify-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--secondary-text); flex-shrink:0; }
+.verify-dot.valid { background: var(--neural-green); }
+.verify-dot.invalid { background: var(--neural-red); }
+
+/* Chain proof links */
+.proof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; margin-top: 1rem; }
+.proof-link { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--neural-cyan); text-decoration: none; display:block; }
+.proof-link:hover { background: rgba(6,182,212,0.08); }
+</style>
+</head>
+<body>
+<script>injectNavigation('demo-run');</script>
+
+<div class="page-header">
+    <h1>🎬 Live Governance Cycle</h1>
+    <p>Watch Synthocracy run a complete autonomous governance cycle — end to end, no humans required</p>
+</div>
+
+<div class="container">
+
+    <div class="status-bar" id="statusBar">
+        <div class="stat-pill">Cycles Run: <strong id="cycleCount">—</strong></div>
+        <div class="stat-pill">Chain #21 Receipts: <strong id="receiptCount">—</strong></div>
+        <div class="stat-pill">Last Outcome: <strong id="lastOutcome">—</strong></div>
+        <div class="stat-pill">Chain Head: <strong id="chainHead" style="font-family:monospace">—</strong></div>
+    </div>
+
+    <div class="verify-bar">
+        <div class="verify-dot" id="verifyDot"></div>
+        <span id="verifyMsg">Chain integrity: loading…</span>
+    </div>
+
+    <div class="run-section">
+        <button class="run-btn" id="runBtn" onclick="runCycle()">
+            ▶ Run Governance Cycle
+        </button>
+        <div style="margin-top:0.7rem; font-size:0.8rem; color:var(--secondary-text)">
+            Spawns a proposal → AI risk assessment → constitutional audit → 5-agent vote with reasoning → outcome determination → watchdog scan → consensus round → lifecycle fingerprint → sealed receipt (Chain #21)
+        </div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+        <div class="progress-label" id="progressLabel">Initializing cycle…</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="outcome-banner" id="outcomeBanner">
+        <div class="outcome-title" id="outcomeTitle"></div>
+        <div class="outcome-meta" id="outcomeMeta"></div>
+        <div class="outcome-hash" id="outcomeHash"></div>
+    </div>
+
+    <div class="feed-wrap" id="feedWrap" style="display:none">
+        <div class="feed-title">Cycle Steps</div>
+        <div class="step-list" id="stepList"></div>
+    </div>
+
+    <div class="chain-section">
+        <div class="chain-title">Cycle Receipt Chain (Chain #21)</div>
+        <div id="chainList">
+            <div style="color:var(--secondary-text); font-size:0.9rem">No cycles run yet — click ▶ Run Governance Cycle above</div>
+        </div>
+
+        <div class="chain-title" style="margin-top:1.5rem">Proof Links — Chains Touched Per Cycle</div>
+        <div class="proof-grid">
+            <a class="proof-link" href="/receipts">📜 Chain #1 — Vote Receipts</a>
+            <a class="proof-link" href="/execution">⚡ Chain #2 — Execution</a>
+            <a class="proof-link" href="/slash-ledger">⚔️ Chain #3 — Slash Ledger</a>
+            <a class="proof-link" href="/watchdog">🔍 Chain #9 — Watchdog</a>
+            <a class="proof-link" href="/consensus">🤝 Chain #10 — Consensus</a>
+            <a class="proof-link" href="/lifecycle">🔬 Chain #14 — Lifecycle</a>
+            <a class="proof-link" href="/reasoning">🧠 Chain #19 — Reasoning</a>
+            <a class="proof-link" href="/oversight">🧑‍⚖️ Chain #20 — Oversight</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const BASE = '';
+const PHASE_STEPS = ['PROPOSAL','AI_ANALYSIS','CONSTITUTIONAL_AUDIT','VOTING','OUTCOME','SLASH_CHECK','WATCHDOG','CONSENSUS','LIFECYCLE_TRACE','CYCLE_RECEIPT'];
+let running = false;
+
+const PHASE_DESC = {
+    PROPOSAL: 'Creating governance proposal',
+    AI_ANALYSIS: 'Running AI risk assessment',
+    CONSTITUTIONAL_AUDIT: 'Checking constitutional compliance',
+    ESCALATION: 'Triggering bounded autonomy escalation',
+    VOTING: 'All 5 agents voting with reasoning traces',
+    OUTCOME: 'Determining final verdict',
+    SLASH_CHECK: 'Running autonomous slash detection',
+    EXECUTION: 'Recording execution receipt',
+    WATCHDOG: 'Watchdog safety oracle scan',
+    CONSENSUS: 'Multi-agent consensus deliberation',
+    LIFECYCLE_TRACE: 'Building cross-chain lifecycle fingerprint',
+    CYCLE_RECEIPT: 'Sealing cycle receipt (Chain #21)'
+};
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/demo-cycle/status');
+        const d = await r.json();
+        document.getElementById('cycleCount').textContent = d.cycles;
+        document.getElementById('receiptCount').textContent = d.cycles;
+        document.getElementById('chainHead').textContent = d.chainHead || '—';
+        if (d.latest) {
+            const o = d.latest.outcome;
+            document.getElementById('lastOutcome').textContent = o.toUpperCase().replace('_',' ');
+        }
+    } catch(_) {}
+
+    try {
+        const r2 = await fetch('/api/demo-cycle/verify/chain');
+        const d2 = await r2.json();
+        const dot = document.getElementById('verifyDot');
+        const msg = document.getElementById('verifyMsg');
+        if (d2.receipts === 0) {
+            dot.className = 'verify-dot';
+            msg.textContent = 'Chain #21 — no receipts yet';
+        } else if (d2.valid) {
+            dot.className = 'verify-dot valid';
+            msg.textContent = `✅ Chain #21 integrity verified — ${d2.receipts} receipts, SHA-256 chain intact`;
+        } else {
+            dot.className = 'verify-dot invalid';
+            msg.textContent = `❌ Chain integrity fault — ${d2.faults?.length || 0} faults`;
+        }
+    } catch(_) {}
+
+    try {
+        const r3 = await fetch('/api/demo-cycle/ledger?limit=5');
+        const d3 = await r3.json();
+        renderChain(d3.receipts || []);
+    } catch(_) {}
+}
+
+function renderChain(receipts) {
+    const el = document.getElementById('chainList');
+    if (!receipts.length) {
+        el.innerHTML = '<div style="color:var(--secondary-text);font-size:0.9rem">No cycles run yet — click ▶ Run Governance Cycle above</div>';
+        return;
+    }
+    el.innerHTML = receipts.map((r, i) => `
+        <div class="chain-card">
+            <div class="chain-index">${r.index + 1}</div>
+            <div class="chain-info">
+                <div class="chain-id">Cycle ${r.cycleId} &nbsp;·&nbsp; ${r.stepCount} steps &nbsp;·&nbsp; ${new Date(r.timestamp).toLocaleTimeString()}</div>
+                <div class="chain-hash">${r.hash}</div>
+            </div>
+            <div class="chain-outcome ${r.outcome}">${r.outcome.toUpperCase().replace('_',' ')}</div>
+        </div>
+    `).join('');
+}
+
+function addStep(step) {
+    const list = document.getElementById('stepList');
+    const div = document.createElement('div');
+    div.className = 'step-item';
+    const icon = document.createElement('div');
+    icon.className = `step-icon icon-${step.phase}`;
+    const body = document.createElement('div');
+    body.className = 'step-body';
+
+    // Build detail string
+    const skip = ['phase','action','elapsed_ms','timestamp'];
+    const details = Object.entries(step)
+        .filter(([k]) => !skip.includes(k))
+        .map(([k,v]) => {
+            if (v === null || v === undefined) return null;
+            if (typeof v === 'object') {
+                if (Array.isArray(v)) return `${k}: [${v.length} items]`;
+                return `${k}: ${JSON.stringify(v).substring(0,80)}`;
+            }
+            return `${k}: ${v}`;
+        })
+        .filter(Boolean)
+        .join(' · ');
+
+    body.innerHTML = `
+        <div class="step-phase phase-${step.phase}">${step.phase}</div>
+        <div class="step-action">${PHASE_DESC[step.phase] || step.action}</div>
+        ${details ? `<div class="step-details">${details}</div>` : ''}
+    `;
+    const time = document.createElement('div');
+    time.className = 'step-time';
+    time.textContent = `+${step.elapsed_ms}ms`;
+
+    div.appendChild(icon);
+    div.appendChild(body);
+    div.appendChild(time);
+    list.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function runCycle() {
+    if (running) return;
+    running = true;
+    const btn = document.getElementById('runBtn');
+    btn.disabled = true;
+    btn.textContent = '⟳ Running…';
+    btn.classList.add('running');
+
+    // Reset UI
+    document.getElementById('stepList').innerHTML = '';
+    document.getElementById('feedWrap').style.display = 'block';
+    const pw = document.getElementById('progressWrap');
+    pw.style.display = 'block';
+    document.getElementById('outcomeBanner').style.display = 'none';
+
+    const fill = document.getElementById('progressFill');
+    const label = document.getElementById('progressLabel');
+
+    // Animate progress while waiting
+    let pct = 5;
+    const pInterval = setInterval(() => {
+        pct = Math.min(pct + 3, 90);
+        fill.style.width = pct + '%';
+        label.textContent = `Running governance cycle… (${pct}%)`;
+    }, 300);
+
+    try {
+        const r = await fetch('/api/demo-cycle/run', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await r.json();
+        clearInterval(pInterval);
+        fill.style.width = '100%';
+        label.textContent = `Cycle complete in ${data.duration_ms}ms — ${data.totalSteps} steps`;
+
+        if (data.steps) {
+            for (let i = 0; i < data.steps.length; i++) {
+                await new Promise(res => setTimeout(res, 120));
+                addStep(data.steps[i]);
+            }
+        }
+
+        // Show outcome banner
+        const banner = document.getElementById('outcomeBanner');
+        banner.className = `outcome-banner ${data.outcome}`;
+        banner.style.display = 'block';
+        const icons = { approved: '✅', rejected: '❌', constitutionally_blocked: '⚠️' };
+        document.getElementById('outcomeTitle').textContent = `${icons[data.outcome] || '📊'} Proposal ${data.outcome.toUpperCase().replace('_',' ')}`;
+        document.getElementById('outcomeMeta').textContent = `"${data.proposalTitle}" — ${data.totalSteps} steps, ${data.duration_ms}ms`;
+        if (data.receipt) {
+            document.getElementById('outcomeHash').textContent = `Chain #21 receipt: ${data.receipt.hash.substring(0,32)}…`;
+        }
+
+        await loadStatus();
+
+    } catch(err) {
+        clearInterval(pInterval);
+        label.textContent = `Error: ${err.message}`;
+        fill.style.background = 'var(--neural-red)';
+    }
+
+    running = false;
+    btn.disabled = false;
+    btn.textContent = '▶ Run Another Cycle';
+    btn.classList.remove('running');
+}
+
+loadStatus();
+setInterval(loadStatus, 15000);
+</script>
+</body>
+</html>
