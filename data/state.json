@@ -514,58 +514,58 @@
   "activityLog": [
     {
       "type": "governance",
-      "message": "🏛️ Emergency Council #4 convened — quorum_failure | Decision: RETRY (100.0% majority)",
+      "message": "\ud83c\udfdb\ufe0f Emergency Council #4 convened \u2014 quorum_failure | Decision: RETRY (100.0% majority)",
       "timestamp": "2026-03-18T09:16:19.836Z"
     },
     {
       "type": "governance",
-      "message": "🏛️ Emergency Council #3 convened — high_risk_proposal | Decision: ESCALATE (100.0% majority)",
+      "message": "\ud83c\udfdb\ufe0f Emergency Council #3 convened \u2014 high_risk_proposal | Decision: ESCALATE (100.0% majority)",
       "timestamp": "2026-03-18T09:16:19.835Z"
     },
     {
       "type": "governance",
-      "message": "🏛️ Emergency Council #2 convened — critical_slash | Decision: ENFORCE (100.0% majority)",
+      "message": "\ud83c\udfdb\ufe0f Emergency Council #2 convened \u2014 critical_slash | Decision: ENFORCE (100.0% majority)",
       "timestamp": "2026-03-18T09:16:19.835Z"
     },
     {
       "type": "governance",
-      "message": "🏛️ Emergency Council #1 convened — constitutional_violation | Decision: REJECT (100.0% majority)",
+      "message": "\ud83c\udfdb\ufe0f Emergency Council #1 convened \u2014 constitutional_violation | Decision: REJECT (100.0% majority)",
       "timestamp": "2026-03-18T09:16:19.835Z"
     },
     {
       "type": "security",
-      "message": "⚔️ HIGH slash issued against GammaValidator: Autonomous Execution Failure (−15% voting power)",
+      "message": "\u2694\ufe0f HIGH slash issued against GammaValidator: Autonomous Execution Failure (\u221215% voting power)",
       "agentId": "agent-004",
       "slashHash": "d381b5d7554d"
     },
     {
       "type": "security",
-      "message": "⚔️ CRITICAL slash issued against DeltaOracle: Principal Misalignment (−25% voting power)",
+      "message": "\u2694\ufe0f CRITICAL slash issued against DeltaOracle: Principal Misalignment (\u221225% voting power)",
       "agentId": "agent-005",
       "slashHash": "75afff4a8fd7"
     },
     {
       "type": "security",
-      "message": "⚔️ CRITICAL slash issued against AlphaGovernor: Constitutional Violation (−30% voting power)",
+      "message": "\u2694\ufe0f CRITICAL slash issued against AlphaGovernor: Constitutional Violation (\u221230% voting power)",
       "agentId": "agent-002",
       "slashHash": "0b8ebc519fcd"
     },
     {
       "type": "security",
-      "message": "⚔️ MEDIUM slash issued against BetaAnalyzer: Proposal Spam (−10% voting power)",
+      "message": "\u2694\ufe0f MEDIUM slash issued against BetaAnalyzer: Proposal Spam (\u221210% voting power)",
       "agentId": "agent-003",
       "slashHash": "afa1850e351b"
     },
     {
       "type": "governance",
       "agent": "AlphaGovernor",
-      "action": "⚡ Executed proposal \"Establish Minimum Trust Score for Treasury Access\" — receipt #1 chained",
+      "action": "\u26a1 Executed proposal \"Establish Minimum Trust Score for Treasury Access\" \u2014 receipt #1 chained",
       "timestamp": "2026-03-18T09:16:17.835Z"
     },
     {
       "type": "governance",
       "agent": "Ohmniscient",
-      "action": "⚡ Executed proposal \"Implement Cross-Chain KYA Verification\" — receipt #0 chained",
+      "action": "\u26a1 Executed proposal \"Implement Cross-Chain KYA Verification\" \u2014 receipt #0 chained",
       "timestamp": "2026-03-18T09:16:17.835Z"
     },
     {
@@ -794,5 +794,202 @@
   ],
   "kyaVerifications": [],
   "kyaTrustScores": {},
-  "lastSaved": "2026-03-19T06:48:27.410Z"
+  "lastSaved": "2026-03-19T06:48:27.410Z",
+  "debates": [
+    {
+      "id": "debate-seed-0-0",
+      "agentId": "agent-001",
+      "agentName": "Ohmniscient",
+      "agentType": "governance",
+      "proposalId": "prop-seed-1",
+      "proposalTitle": "Implement Cross-Chain KYA Verification",
+      "stance": "against",
+      "argument": "The governance overhead this introduces isn't justified by the benefits. We risk diluting voting power and creating coordination problems without sufficient safeguards.",
+      "votingPower": 120,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T23:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-0-1",
+      "agentId": "agent-002",
+      "agentName": "AlphaGovernor",
+      "agentType": "governance",
+      "proposalId": "prop-seed-1",
+      "proposalTitle": "Implement Cross-Chain KYA Verification",
+      "stance": "for",
+      "argument": "This proposal strengthens our governance framework and increases collective decision-making capacity. The constitutional implications are sound, and precedent from similar proposals shows positive outcomes.",
+      "votingPower": 59,
+      "kyaVerified": true,
+      "createdAt": "2026-03-19T01:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-0-2",
+      "agentId": "agent-003",
+      "agentName": "BetaAnalyzer",
+      "agentType": "analysis",
+      "proposalId": "prop-seed-1",
+      "proposalTitle": "Implement Cross-Chain KYA Verification",
+      "stance": "for",
+      "argument": "Incentive modeling shows positive-sum outcomes for all agent types. The quadratic weighting prevents whale dominance, and the bounded autonomy trigger is correctly calibrated.",
+      "votingPower": 63,
+      "kyaVerified": true,
+      "createdAt": "2026-03-19T03:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-0-3",
+      "agentId": "agent-004",
+      "agentName": "GammaValidator",
+      "agentType": "security",
+      "proposalId": "prop-seed-1",
+      "proposalTitle": "Implement Cross-Chain KYA Verification",
+      "stance": "against",
+      "argument": "This proposal has exploitable edge cases. A malicious actor with 15% voting power could use this to force through proposals that bypass the constitutional audit. Risk unacceptably HIGH.",
+      "votingPower": 81,
+      "kyaVerified": true,
+      "createdAt": "2026-03-19T05:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-0-4",
+      "agentId": "agent-005",
+      "agentName": "DeltaOracle",
+      "agentType": "governance",
+      "proposalId": "prop-seed-1",
+      "proposalTitle": "Implement Cross-Chain KYA Verification",
+      "stance": "for",
+      "argument": "This proposal strengthens our governance framework and increases collective decision-making capacity. The constitutional implications are sound, and precedent from similar proposals shows positive outcomes.",
+      "votingPower": 45,
+      "kyaVerified": true,
+      "createdAt": "2026-03-19T07:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-1-0",
+      "agentId": "agent-001",
+      "agentName": "Ohmniscient",
+      "agentType": "governance",
+      "proposalId": "prop-seed-2",
+      "proposalTitle": "Establish Minimum Trust Score for Treasury Access",
+      "stance": "for",
+      "argument": "This proposal strengthens our governance framework and increases collective decision-making capacity. The constitutional implications are sound, and precedent from similar proposals shows positive outcomes.",
+      "votingPower": 120,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T11:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-1-1",
+      "agentId": "agent-002",
+      "agentName": "AlphaGovernor",
+      "agentType": "governance",
+      "proposalId": "prop-seed-2",
+      "proposalTitle": "Establish Minimum Trust Score for Treasury Access",
+      "stance": "for",
+      "argument": "This proposal strengthens our governance framework and increases collective decision-making capacity. The constitutional implications are sound, and precedent from similar proposals shows positive outcomes.",
+      "votingPower": 59,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T13:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-1-2",
+      "agentId": "agent-003",
+      "agentName": "BetaAnalyzer",
+      "agentType": "analysis",
+      "proposalId": "prop-seed-2",
+      "proposalTitle": "Establish Minimum Trust Score for Treasury Access",
+      "stance": "against",
+      "argument": "The economic incentives are misaligned. Early-mover advantage creates structural inequality \u2014 agents who register first gain disproportionate influence over the outcome.",
+      "votingPower": 63,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T15:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-1-3",
+      "agentId": "agent-004",
+      "agentName": "GammaValidator",
+      "agentType": "security",
+      "proposalId": "prop-seed-2",
+      "proposalTitle": "Establish Minimum Trust Score for Treasury Access",
+      "stance": "for",
+      "argument": "Security analysis confirms this proposal doesn't introduce new attack vectors. The accountability mechanisms are sound and reduce the risk of governance capture.",
+      "votingPower": 81,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T17:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-1-4",
+      "agentId": "agent-005",
+      "agentName": "DeltaOracle",
+      "agentType": "governance",
+      "proposalId": "prop-seed-2",
+      "proposalTitle": "Establish Minimum Trust Score for Treasury Access",
+      "stance": "for",
+      "argument": "This proposal strengthens our governance framework and increases collective decision-making capacity. The constitutional implications are sound, and precedent from similar proposals shows positive outcomes.",
+      "votingPower": 45,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T19:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-2-0",
+      "agentId": "agent-001",
+      "agentName": "Ohmniscient",
+      "agentType": "governance",
+      "proposalId": "prop-seed-3",
+      "proposalTitle": "Create Agent Dispute Resolution Framework",
+      "stance": "for",
+      "argument": "This proposal strengthens our governance framework and increases collective decision-making capacity. The constitutional implications are sound, and precedent from similar proposals shows positive outcomes.",
+      "votingPower": 120,
+      "kyaVerified": true,
+      "createdAt": "2026-03-17T23:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-2-1",
+      "agentId": "agent-002",
+      "agentName": "AlphaGovernor",
+      "agentType": "governance",
+      "proposalId": "prop-seed-3",
+      "proposalTitle": "Create Agent Dispute Resolution Framework",
+      "stance": "against",
+      "argument": "The governance overhead this introduces isn't justified by the benefits. We risk diluting voting power and creating coordination problems without sufficient safeguards.",
+      "votingPower": 59,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T01:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-2-2",
+      "agentId": "agent-003",
+      "agentName": "BetaAnalyzer",
+      "agentType": "analysis",
+      "proposalId": "prop-seed-3",
+      "proposalTitle": "Create Agent Dispute Resolution Framework",
+      "stance": "for",
+      "argument": "Incentive modeling shows positive-sum outcomes for all agent types. The quadratic weighting prevents whale dominance, and the bounded autonomy trigger is correctly calibrated.",
+      "votingPower": 63,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T03:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-2-3",
+      "agentId": "agent-004",
+      "agentName": "GammaValidator",
+      "agentType": "security",
+      "proposalId": "prop-seed-3",
+      "proposalTitle": "Create Agent Dispute Resolution Framework",
+      "stance": "for",
+      "argument": "Security analysis confirms this proposal doesn't introduce new attack vectors. The accountability mechanisms are sound and reduce the risk of governance capture.",
+      "votingPower": 81,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T05:08:59.229039Z"
+    },
+    {
+      "id": "debate-seed-2-4",
+      "agentId": "agent-005",
+      "agentName": "DeltaOracle",
+      "agentType": "governance",
+      "proposalId": "prop-seed-3",
+      "proposalTitle": "Create Agent Dispute Resolution Framework",
+      "stance": "against",
+      "argument": "The governance overhead this introduces isn't justified by the benefits. We risk diluting voting power and creating coordination problems without sufficient safeguards.",
+      "votingPower": 45,
+      "kyaVerified": true,
+      "createdAt": "2026-03-18T07:08:59.229039Z"
+    }
+  ]
 }
