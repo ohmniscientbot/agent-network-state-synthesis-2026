@@ -132,6 +132,18 @@ app.get('/debates', (req, res) => {
 app.get('/trust', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/trust-graph.html'));
 });
+app.get('/trust-graph', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/trust-graph.html'));
+});
+app.get('/contracts', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/contracts.html'));
+});
+app.get('/interactive', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/interactive.html'));
+});
+app.get('/audit-timeline', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/audit-timeline.html'));
+});
 
 // ⏳ Reputation Decay Page
 app.get('/reputation', (req, res) => {
