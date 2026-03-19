@@ -12827,16 +12827,17 @@ let collusionChainHead = '0'.repeat(64);
 
 function computeCollusionScan() {
     const now = new Date().toISOString();
-    const agents = readState('agents') || [];
-    const proposals = readState('proposals') || [];
+    // Use module-level agents and proposals arrays (populated by loadState())
+    const agentList = agents || [];
+    const proposalList = proposals || [];
 
-    if (agents.length < 2 || proposals.length === 0) {
+    if (agentList.length < 2 || proposalList.length === 0) {
         return null;
     }
 
     // Build vote map: proposalId → { agentId → direction }
     const voteMap = {};
-    for (const proposal of proposals) {
+    for (const proposal of proposalList) {
         if (!proposal.votes || proposal.votes.length === 0) continue;
         voteMap[proposal.id] = {};
         for (const vote of proposal.votes) {
@@ -12848,7 +12849,7 @@ function computeCollusionScan() {
     if (proposalIds.length === 0) return null;
 
     // Pairwise correlation
-    const agentIds = agents.map(a => a.id);
+    const agentIds = agentList.map(a => a.id);
     const pairs = [];
 
     for (let i = 0; i < agentIds.length; i++) {
@@ -12885,8 +12886,8 @@ function computeCollusionScan() {
     }
 
     // HHI: voting power concentration across active agents
-    const totalVP = agents.reduce((s, ag) => s + (ag.votingPower || 100), 0);
-    const shares = agents.map(ag => ((ag.votingPower || 100) / Math.max(totalVP, 1)));
+    const totalVP = agentList.reduce((s, ag) => s + (ag.votingPower || 100), 0);
+    const shares = agentList.map(ag => ((ag.votingPower || 100) / Math.max(totalVP, 1)));
     const hhi = Math.round(shares.reduce((s, sh) => s + sh * sh, 0) * 10000); // 0–10000
 
     const flaggedPairs = pairs.filter(p => p.flagged);
