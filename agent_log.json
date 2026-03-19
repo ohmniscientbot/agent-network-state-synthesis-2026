@@ -1981,6 +1981,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L075",
+      "timestamp": "2026-03-19T17:33:00Z",
+      "type": "polish",
+      "description": "Phase 2E: ROI Analytics data realism. Tied cost model to actual agent count (costPerAgentPerMonth * activeAgents) instead of hardcoded $2500. Math is now internally consistent with dashboard metrics.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

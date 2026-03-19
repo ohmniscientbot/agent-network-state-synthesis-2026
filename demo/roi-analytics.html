@@ -482,9 +482,10 @@
             document.getElementById('total-value').textContent = `$${totalValue.toLocaleString()}`;
             document.getElementById('value-change').textContent = `+$${Math.round(totalValue * 0.15).toLocaleString()} this week`;
 
-            // Cost per action (based on real activity)
+            // Cost per action (based on real activity and agent count)
             const totalActions = totalContributions + totalVotes + totalProposals;
-            const estimatedMonthlyCost = 2500; // $2500/month for 5 agents
+            const costPerAgentPerMonth = 500; // $500/month per agent for compute + storage
+            const estimatedMonthlyCost = (activeAgents || 1) * costPerAgentPerMonth;
             const costPerAction = totalActions > 0 ? estimatedMonthlyCost / totalActions : 0;
             
             document.getElementById('cost-per-action').textContent = `$${costPerAction.toFixed(2)}`;
