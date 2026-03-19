@@ -448,6 +448,11 @@ function loadState() {
             if (state.kyaTrustScores) kyaTrustScores = state.kyaTrustScores;
             if (state.debates) debates = state.debates;
             
+            // Migration: ensure seeded flags are applied regardless of stored state
+            const SEEDED_AGENT_IDS = new Set(['agent-002', 'agent-003', 'agent-004', 'agent-005']);
+            agents.forEach(a => { if (SEEDED_AGENT_IDS.has(a.id)) a.seeded = true; });
+            proposals.forEach(p => { if (p.id && p.id.startsWith('prop-seed-')) p.seeded = true; });
+
             console.log(`✅ State loaded successfully (${agents.length} agents, ${contributions.length} contributions, ${proposals.length} proposals, ${debates.length} debates)`);
         } else {
             console.log('ℹ️ No saved state found, starting fresh');
