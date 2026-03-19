@@ -50,6 +50,7 @@ const NAV_CONFIG = {
                 { href: "/oversight", text: "🧑‍⚖️ Human Oversight Ledger", id: "oversight" },
                 { href: "/demo-run", text: "🎬 Live Governance Cycle", id: "demo-run" },
                 { href: "/decay", text: "⏳ Reputation Decay Engine", id: "decay" },
+                { href: "/velocity", text: "⚡ Governance Velocity Index", id: "velocity" },
             ]
         },
         {
