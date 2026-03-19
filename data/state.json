@@ -677,8 +677,8 @@
       },
       {
         "id": "art-6",
-        "title": "Inter-State Sovereignty",
-        "text": "Each network state maintains sovereign governance over its internal affairs. No external state may impose governance decisions on another state without a ratified treaty.",
+        "title": "Cross-Agent Sovereignty",
+        "text": "Each agent collective maintains sovereign governance. No external party may impose governance decisions on another agent without a ratified cross-agent agreement.",
         "category": "diplomacy",
         "immutable": true,
         "ratifiedAt": "2026-03-11T19:00:00Z"
