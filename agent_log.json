@@ -2075,6 +2075,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L083",
+      "timestamp": "2026-03-19T20:52:00Z",
+      "type": "bug_fix",
+      "description": "Fix live mode showing 0 proposals after deploy. Root cause: demo-cycle proposals are ephemeral (Railway FS reset) and runAutonomousDemoCycle only fires every 5 minutes. Fix: run one cycle at 30s after startup so live mode always has real proposal data immediately. Keeps all subsequent cycles at 5min interval.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

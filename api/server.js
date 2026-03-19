@@ -11811,6 +11811,8 @@ async function seedDemoCycleLedger() {
 }
 
 setTimeout(seedDemoCycleLedger, 22000);
+// Run first demo cycle at 30s so live mode has real data immediately after deploy
+setTimeout(runAutonomousDemoCycle, 30000);
 setInterval(runAutonomousDemoCycle, 300000);
 
 // GET /api/demo-cycle/status — ledger status
