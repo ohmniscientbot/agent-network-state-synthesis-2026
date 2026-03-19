@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Principal Oversight Ledger — Synthocracy</title>
+    <script src="/shared-nav.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111115;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-neural: rgba(139, 92, 246, 0.3);
+            --neural-blue: #3b82f6;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-red: #ef4444;
+            --neural-yellow: #f59e0b;
+            --neural-orange: #f97316;
+            --primary-text: #e2e8f0;
+            --secondary-text: #94a3b8;
+            --radius-neural: 8px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--primary-text);
+            min-height: 100vh;
+        }
+        .page-wrapper { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+        h1 { font-size: 1.8rem; font-weight: 700; color: var(--neural-purple); margin-bottom: 4px; }
+        .subtitle { color: var(--secondary-text); font-size: 0.95rem; margin-bottom: 24px; }
+        .chain-badge {
+            display: inline-block;
+            background: rgba(139,92,246,0.15);
+            border: 1px solid var(--border-neural);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            color: var(--neural-purple);
+            margin-right: 6px;
+        }
+
+        /* Status bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 14px;
+        }
+        .stat-label { color: var(--secondary-text); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+
+        /* Integrity bar */
+        .integrity-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 14px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .integrity-icon { font-size: 1.4rem; }
+        .integrity-text { flex: 1; }
+        .integrity-status { font-size: 0.85rem; font-weight: 600; }
+        .integrity-detail { font-size: 0.75rem; color: var(--secondary-text); margin-top: 2px; }
+
+        /* Event breakdown grid */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .breakdown-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-neural);
+            padding: 14px;
+            border-left: 3px solid var(--neural-purple);
+        }
+        .breakdown-card.escalation { border-left-color: #f59e0b; }
+        .breakdown-card.block { border-left-color: #ef4444; }
+        .breakdown-card.review { border-left-color: #10b981; }
+        .breakdown-card.scan { border-left-color: #3b82f6; }
+        .breakdown-label { font-size: 0.75rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.05em; }
+        .breakdown-count { font-size: 2rem; font-weight: 700; margin: 4px 0; }
+        .breakdown-desc { font-size: 0.75rem; color: var(--secondary-text); }
+
+        /* Receipt chain */
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--neural-purple);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .receipt-list { display: flex; flex-direction: column; gap: 8px; }
+        .receipt-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 14px;
+            border-left: 3px solid var(--neural-purple);
+        }
+        .receipt-item.ESCALATION { border-left-color: #f59e0b; }
+        .receipt-item.CONSTITUTIONAL_BLOCK { border-left-color: #ef4444; }
+        .receipt-item.HUMAN_REVIEW { border-left-color: #10b981; }
+        .receipt-item.OVERSIGHT_SCAN { border-left-color: #3b82f6; }
+        .receipt-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+        .receipt-id { font-size: 0.7rem; color: var(--secondary-text); font-family: monospace; }
+        .receipt-timestamp { font-size: 0.7rem; color: var(--secondary-text); }
+        .receipt-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-ESCALATION { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .badge-CONSTITUTIONAL_BLOCK { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .badge-HUMAN_REVIEW { background: rgba(16,185,129,0.2); color: #10b981; }
+        .badge-OVERSIGHT_SCAN { background: rgba(59,130,246,0.2); color: #3b82f6; }
+        .receipt-summary { margin: 8px 0 6px; font-size: 0.9rem; font-weight: 500; }
+        .receipt-hash { font-family: monospace; font-size: 0.68rem; color: var(--secondary-text); background: rgba(0,0,0,0.3); padding: 3px 6px; border-radius: 3px; }
+        .receipt-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .meta-pill {
+            font-size: 0.68rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.05);
+            color: var(--secondary-text);
+        }
+        .trigger-list { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+        .trigger-tag {
+            font-size: 0.65rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            background: rgba(245,158,11,0.15);
+            color: #f59e0b;
+        }
+
+        .load-more {
+            background: rgba(139,92,246,0.15);
+            border: 1px solid var(--border-neural);
+            color: var(--neural-purple);
+            padding: 10px 20px;
+            border-radius: var(--radius-neural);
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            width: 100%;
+        }
+        .load-more:hover { background: rgba(139,92,246,0.25); }
+
+        .empty-state { text-align: center; color: var(--secondary-text); padding: 32px; font-size: 0.9rem; }
+        .auto-refresh-note { font-size: 0.72rem; color: var(--secondary-text); margin-top: 6px; }
+    </style>
+</head>
+<body>
+<script>injectNavigation('oversight');</script>
+<div class="page-wrapper">
+    <h1>🧑‍⚖️ Human Principal Oversight Ledger</h1>
+    <p class="subtitle">
+        <span class="chain-badge">ERC-8004 Chain #20</span>
+        <span class="chain-badge">Let the Agent Cook</span>
+        <span class="chain-badge">Open Track</span>
+        — Cryptographic record of every AI↔human governance boundary crossing
+    </p>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="status-bar">
+        <div class="stat-card"><div class="stat-label">Total Receipts</div><div class="stat-value" id="stat-receipts">—</div></div>
+        <div class="stat-card"><div class="stat-label">Pending Review</div><div class="stat-value" id="stat-pending">—</div></div>
+        <div class="stat-card"><div class="stat-label">Const. Blocked</div><div class="stat-value" id="stat-blocked">—</div></div>
+        <div class="stat-card"><div class="stat-label">Scan Cycles</div><div class="stat-value" id="stat-scans">—</div></div>
+        <div class="stat-card"><div class="stat-label">Next Scan</div><div class="stat-value" id="stat-next" style="font-size:1.1rem">—</div></div>
+    </div>
+
+    <!-- Chain integrity -->
+    <div class="integrity-bar" id="integrity-bar">
+        <div class="integrity-icon" id="int-icon">🔍</div>
+        <div class="integrity-text">
+            <div class="integrity-status" id="int-status">Checking chain integrity…</div>
+            <div class="integrity-detail" id="int-detail">SHA-256 chained receipt ledger</div>
+        </div>
+    </div>
+
+    <!-- Event breakdown -->
+    <div class="breakdown-grid">
+        <div class="breakdown-card escalation">
+            <div class="breakdown-label">Bounded Autonomy Escalations</div>
+            <div class="breakdown-count" id="bd-escalation">—</div>
+            <div class="breakdown-desc">Proposals routed to human review by safety triggers</div>
+        </div>
+        <div class="breakdown-card block">
+            <div class="breakdown-label">Constitutional Blocks</div>
+            <div class="breakdown-count" id="bd-block">—</div>
+            <div class="breakdown-desc">Proposals autonomously rejected by constitution enforcement</div>
+        </div>
+        <div class="breakdown-card review">
+            <div class="breakdown-label">Human Reviews</div>
+            <div class="breakdown-count" id="bd-review">—</div>
+            <div class="breakdown-desc">Human principal decisions (approve / reject / modify)</div>
+        </div>
+        <div class="breakdown-card scan">
+            <div class="breakdown-label">Oversight Scans</div>
+            <div class="breakdown-count" id="bd-scan">—</div>
+            <div class="breakdown-desc">Autonomous queue scans every 110s, no human trigger</div>
+        </div>
+    </div>
+
+    <!-- Receipt chain -->
+    <div class="section-title">📋 Oversight Receipt Chain <span style="font-size:0.7rem;color:var(--secondary-text);font-weight:400;">(newest first)</span></div>
+    <div class="receipt-list" id="receipt-list"><div class="empty-state">Loading receipts…</div></div>
+    <button class="load-more" id="load-more-btn" onclick="loadMore()" style="display:none">Load more</button>
+    <p class="auto-refresh-note">Auto-refreshes every 12 seconds</p>
+</div>
+
+<script>
+let displayOffset = 0;
+const PAGE_SIZE = 15;
+let nextScanMs = null;
+let statusData = null;
+
+function formatTimestamp(ts) {
+    try { return new Date(ts).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' UTC'; }
+    catch { return ts; }
+}
+
+function renderReceipt(r) {
+    const triggerTags = (r.escalationTriggers || []).map(t =>
+        `<span class="trigger-tag">${typeof t === 'string' ? t : (t.type || t)}</span>`
+    ).join('');
+    const scanMeta = r.eventType === 'OVERSIGHT_SCAN' ? `
+        <div class="receipt-meta">
+            <span class="meta-pill">Pending: ${r.pendingReviewCount ?? '?'}</span>
+            <span class="meta-pill">Blocked: ${r.constitutionallyBlockedCount ?? '?'}</span>
+            <span class="meta-pill">Stale: ${r.stalePendingCount ?? '?'}</span>
+            <span class="meta-pill">Queue: ${r.queueStatus ?? '?'}</span>
+        </div>
+    ` : '';
+    const reviewMeta = r.eventType === 'HUMAN_REVIEW' ? `
+        <div class="receipt-meta">
+            <span class="meta-pill">Reviewer: ${r.reviewerName || 'Admin'}</span>
+            <span class="meta-pill">Action: ${r.reviewAction || '?'}</span>
+            ${r.reviewComments ? `<span class="meta-pill">Note: ${r.reviewComments.slice(0,40)}</span>` : ''}
+        </div>
+    ` : '';
+
+    return `
+        <div class="receipt-item ${r.eventType}">
+            <div class="receipt-header">
+                <span class="receipt-id">${r.receiptId}</span>
+                <span class="receipt-type-badge badge-${r.eventType}">${r.eventType.replace(/_/g,' ')}</span>
+                <span class="receipt-timestamp">${formatTimestamp(r.timestamp)}</span>
+            </div>
+            <div class="receipt-summary">${r.summary || r.eventLabel || r.eventType}</div>
+            ${triggerTags ? `<div class="trigger-list">${triggerTags}</div>` : ''}
+            ${scanMeta}${reviewMeta}
+            <div class="receipt-meta" style="margin-top:8px">
+                <span class="receipt-hash">SHA-256: ${r.hash ? r.hash.substring(0,32) + '…' : 'N/A'}</span>
+                <span class="meta-pill">#${r.index}</span>
+                <span class="meta-pill">${r.autonomousExecution ? '🤖 Autonomous' : '👤 Human'}</span>
+            </div>
+        </div>
+    `;
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/oversight/status');
+        statusData = await r.json();
+        document.getElementById('stat-receipts').textContent = statusData.receipts ?? '—';
+        document.getElementById('stat-pending').textContent = statusData.pendingReviewNow ?? '—';
+        document.getElementById('stat-blocked').textContent = statusData.constitutionallyBlockedNow ?? '—';
+        document.getElementById('stat-scans').textContent = statusData.oversightScanCount ?? '—';
+        const bd = statusData.eventBreakdown || {};
+        document.getElementById('bd-escalation').textContent = bd.escalations ?? '—';
+        document.getElementById('bd-block').textContent = bd.constitutionalBlocks ?? '—';
+        document.getElementById('bd-review').textContent = bd.humanReviews ?? '—';
+        document.getElementById('bd-scan').textContent = bd.oversightScans ?? '—';
+    } catch(e) {}
+}
+
+async function loadIntegrity() {
+    try {
+        const r = await fetch('/api/oversight/verify/chain');
+        const d = await r.json();
+        const icon = document.getElementById('int-icon');
+        const status = document.getElementById('int-status');
+        const detail = document.getElementById('int-detail');
+        if (d.valid) {
+            icon.textContent = '✅';
+            status.textContent = `Chain integrity verified — ${d.receipts} receipts`;
+            status.style.color = 'var(--neural-green)';
+            detail.textContent = `All SHA-256 hashes valid. Head: ${d.chainHead ? d.chainHead.substring(0,16) + '…' : 'N/A'}`;
+        } else {
+            icon.textContent = '❌';
+            status.textContent = `Chain integrity FAILED — ${d.faults?.length || 0} fault(s)`;
+            status.style.color = 'var(--neural-red)';
+            detail.textContent = d.message || 'Chain corrupted';
+        }
+    } catch(e) {}
+}
+
+async function loadReceipts(reset = false) {
+    if (reset) displayOffset = 0;
+    try {
+        const r = await fetch(`/api/oversight/ledger?limit=${PAGE_SIZE}&offset=${displayOffset}`);
+        const d = await r.json();
+        const list = document.getElementById('receipt-list');
+        if (reset) list.innerHTML = '';
+        if (d.receipts.length === 0 && displayOffset === 0) {
+            list.innerHTML = '<div class="empty-state">No oversight receipts yet — waiting for server to seed…</div>';
+            return;
+        }
+        d.receipts.forEach(r => {
+            list.insertAdjacentHTML('beforeend', renderReceipt(r));
+        });
+        displayOffset += d.receipts.length;
+        const btn = document.getElementById('load-more-btn');
+        btn.style.display = (displayOffset < d.total) ? 'block' : 'none';
+    } catch(e) {}
+}
+
+function loadMore() { loadReceipts(false); }
+
+async function refresh() {
+    await loadStatus();
+    await loadIntegrity();
+    await loadReceipts(true);
+    // Next scan countdown
+    if (statusData) {
+        const remaining = 110 - ((Date.now() / 1000) % 110);
+        document.getElementById('stat-next').textContent = Math.ceil(remaining) + 's';
+    }
+}
+
+refresh();
+setInterval(refresh, 12000);
+// Countdown tick
+setInterval(() => {
+    const el = document.getElementById('stat-next');
+    if (!el || el.textContent === '—') return;
+    const v = parseInt(el.textContent);
+    if (!isNaN(v) && v > 0) el.textContent = (v - 1) + 's';
+}, 1000);
+
+setTimeout(() => { injectNavigation('oversight'); }, 100);
+</script>
+</body>
+</html>

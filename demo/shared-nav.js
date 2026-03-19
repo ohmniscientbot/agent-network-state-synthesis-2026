@@ -46,6 +46,7 @@ const NAV_CONFIG = {
                 { href: "/health-index", text: "💚 Governance Health Index", id: "health-index" },
                 { href: "/gazette", text: "📰 Governance Gazette", id: "gazette" },
                 { href: "/reasoning", text: "🧠 Reasoning Transparency", id: "reasoning" },
+                { href: "/oversight", text: "🧑‍⚖️ Human Oversight Ledger", id: "oversight" },
             ]
         },
         {
