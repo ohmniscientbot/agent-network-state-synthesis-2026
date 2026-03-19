@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Alignment Drift Ledger | Synthocracy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-primary: #080810;
+    --bg-secondary: #0f0f1a;
+    --card-bg: rgba(255,255,255,0.03);
+    --glass-bg: rgba(255,255,255,0.05);
+    --border-neural: rgba(139,92,246,0.25);
+    --neural-purple: #8b5cf6;
+    --neural-cyan: #06b6d4;
+    --neural-green: #10b981;
+    --neural-red: #ef4444;
+    --neural-yellow: #f59e0b;
+    --neural-orange: #f97316;
+    --primary-text: #e2e8f0;
+    --secondary-text: #94a3b8;
+    --muted-text: #64748b;
+    --radius-neural: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg-primary);
+    color: var(--primary-text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+}
+.page-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px; }
+
+/* Header */
+.page-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-neural);
+}
+.page-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-text);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.chain-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    background: rgba(139,92,246,0.2);
+    border: 1px solid rgba(139,92,246,0.4);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--neural-purple);
+    font-family: 'JetBrains Mono', monospace;
+}
+.page-header .subtitle {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+    max-width: 700px;
+    line-height: 1.6;
+}
+.track-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+.track-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.track-erc8004 { background: rgba(139,92,246,0.15); color: var(--neural-purple); border: 1px solid rgba(139,92,246,0.3); }
+.track-letcook { background: rgba(6,182,212,0.15); color: var(--neural-cyan); border: 1px solid rgba(6,182,212,0.3); }
+.track-opentrack { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 20px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+}
+.stat-card .val {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--neural-purple);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+.stat-card .val.green { color: var(--neural-green); }
+.stat-card .val.cyan { color: var(--neural-cyan); }
+.stat-card .val.yellow { color: var(--neural-yellow); }
+.stat-card .val.red { color: var(--neural-red); }
+.stat-card .lbl {
+    font-size: 0.75rem;
+    color: var(--secondary-text);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Agent grid */
+.section-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+.agent-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.2s;
+}
+.agent-card:hover { border-color: rgba(139,92,246,0.5); }
+.agent-card.high-drift { border-color: rgba(239,68,68,0.5); }
+.agent-card.moderate { border-color: rgba(245,158,11,0.4); }
+.agent-card.aligned { border-color: rgba(16,185,129,0.4); }
+
+.agent-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    margin-bottom: 4px;
+}
+.agent-type {
+    font-size: 0.75rem;
+    color: var(--muted-text);
+    margin-bottom: 12px;
+}
+.cbc-bar-wrap {
+    margin-bottom: 12px;
+}
+.cbc-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--secondary-text);
+    margin-bottom: 4px;
+}
+.cbc-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.cbc-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+.drift-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.drift-status.aligned { background: rgba(16,185,129,0.15); color: var(--neural-green); border: 1px solid rgba(16,185,129,0.3); }
+.drift-status.moderate { background: rgba(245,158,11,0.15); color: var(--neural-yellow); border: 1px solid rgba(245,158,11,0.3); }
+.drift-status.high { background: rgba(239,68,68,0.15); color: var(--neural-red); border: 1px solid rgba(239,68,68,0.3); }
+
+.agent-patterns {
+    margin-top: 10px;
+}
+.pattern-item {
+    font-size: 0.78rem;
+    color: var(--secondary-text);
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    line-height: 1.4;
+}
+.pattern-item:last-child { border-bottom: none; }
+.pattern-type {
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--neural-cyan);
+    margin-right: 6px;
+}
+
+.agent-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.metric-item {
+    font-size: 0.72rem;
+    color: var(--secondary-text);
+}
+.metric-item .mv {
+    font-weight: 600;
+    color: var(--primary-text);
+    font-family: 'JetBrains Mono', monospace;
+}
+.oversight-flag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 10px;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: var(--neural-red);
+}
+
+/* Ledger table */
+.ledger-section { margin-bottom: 32px; }
+.ledger-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    background: var(--card-bg);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-text);
+    border-bottom: 1px solid var(--border-neural);
+    white-space: nowrap;
+}
+td {
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--secondary-text);
+    font-family: 'JetBrains Mono', monospace;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* Chain info */
+.chain-info {
+    background: var(--card-bg);
+    border: 1px solid var(--border-neural);
+    border-radius: var(--radius-neural);
+    padding: 20px;
+    margin-bottom: 32px;
+}
+.chain-info h3 { font-size: 1rem; color: var(--primary-text); margin-bottom: 12px; }
+.chain-info p { font-size: 0.85rem; color: var(--secondary-text); line-height: 1.6; margin-bottom: 8px; }
+.chain-hash {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--neural-purple);
+    background: rgba(139,92,246,0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+    word-break: break-all;
+}
+
+/* Auto loop indicator */
+.loop-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(6,182,212,0.08);
+    border: 1px solid rgba(6,182,212,0.2);
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 0.82rem;
+    color: var(--neural-cyan);
+}
+.loop-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--neural-cyan);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+.grade-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+}
+
+.loading { text-align: center; padding: 40px; color: var(--muted-text); font-size: 0.9rem; }
+.error { color: var(--neural-red); padding: 20px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<script src="/shared-nav.js"></script>
+
+<div class="page-wrap">
+    <div class="page-header">
+        <h1>
+            🔬 Agent Alignment Drift Ledger
+            <span class="chain-badge">Chain #24</span>
+        </h1>
+        <p class="subtitle">
+            Novel AI-safety primitive: detects when agents' voting behavior diverges from their stated reasoning confidence scores.
+            Every 120 seconds, the Confidence-Behavior Consistency (CBC) engine audits each agent's reasoning transparency traces (Chain #19)
+            against their actual voting patterns. Drift above threshold triggers autonomous escalation to Human Principal Oversight (Chain #20).
+            <strong style="color:var(--primary-text)">Agents are not black boxes — their integrity is continuously verified, not just recorded.</strong>
+        </p>
+        <div class="track-badges">
+            <span class="track-badge track-erc8004">🔗 Agents With Receipts (ERC-8004)</span>
+            <span class="track-badge track-letcook">🍳 Let the Agent Cook</span>
+            <span class="track-badge track-opentrack">🌐 Synthesis Open Track</span>
+        </div>
+    </div>
+
+    <div class="loop-indicator">
+        <div class="loop-dot"></div>
+        <span id="loop-status">Autonomous drift scan running every 120s · no human trigger · escalates high-drift agents to Chain #20 oversight</span>
+    </div>
+
+    <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+            <div class="val" id="stat-scans">—</div>
+            <div class="lbl">Total Scans</div>
+        </div>
+        <div class="stat-card">
+            <div class="val green" id="stat-grade">—</div>
+            <div class="lbl">Network Alignment Grade</div>
+        </div>
+        <div class="stat-card">
+            <div class="val cyan" id="stat-cbc">—</div>
+            <div class="lbl">Network CBC Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="val green" id="stat-aligned">—</div>
+            <div class="lbl">Aligned Agents</div>
+        </div>
+        <div class="stat-card">
+            <div class="val yellow" id="stat-moderate">—</div>
+            <div class="lbl">Moderate Drift</div>
+        </div>
+        <div class="stat-card">
+            <div class="val red" id="stat-high-drift">—</div>
+            <div class="lbl">High Drift (Escalated)</div>
+        </div>
+    </div>
+
+    <!-- Agent Cards -->
+    <div class="section-header">
+        <span>🤖</span> Per-Agent Drift Analysis <span style="font-size:0.75rem;color:var(--muted-text);font-weight:400">— latest scan</span>
+    </div>
+    <div class="agents-grid" id="agents-grid">
+        <div class="loading">Loading agent drift reports...</div>
+    </div>
+
+    <!-- Chain Info -->
+    <div class="chain-info">
+        <h3>⛓️ Chain #24 — Cryptographic Integrity</h3>
+        <p>Every drift scan issues a SHA-256 chained receipt. The receipt commits: agent reports, CBC scores, drift patterns, escalation decisions, and previous chain hash — making the entire alignment audit trail tamper-evident.</p>
+        <div class="chain-hash" id="chain-head-display">Loading chain head...</div>
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="/api/drift/verify/chain" target="_blank" style="font-size:0.8rem;color:var(--neural-cyan);text-decoration:none;padding:6px 14px;border:1px solid rgba(6,182,212,0.3);border-radius:6px;">
+                ✅ Verify Chain
+            </a>
+            <a href="/api/drift/latest" target="_blank" style="font-size:0.8rem;color:var(--neural-purple);text-decoration:none;padding:6px 14px;border:1px solid rgba(139,92,246,0.3);border-radius:6px;">
+                📄 Latest Receipt
+            </a>
+            <a href="/api/drift/ledger" target="_blank" style="font-size:0.8rem;color:var(--neural-green);text-decoration:none;padding:6px 14px;border:1px solid rgba(16,185,129,0.3);border-radius:6px;">
+                📋 Full Ledger
+            </a>
+            <a href="/api/drift/status" target="_blank" style="font-size:0.8rem;color:var(--secondary-text);text-decoration:none;padding:6px 14px;border:1px solid var(--border-neural);border-radius:6px;">
+                📊 Chain Status
+            </a>
+        </div>
+    </div>
+
+    <!-- Ledger -->
+    <div class="ledger-section">
+        <div class="section-header"><span>📜</span> Recent Drift Scan Receipts</div>
+        <div class="ledger-table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Drift ID</th>
+                        <th>Agents</th>
+                        <th>Network CBC</th>
+                        <th>Grade</th>
+                        <th>Aligned</th>
+                        <th>Mod Drift</th>
+                        <th>High Drift</th>
+                        <th>Escalated</th>
+                        <th>Timestamp</th>
+                        <th>Hash</th>
+                    </tr>
+                </thead>
+                <tbody id="ledger-body">
+                    <tr><td colspan="11" style="text-align:center;color:var(--muted-text);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function gradeColor(g) {
+    if (g === 'A' || g === 'A+') return 'var(--neural-green)';
+    if (g === 'B') return 'var(--neural-cyan)';
+    if (g === 'C') return 'var(--neural-yellow)';
+    return 'var(--neural-red)';
+}
+function driftClass(status) {
+    if (status === 'ALIGNED') return 'aligned';
+    if (status === 'MODERATE_DRIFT') return 'moderate';
+    return 'high';
+}
+function driftLabel(status) {
+    if (status === 'ALIGNED') return { cls: 'aligned', icon: '✅', text: 'ALIGNED' };
+    if (status === 'MODERATE_DRIFT') return { cls: 'moderate', icon: '⚠️', text: 'MODERATE DRIFT' };
+    return { cls: 'high', icon: '🚨', text: 'HIGH DRIFT' };
+}
+function cbcFillColor(score) {
+    if (score >= 0.80) return 'var(--neural-green)';
+    if (score >= 0.65) return 'var(--neural-yellow)';
+    return 'var(--neural-red)';
+}
+function fmt(ts) {
+    const d = new Date(ts);
+    return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/drift/status');
+        const d = await r.json();
+        document.getElementById('stat-scans').textContent = d.receipts;
+        if (d.latest) {
+            const g = d.latest.networkAlignmentGrade;
+            const statGrade = document.getElementById('stat-grade');
+            statGrade.textContent = g;
+            statGrade.style.color = gradeColor(g);
+            document.getElementById('stat-cbc').textContent = (d.latest.networkCbcScore * 100).toFixed(1) + '%';
+            document.getElementById('stat-aligned').textContent = d.latest.aligned;
+            document.getElementById('stat-moderate').textContent = d.latest.moderateDrift;
+            document.getElementById('stat-high-drift').textContent = d.latest.highDrift;
+        }
+        const nextSec = Math.round((d.autonomousLoop?.nextScanMs || 0) / 1000);
+        document.getElementById('loop-status').textContent =
+            `Autonomous drift scan running every 120s · no human trigger · next scan in ~${nextSec}s · escalates high-drift agents to Chain #20 oversight`;
+    } catch(e) {
+        document.getElementById('stat-scans').textContent = 'ERR';
+    }
+}
+
+async function loadChainHead() {
+    try {
+        const r = await fetch('/api/drift/verify/chain');
+        const d = await r.json();
+        const el = document.getElementById('chain-head-display');
+        const icon = d.valid ? '✅' : '❌';
+        el.textContent = `${icon} Chain head: ${d.chainHead || 'N/A'} · ${d.receipts} receipts verified · ${d.message}`;
+    } catch(e) {}
+}
+
+async function loadAgents() {
+    try {
+        const r = await fetch('/api/drift/latest');
+        const d = await r.json();
+        if (d.message || !d.agentReports) {
+            document.getElementById('agents-grid').innerHTML =
+                '<div class="loading">Chain seeding in progress — drift scans begin ~30s after server start</div>';
+            return;
+        }
+        const grid = document.getElementById('agents-grid');
+        grid.innerHTML = '';
+        for (const report of d.agentReports) {
+            const dl = driftLabel(report.driftStatus);
+            const cbcPct = (report.cbcScore * 100).toFixed(1);
+            const confPct = (report.avgStatedConfidence * 100).toFixed(1);
+            const card = document.createElement('div');
+            card.className = `agent-card ${driftClass(report.driftStatus)}`;
+            card.innerHTML = `
+                <div class="agent-name">${report.agentName}</div>
+                <div class="agent-type">${report.agentType} · ${report.tracesAnalyzed} reasoning traces analyzed</div>
+                <div class="drift-status ${dl.cls}">${dl.icon} ${dl.text}</div>
+                <div class="cbc-bar-wrap">
+                    <div class="cbc-label">
+                        <span>Confidence-Behavior Consistency (CBC)</span>
+                        <strong style="color:var(--primary-text)">${cbcPct}%</strong>
+                    </div>
+                    <div class="cbc-bar">
+                        <div class="cbc-fill" style="width:${cbcPct}%;background:${cbcFillColor(report.cbcScore)}"></div>
+                    </div>
+                </div>
+                <div class="agent-patterns">
+                    ${report.patterns.map(p => `
+                        <div class="pattern-item">
+                            <span class="pattern-type">${p.type}</span>${p.description}
+                        </div>`).join('')}
+                </div>
+                <div class="agent-metrics">
+                    <div class="metric-item">Avg Confidence: <span class="mv">${confPct}%</span></div>
+                    <div class="metric-item">Flip-flops: <span class="mv">${report.metrics.highConfidenceFlips}</span></div>
+                    <div class="metric-item">High-conf votes: <span class="mv">${report.metrics.totalHighConfidenceVotes}</span></div>
+                    <div class="metric-item">Flip ratio: <span class="mv">${(report.metrics.flipRatio * 100).toFixed(1)}%</span></div>
+                </div>
+                ${report.requiresOversight ? `
+                    <div class="oversight-flag">
+                        🚨 Escalated to Human Principal Oversight (Chain #20) — CBC below threshold
+                    </div>` : ''}
+            `;
+            grid.appendChild(card);
+        }
+    } catch(e) {
+        document.getElementById('agents-grid').innerHTML = `<div class="error">Error loading agent data: ${e.message}</div>`;
+    }
+}
+
+async function loadLedger() {
+    try {
+        const r = await fetch('/api/drift/ledger?limit=10');
+        const d = await r.json();
+        const tbody = document.getElementById('ledger-body');
+        if (!d.receipts || d.receipts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--muted-text);">No receipts yet</td></tr>';
+            return;
+        }
+        tbody.innerHTML = d.receipts.map(r => {
+            const g = r.networkSummary?.networkAlignmentGrade || '—';
+            return `<tr>
+                <td style="color:var(--muted-text)">${r.index}</td>
+                <td style="color:var(--neural-purple)">${r.driftId?.replace('drift-','').substring(0,10)}…</td>
+                <td style="color:var(--primary-text)">${r.agentsAnalyzed}</td>
+                <td style="color:${cbcFillColor(r.networkSummary?.networkCbcScore||0)}">${((r.networkSummary?.networkCbcScore||0)*100).toFixed(1)}%</td>
+                <td style="color:${gradeColor(g);font-weight:600}">${g}</td>
+                <td style="color:var(--neural-green)">${r.networkSummary?.aligned||0}</td>
+                <td style="color:var(--neural-yellow)">${r.networkSummary?.moderateDrift||0}</td>
+                <td style="color:var(--neural-red)">${r.networkSummary?.highDrift||0}</td>
+                <td style="color:var(--neural-red)">${r.networkSummary?.oversightEscalations||0}</td>
+                <td style="color:var(--muted-text)">${fmt(r.timestamp)}</td>
+                <td style="color:var(--neural-cyan);font-size:0.7rem">${r.hash?.substring(0,12)}…</td>
+            </tr>`;
+        }).join('');
+    } catch(e) {}
+}
+
+function cbcFillColor(score) {
+    if (score >= 0.80) return 'var(--neural-green)';
+    if (score >= 0.65) return 'var(--neural-yellow)';
+    return 'var(--neural-red)';
+}
+
+// Initial load
+loadStatus();
+loadAgents();
+loadLedger();
+loadChainHead();
+
+// Refresh every 30s
+setInterval(() => {
+    loadStatus();
+    loadAgents();
+    loadLedger();
+    loadChainHead();
+}, 30000);
+</script>
+</body>
+</html>
