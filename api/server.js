@@ -13101,88 +13101,119 @@ let systemicRiskCycleCount = 0;
 function computeSystemicRiskScore() {
     const dimensions = {};
 
-    // Dimension 1: Collusion Risk
+    // Dimension 1: Collusion Risk (Chain #25)
+    // collusionLedger receipts have: { payload: { networkRisk, hhiConcentrationScore, flaggedPairs } }
     let collusionScore = 100;
-    if (collusionLedger && collusionLedger.length > 0) {
-        const latest = collusionLedger[collusionLedger.length - 1];
-        const risk = latest.payload.networkRisk;
-        const hhi = latest.payload.hhiConcentrationScore || 0;
-        const flagged = latest.payload.flaggedPairs || 0;
-        const hhiPenalty = Math.min(hhi / 100, 40);
-        const flagPenalty = Math.min(flagged * 15, 40);
-        collusionScore = Math.max(0, 100 - hhiPenalty - flagPenalty);
-        if (risk === 'HIGH') collusionScore = Math.min(collusionScore, 30);
-        else if (risk === 'MEDIUM') collusionScore = Math.min(collusionScore, 65);
-    }
+    try {
+        if (collusionLedger && collusionLedger.length > 0) {
+            const latest = collusionLedger[collusionLedger.length - 1];
+            const p = latest.payload || {};
+            const risk = p.networkRisk || 'LOW';
+            const hhi = p.hhiConcentrationScore || 0;
+            const flagged = p.flaggedPairs || 0;
+            const hhiPenalty = Math.min(hhi / 100, 40);
+            const flagPenalty = Math.min(flagged * 15, 40);
+            collusionScore = Math.max(0, 100 - hhiPenalty - flagPenalty);
+            if (risk === 'HIGH') collusionScore = Math.min(collusionScore, 30);
+            else if (risk === 'MEDIUM') collusionScore = Math.min(collusionScore, 65);
+        }
+    } catch(e) { collusionScore = 75; }
     dimensions.collusion = { score: Math.round(collusionScore), weight: 0.20, label: 'Collusion Risk', chain: 25, status: collusionScore >= 80 ? 'CLEAN' : collusionScore >= 50 ? 'WATCH' : 'ALERT' };
 
-    // Dimension 2: Alignment Drift
+    // Dimension 2: Alignment Drift (Chain #24)
+    // driftLedger receipts: structure varies; check .payload OR direct fields
     let driftScore = 85;
-    if (driftLedger && driftLedger.length > 0) {
-        const latest = driftLedger[driftLedger.length - 1];
-        const avgCBC = latest.payload.averageCBCScore || 0.85;
-        const driftedAgents = latest.payload.agentsDrifted || 0;
-        driftScore = Math.round(avgCBC * 70 + (1 - driftedAgents / Math.max(agents.length, 1)) * 30);
-    }
+    try {
+        if (driftLedger && driftLedger.length > 0) {
+            const latest = driftLedger[driftLedger.length - 1];
+            const p = latest.payload || latest;
+            const avgCBC = p.averageCBCScore || p.networkCbcScore || 0.85;
+            const driftedAgents = p.agentsDrifted || p.highDrift || 0;
+            driftScore = Math.round(avgCBC * 70 + (1 - driftedAgents / Math.max(agents.length, 1)) * 30);
+        }
+    } catch(e) { driftScore = 80; }
     dimensions.alignment = { score: Math.min(100, Math.max(0, driftScore)), weight: 0.18, label: 'Alignment Drift', chain: 24, status: driftScore >= 80 ? 'ALIGNED' : driftScore >= 55 ? 'DRIFTING' : 'MISALIGNED' };
 
-    // Dimension 3: Watchdog Health
+    // Dimension 3: Watchdog Health (Chain #9)
+    // watchdogLedger receipts: { status, alertCount, alerts[] } — NO .payload wrapper
     let watchdogScore = 100;
-    if (watchdogLedger && watchdogLedger.length > 0) {
-        const latest = watchdogLedger[watchdogLedger.length - 1];
-        const status = latest.payload.overallStatus || 'HEALTHY';
-        const findings = (latest.payload.findings || []).length;
-        if (status === 'CRITICAL') watchdogScore = 20;
-        else if (status === 'WARNING' || status === 'ALERT') watchdogScore = 55;
-        else watchdogScore = 100;
-        watchdogScore = Math.max(0, watchdogScore - findings * 8);
-    }
+    try {
+        if (watchdogLedger && watchdogLedger.length > 0) {
+            const latest = watchdogLedger[watchdogLedger.length - 1];
+            const status = latest.status || (latest.payload && latest.payload.overallStatus) || 'HEALTHY';
+            const alertCount = latest.alertCount || (latest.alerts || []).length || 0;
+            if (status === 'CRITICAL') watchdogScore = 20;
+            else if (status === 'WARNING' || status === 'ALERT') watchdogScore = 55;
+            else watchdogScore = 100;
+            watchdogScore = Math.max(0, watchdogScore - alertCount * 8);
+        }
+    } catch(e) { watchdogScore = 85; }
     dimensions.watchdog = { score: Math.min(100, Math.max(0, watchdogScore)), weight: 0.15, label: 'Watchdog Health', chain: 9, status: watchdogScore >= 85 ? 'HEALTHY' : watchdogScore >= 55 ? 'WATCH' : 'CRITICAL' };
 
-    // Dimension 4: Consensus Fragility
+    // Dimension 4: Consensus Fragility (Chain #10)
+    // consensusLedger receipts: { outcome, forPct } — NO .payload wrapper
     let consensusScore = 80;
-    if (consensusLedger && consensusLedger.length > 0) {
-        const recent = consensusLedger.slice(-10);
-        const deadlocks = recent.filter(r => r.payload && r.payload.outcome === 'DEADLOCK').length;
-        consensusScore = Math.round(100 - (deadlocks / Math.max(recent.length, 1)) * 60);
-    }
+    try {
+        if (consensusLedger && consensusLedger.length > 0) {
+            const recent = consensusLedger.slice(-10);
+            const deadlocks = recent.filter(r => (r.outcome || (r.payload && r.payload.outcome)) === 'DEADLOCK').length;
+            consensusScore = Math.round(100 - (deadlocks / Math.max(recent.length, 1)) * 60);
+        }
+    } catch(e) { consensusScore = 75; }
     dimensions.consensus = { score: Math.min(100, Math.max(0, consensusScore)), weight: 0.12, label: 'Consensus Fragility', chain: 10, status: consensusScore >= 70 ? 'CONVERGING' : consensusScore >= 45 ? 'FRAGILE' : 'DEADLOCKED' };
 
-    // Dimension 5: Velocity Momentum
+    // Dimension 5: Velocity Momentum (Chain #23)
+    // velocityLedger receipts: structure — check .payload
     let velocityScore = 75;
-    if (velocityLedger && velocityLedger.length > 0) {
-        const latest = velocityLedger[velocityLedger.length - 1];
-        const grade = latest.payload.velocityGrade || 'C';
-        const gradeMap = { 'A+': 100, 'A': 90, 'B+': 82, 'B': 75, 'C+': 65, 'C': 55, 'D': 35, 'F': 15 };
-        velocityScore = gradeMap[grade] || 60;
-    }
+    try {
+        if (velocityLedger && velocityLedger.length > 0) {
+            const latest = velocityLedger[velocityLedger.length - 1];
+            const p = latest.payload || latest;
+            const grade = p.velocityGrade || p.grade || 'C';
+            const gradeMap = { 'A+': 100, 'A': 90, 'B+': 82, 'B': 75, 'C+': 65, 'C': 55, 'D': 35, 'F': 15 };
+            velocityScore = gradeMap[grade] || 60;
+        }
+    } catch(e) { velocityScore = 70; }
     dimensions.velocity = { score: Math.min(100, Math.max(0, velocityScore)), weight: 0.12, label: 'Velocity Momentum', chain: 23, status: velocityScore >= 80 ? 'ACCELERATING' : velocityScore >= 55 ? 'STABLE' : 'STALLING' };
 
-    // Dimension 6: Oversight Load
+    // Dimension 6: Oversight Load (Chain #20)
+    // oversightLedger receipts: { severity, eventType } — top-level fields
     let oversightScore = 100;
-    if (oversightLedger && oversightLedger.length > 0) {
-        const recent = oversightLedger.slice(-20);
-        const criticalCount = recent.filter(r => r.payload && (r.payload.severity === 'HIGH' || r.payload.severity === 'CRITICAL')).length;
-        oversightScore = Math.max(0, 100 - criticalCount * 10);
-    }
+    try {
+        if (oversightLedger && oversightLedger.length > 0) {
+            const recent = oversightLedger.slice(-20);
+            const criticalCount = recent.filter(r => {
+                const sev = r.severity || (r.payload && r.payload.severity) || 'LOW';
+                return sev === 'HIGH' || sev === 'CRITICAL';
+            }).length;
+            oversightScore = Math.max(0, 100 - criticalCount * 10);
+        }
+    } catch(e) { oversightScore = 85; }
     dimensions.oversight = { score: Math.min(100, Math.max(0, oversightScore)), weight: 0.10, label: 'Oversight Load', chain: 20, status: oversightScore >= 80 ? 'NOMINAL' : oversightScore >= 50 ? 'ELEVATED' : 'OVERLOADED' };
 
-    // Dimension 7: Reputation Decay
+    // Dimension 7: Reputation Decay (Chain #22)
+    // decayLedger receipts: { cycleId, decayEvents, summary } — no .payload
     let decayScore = 85;
-    if (decayLedger && decayLedger.length > 0) {
-        const latest = decayLedger[decayLedger.length - 1];
-        const agentsDecayed = latest.payload.agentsDecayed || 0;
-        const ratio = agentsDecayed / Math.max(agents.length, 1);
-        decayScore = Math.round(100 - ratio * 50);
-    }
+    try {
+        if (decayLedger && decayLedger.length > 0) {
+            const latest = decayLedger[decayLedger.length - 1];
+            const summary = latest.summary || {};
+            const agentsDecayed = summary.agentsDecayed || latest.agentsDecayed || (latest.decayEvents || []).length || 0;
+            const ratio = agentsDecayed / Math.max(agents.length, 1);
+            decayScore = Math.round(100 - ratio * 50);
+        }
+    } catch(e) { decayScore = 80; }
     dimensions.decay = { score: Math.min(100, Math.max(0, decayScore)), weight: 0.07, label: 'Reputation Decay', chain: 22, status: decayScore >= 80 ? 'STABLE' : decayScore >= 55 ? 'DECAYING' : 'ATROPHIED' };
 
-    // Dimension 8: Health Index
+    // Dimension 8: Health Index (Chain #15)
+    // healthIndexLedger receipts: { score, grade, status } — direct fields
     let healthIndexScore = 75;
-    if (healthIndexLedger && healthIndexLedger.length > 0) {
-        const latest = healthIndexLedger[healthIndexLedger.length - 1];
-        healthIndexScore = latest.payload.healthScore || 75;
-    }
+    try {
+        if (healthIndexLedger && healthIndexLedger.length > 0) {
+            const latest = healthIndexLedger[healthIndexLedger.length - 1];
+            healthIndexScore = latest.score || (latest.payload && latest.payload.healthScore) || 75;
+        }
+    } catch(e) { healthIndexScore = 75; }
     dimensions.health = { score: Math.min(100, Math.max(0, healthIndexScore)), weight: 0.06, label: 'Health Index', chain: 15, status: healthIndexScore >= 85 ? 'EXCELLENT' : healthIndexScore >= 65 ? 'GOOD' : 'DEGRADED' };
 
     // Composite SRS
