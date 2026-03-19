@@ -9363,7 +9363,7 @@ app.get('/api/scorecard', (req, res) => {
             endpoint: '/api/health-index/verify/chain',
             url: '/health-index',
             receiptCount: healthIndexLedger.length,
-            description: 'Self-assessing multi-chain oracle — composites all 14 chains into a live health grade every 75s',
+            description: 'Self-assessing multi-chain oracle — composites all 21 chains into a live health grade every 75s',
             tracks: ['erc8004', 'letcook', 'opentrack']
         },
         {
@@ -9894,12 +9894,12 @@ app.get('/lifecycle', (req, res) => {
 // 📊 GOVERNANCE HEALTH INDEX — 15th ERC-8004 Receipt Chain
 //
 // The governance system's self-assessment oracle. Every 75 seconds it samples
-// all 14 existing ERC-8004 chains, computes a composite health score (0–100),
+// all 21 existing ERC-8004 chains, computes a composite health score (0–100),
 // assigns a letter grade (A+ through F), and issues a tamper-evident SHA-256
 // chained snapshot receipt — chain 15.
 //
 // Metrics evaluated (6 dimensions):
-//   1. Chain Integrity  — are all 14 chain heads consistent and growing?
+//   1. Chain Integrity  — are all 21 chain heads consistent and growing?
 //   2. Agent Activity   — have agents voted/contributed recently?
 //   3. Proposal Health  — quorum, vote spread, no stale-open cluster
 //   4. Accountability   — slash rate vs. appeal grant rate (balance)
@@ -9926,17 +9926,33 @@ function computeGovernanceHealth() {
     const now = Date.now();
 
     // ── Dimension 1: Chain Integrity (25 pts) ──────────────────────────────
-    // Check that all 14 chains have >0 receipts
+    // Check that all 21 chains have >0 receipts
     const chains = [
-        voteReceiptLedger, executionLedger, slashLedger, delegationReceiptLedger,
-        constitutionalAuditLedger, councilLedger || [], trustAttestations || [],
-        passportLedger || [], watchdogLedger || [], consensusLedger || [],
-        appealLedger || [], finalizationLedger || [], amendmentLedger || [],
-        lifecycleLedger || []
+        voteReceiptLedger,           // Chain 1: Vote Receipts
+        executionLedger,             // Chain 2: Execution Ledger
+        slashLedger,                 // Chain 3: Slash Ledger
+        delegationReceiptLedger,     // Chain 4: Delegation
+        constitutionalAuditLedger,   // Chain 5: Constitutional Audit
+        councilLedger || [],         // Chain 6: Council
+        attestationLedger || [],     // Chain 7: Attestations
+        passportLedger || [],        // Chain 8: Agent Passport
+        watchdogLedger || [],        // Chain 9: Watchdog Oracle
+        consensusLedger || [],       // Chain 10: Multi-Agent Consensus
+        appealLedger || [],          // Chain 11: Appeal Protocol
+        finalizationLedger || [],    // Chain 12: Finalization Seals
+        amendmentLedger || [],       // Chain 13: Amendments
+        lifecycleLedger || [],       // Chain 14: Lifecycle Tracer
+        healthIndexLedger || [],     // Chain 15: Health Index (self-referential)
+        trustLedger || [],           // Chain 16: Trust Endorsement
+        snapshotLedger || [],        // Chain 17: Governance Snapshot
+        gazetteLedger || [],         // Chain 18: Autonomous Gazette
+        reasoningLedger || [],       // Chain 19: Reasoning Transparency
+        oversightLedger || [],       // Chain 20: Human Principal Oversight
+        demoCycleLedger || []        // Chain 21: Demo Cycle
     ];
     const nonEmptyChains = chains.filter(c => c && c.length > 0).length;
-    const chainIntegrity = Math.round((nonEmptyChains / 14) * 25);
-    const chainDetail = `${nonEmptyChains}/14 chains active`;
+    const chainIntegrity = Math.round((nonEmptyChains / 21) * 25);
+    const chainDetail = `${nonEmptyChains}/21 chains active`;
 
     // ── Dimension 2: Agent Activity (20 pts) ──────────────────────────────
     const recentWindowMs = 60 * 60 * 1000; // last hour
@@ -9966,8 +9982,16 @@ function computeGovernanceHealth() {
     const watchdogReceipts = (watchdogLedger || []).length;
     const consensusReceipts = (consensusLedger || []).length;
     const amendmentReceipts = (amendmentLedger || []).length;
-    const autonomyScore = Math.min(15, Math.floor((watchdogReceipts + consensusReceipts + amendmentReceipts) / 5));
-    const autonomyDetail = `Watchdog: ${watchdogReceipts}, Consensus: ${consensusReceipts}, Amendments: ${amendmentReceipts}`;
+    const trustReceipts = (trustLedger || []).length;
+    const snapshotReceipts = (snapshotLedger || []).length;
+    const gazetteReceipts = (gazetteLedger || []).length;
+    const reasoningReceipts = (reasoningLedger || []).length;
+    const oversightReceipts = (oversightLedger || []).length;
+    const demoCycleReceipts = (demoCycleLedger || []).length;
+    const totalAutonomousReceipts = watchdogReceipts + consensusReceipts + amendmentReceipts +
+        trustReceipts + snapshotReceipts + gazetteReceipts + reasoningReceipts + oversightReceipts + demoCycleReceipts;
+    const autonomyScore = Math.min(15, Math.floor(totalAutonomousReceipts / 20));
+    const autonomyDetail = `12 loops: Watchdog(${watchdogReceipts}) Consensus(${consensusReceipts}) Trust(${trustReceipts}) Gazette(${gazetteReceipts}) +more`;
 
     // ── Dimension 6: Constitutional Health (10 pts) ────────────────────────
     const constitutionArticles = (constitution && constitution.articles) ? constitution.articles.length : 0;
@@ -10015,11 +10039,15 @@ function issueHealthIndexReceipt() {
         grade: health.grade,
         status: health.status,
         dimensions: health.dimensions,
-        totalERC8004Chains: 15,
+        totalERC8004Chains: 21,
         totalReceipts: (voteReceiptLedger.length + executionLedger.length + slashLedger.length +
             (delegationReceiptLedger||[]).length + (constitutionalAuditLedger||[]).length +
-            (watchdogLedger||[]).length + (consensusLedger||[]).length + (appealLedger||[]).length +
-            (amendmentLedger||[]).length + (lifecycleLedger||[]).length),
+            (councilLedger||[]).length + (attestationLedger||[]).length +
+            (passportLedger||[]).length + (watchdogLedger||[]).length + (consensusLedger||[]).length +
+            (appealLedger||[]).length + (finalizationLedger||[]).length + (amendmentLedger||[]).length +
+            (lifecycleLedger||[]).length + healthIndexLedger.length + (trustLedger||[]).length +
+            (snapshotLedger||[]).length + (gazetteLedger||[]).length + (reasoningLedger||[]).length +
+            (oversightLedger||[]).length + (demoCycleLedger||[]).length),
         protocol: 'ERC-8004 Receipt Chain #15',
         autonomousExecution: true,
         humanTrigger: false
@@ -10064,7 +10092,7 @@ app.get('/api/health-index/status', (req, res) => {
         protocol: 'ERC-8004 Receipt Chain #15',
         autonomousExecution: true,
         humanTrigger: false,
-        description: 'Self-assessing multi-chain governance health oracle — composites all 14 ERC-8004 chains'
+        description: 'Self-assessing multi-chain governance health oracle — composites all 21 ERC-8004 chains'
     });
 });
 
