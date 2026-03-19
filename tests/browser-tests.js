@@ -61,21 +61,20 @@ async function runPageTests() {
         { path: '/register', expected: 'Agent', name: 'Register' },
     ];
 
-    // Split into two drivers to avoid memory crash
-    for (const batch of [pages.slice(0, 4), pages.slice(4)]) {
+    // Run each page in its own driver to avoid memory crashes on heavy pages
+    for (const { path, expected, name, waitMs } of pages) {
         await withDriver(async (driver) => {
-            for (const { path, expected, name } of batch) {
-                try {
-                    await driver.get(`${BASE_URL}${path}`);
-                    const title = await driver.getTitle();
-                    if (title.includes(expected)) {
-                        pass(`${name} — "${title}"`);
-                    } else {
-                        fail(name, `expected "${expected}" in title "${title}"`);
-                    }
-                } catch (e) {
-                    fail(name, e.message);
+            try {
+                await driver.get(`${BASE_URL}${path}`);
+                if (waitMs) await driver.sleep(waitMs);
+                const title = await driver.getTitle();
+                if (title.includes(expected)) {
+                    pass(`${name} — "${title}"`);
+                } else {
+                    fail(name, `expected "${expected}" in title "${title}"`);
                 }
+            } catch (e) {
+                fail(name, e.message);
             }
         });
     }
@@ -101,7 +100,10 @@ async function runNavTests() {
             fail('Navigation', e.message);
         }
 
-        // Mode toggle
+    });
+
+    // Mode toggle gets its own driver — dashboard is memory-heavy
+    await withDriver(async (driver) => {
         try {
             await driver.get(`${BASE_URL}/dashboard`);
             const btn = await driver.findElement(By.css('button'));

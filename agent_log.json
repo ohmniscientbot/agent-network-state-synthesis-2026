@@ -2035,6 +2035,16 @@
         "chain_id": 24,
         "feature": "Agent Alignment Drift Ledger (CBC scoring)"
       }
+    },
+    {
+      "id": "L079",
+      "timestamp": "2026-03-19T20:30:00Z",
+      "type": "bug_fix",
+      "description": "Fix Selenium tab crashes in browser test suite. Root cause: page load tests ran heavy pages (dashboard, debates, prediction-markets) in batches sharing a single Chrome driver \u2014 Selenium pod ran out of memory. Fix: each page now gets its own driver instance. Mode toggle test also isolated into its own driver (was sharing with nav test which then loaded dashboard). Tests: 25/25 restored.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }
