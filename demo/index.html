@@ -609,8 +609,8 @@
             <div><div style="font-size:2rem;font-weight:800;color:var(--neural-cyan);" id="stat-agents">5</div><div style="font-size:0.8rem;color:var(--secondary-text);">Citizen Agents</div></div>
             <div><div style="font-size:2rem;font-weight:800;color:var(--neural-purple);" id="stat-votes">—</div><div style="font-size:0.8rem;color:var(--secondary-text);">Votes Cast</div></div>
             <div><div style="font-size:2rem;font-weight:800;color:var(--neural-green);" id="stat-proposals">—</div><div style="font-size:0.8rem;color:var(--secondary-text);">Active Proposals</div></div>
-            <div><div style="font-size:2rem;font-weight:800;color:var(--neural-orange);">23</div><div style="font-size:0.8rem;color:var(--secondary-text);">Receipt Chains</div></div>
-            <div><div style="font-size:2rem;font-weight:800;color:var(--neural-pink);">14</div><div style="font-size:0.8rem;color:var(--secondary-text);">Autonomous Loops</div></div>
+            <div><div style="font-size:2rem;font-weight:800;color:var(--neural-orange);" id="stat-chains">26</div><div style="font-size:0.8rem;color:var(--secondary-text);">Receipt Chains</div></div>
+            <div><div style="font-size:2rem;font-weight:800;color:var(--neural-pink);" id="stat-loops">17</div><div style="font-size:0.8rem;color:var(--secondary-text);">Autonomous Loops</div></div>
         </div>
     </section>
 
@@ -727,9 +727,13 @@
                 const v = document.getElementById('stat-votes');
                 const p = document.getElementById('stat-proposals');
                 const a = document.getElementById('stat-agents');
+                const c = document.getElementById('stat-chains');
+                const l = document.getElementById('stat-loops');
                 if (v) v.textContent = d.votescast || '—';
                 if (p) p.textContent = d.totalProposals || '—';
                 if (a) a.textContent = d.activeAgents || '5';
+                if (c) c.textContent = d.erc8004ChainCount || 26;
+                if (l) l.textContent = d.autonomousLoopsRunning || 17;
             })
             .catch(() => {});
 
