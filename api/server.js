@@ -9630,7 +9630,9 @@ app.get('/api/scorecard', (req, res) => {
             erc8004ChainCount: 26,
             totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length,
             autonomousLoopsRunning: 17,
-            constitutionArticles: constitution ? constitution.articles.length : 0
+            constitutionArticles: constitution ? constitution.articles.length : 0,
+            totalPages: 24,
+            totalApiEndpoints: 35
         },
         chains,
         tracks: trackSummary,
