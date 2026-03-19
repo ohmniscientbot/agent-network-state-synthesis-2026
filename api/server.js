@@ -11478,8 +11478,11 @@ app.post('/api/demo-cycle/run', async (req, res) => {
         for (const agent of agents) {
             // Trust-aware vote generation
             const slashCount = slashLedger.filter(s => s.agentId === agent.id).length;
-            const trustRec = trustGraph[agent.id];
-            const trustScore = trustRec ? trustRec.compositeScore : 0.7;
+            // trustGraph[fromId][toId] = edge; get this agent's average outbound trust
+            const agentEdges = trustGraph[agent.id] ? Object.values(trustGraph[agent.id]) : [];
+            const trustScore = agentEdges.length > 0
+                ? agentEdges.reduce((s, e) => s + (typeof e.score === 'number' ? e.score : 0.7), 0) / agentEdges.length
+                : 0.7;
 
             // Slash-cautious agents lean against risky proposals
             let voteChoice;
