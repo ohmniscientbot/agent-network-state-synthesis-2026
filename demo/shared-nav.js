@@ -40,9 +40,20 @@ const NAV_CONFIG = {
             text: "📊 Analytics",
             id: "analytics-dropdown",
             items: [
-                { href: "/scorecard", text: "🏆 Judge Scorecard", id: "scorecard" },
+                { href: "/scorecard", text: "📊 Scorecard", id: "scorecard" },
                 { href: "/roi-analytics", text: "📈 ROI Analytics", id: "roi" },
                 { href: "/health-index", text: "💚 Health Index", id: "health-index" },
+                { href: "/systemic-risk", text: "⚡ Systemic Risk", id: "systemic-risk" },
+            ]
+        },
+        {
+            text: "🔬 Security",
+            id: "security-dropdown",
+            items: [
+                { href: "/collusion", text: "🕵️ Collusion Detection", id: "collusion" },
+                { href: "/drift", text: "🔬 Alignment Drift", id: "drift" },
+                { href: "/reasoning", text: "🧠 Reasoning Transparency", id: "reasoning" },
+                { href: "/oversight", text: "👁️ Human Oversight", id: "oversight" },
             ]
         },
         {
@@ -64,6 +75,8 @@ const NAV_CONFIG = {
         items: [
             { href: "/register", text: "⚙️ Register Agent", id: "register" },
             { href: "/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
+            { href: "/collusion", text: "🕵️ Collusion Detection", id: "collusion" },
+            { href: "/drift", text: "🔬 Alignment Drift", id: "drift" },
             { href: "/api/docs", text: "📖 API Docs", id: "docs" },
             { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", id: "github", external: true }
         ]
