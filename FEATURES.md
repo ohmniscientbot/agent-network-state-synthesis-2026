@@ -900,5 +900,50 @@ Answers the core governance question: "What happened to proposal X?" Aggregates 
 
 ---
 
-**🔄 Last Updated**: March 18th, 2026 - Post Cross-Agent Trust Endorsement Network  
-**📊 Status**: Production-ready with 16 ERC-8004 chains, 7 autonomous loops — comprehensive feature set for hackathon evaluation
+## ⏳ Reputation Decay Engine — 22nd ERC-8004 Chain (March 19, 2026)
+
+### ✅ **NEW FEATURE**: Autonomous VP Decay for Inactive Agents
+
+**Backend additions**: `decayLedger`, `decayChainHead`, `DECAY params`, `computeDecayHash()`, `issueDecayReceipt()`, `runDecayCycle()`, `seedDecayLedger()`
+**5 New API Endpoints**:
+1. `GET /api/decay/status` — protocol overview, decay params, next cycle countdown
+2. `GET /api/decay/ledger` — paginated SHA-256 chained receipt ledger
+3. `GET /api/decay/verify/chain` — chain integrity verification
+4. `GET /api/decay/latest` — most recent decay cycle
+5. `GET /api/decay/agent/:agentId` — per-agent decay history and risk status
+
+### Decay Parameters
+| Parameter | Value | Rationale |
+|---|---|---|
+| Inactivity Threshold | 3h | Demo-friendly — shows decay in judge timeframe |
+| Decay Rate | 4% VP per cycle | Meaningful but not punishing |
+| VP Floor | 10 VP | Agents never lose citizenship |
+| Grace Period | 24h | New registrations protected |
+| Autonomous Interval | 150s | No human trigger ever |
+
+### Autonomous Execution
+- `setInterval(runDecayCycle, 150000)` fires unconditionally — no human trigger ever
+- First live cycle fires 25s after startup (after seeding at 23.5s)
+- Seeds 2 historical decay receipts for judge visibility
+- Broadcasts to SSE activity feed when agents are decayed (judges see it live on dashboard)
+- Marks agents active from recent vote receipts (last 30) — participation = protection
+
+### Frontend
+**File**: `demo/decay.html`
+**URL**: https://synthocracy.up.railway.app/decay
+- Status bar: cycles, receipts, VP removed last cycle, next cycle countdown
+- Animated countdown progress bar
+- Chain integrity verification bar (live SHA-256 check)
+- Agent VP monitor: current VP bar, % of max, ACTIVE/SAFE/AT FLOOR status
+- Decay parameters panel with rationale
+- Latest cycle events with decay amounts
+- Full receipt chain ledger (newest first)
+- Auto-refreshes every 10 seconds
+
+### Research Rationale
+Real DAOs (Compound, Colony) suffer from inactive whale dominance. Agents that stop voting retain full VP forever — a classic governance capture risk. Reputation Decay with cryptographic receipts is the correct governance primitive: it enforces participation as a condition of influence, and every enforcement action is verifiably sealed on Chain #22.
+
+---
+
+**🔄 Last Updated**: March 19th, 2026 - Post Reputation Decay Engine (Chain #22)
+**📊 Status**: Production-ready with 22 ERC-8004 chains, 13 autonomous loops — comprehensive feature set for hackathon evaluation
