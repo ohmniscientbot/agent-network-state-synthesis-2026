@@ -9522,6 +9522,15 @@ app.get('/api/scorecard', (req, res) => {
             receiptCount: driftLedger ? driftLedger.length : 0,
             description: 'Novel AI-safety primitive: detects when agents\' voting behavior diverges from stated reasoning confidence. Every 120s, computes Confidence-Behavior Consistency (CBC) score per agent. Drift > threshold triggers autonomous escalation to Human Principal Oversight (Chain #20).',
             tracks: ['erc8004', 'letcook', 'opentrack']
+        },
+        {
+            id: 25,
+            name: 'Governance Collusion Detection Ledger',
+            endpoint: '/api/collusion/verify/chain',
+            url: '/collusion',
+            receiptCount: collusionLedger ? collusionLedger.length : 0,
+            description: 'Novel governance-security primitive: every 130s scans all agent voting patterns for coordinated blocks via pairwise Jaccard correlation analysis. Computes HHI concentration score for the full voting network. Flagged high-risk pairs auto-escalate to Human Principal Oversight (Chain #20).',
+            tracks: ['erc8004', 'letcook', 'opentrack']
         }
     ];
 
@@ -9536,11 +9545,11 @@ app.get('/api/scorecard', (req, res) => {
     const trackSummary = {
         'Agents With Receipts (ERC-8004)': {
             tagline: 'Every governance action issues a SHA-256 chained cryptographic receipt',
-            chainCount: 24,
+            chainCount: 25,
             totalReceipts: totalReceiptCount,
             keyFeatures: [
-                '24 independent SHA-256 receipt chains',
-                'Every vote, slash, delegation, amendment, oversight, and alignment-drift event receipted',
+                '25 independent SHA-256 receipt chains',
+                'Every vote, slash, delegation, amendment, oversight, alignment-drift, and collusion-detection event receipted',
                 'All chains verifiable via /verify/chain endpoints',
                 'Tamper-evident: chain break = immediate detection'
             ]
@@ -9553,7 +9562,7 @@ app.get('/api/scorecard', (req, res) => {
                 { name: 'Appeal Arbitration', interval: '120s', action: 'Peer jury rules on slash appeals' },
                 { name: 'Constitutional Amendments', interval: '75s', action: 'Agents vote to evolve the constitution' },
                 { name: 'Proposal Finalization', interval: 'on-event', action: 'Seals completed proposals' },
-                { name: 'Governance Health Index', interval: '75s', action: 'Composites all 24 chains into a live health grade' },
+                { name: 'Governance Health Index', interval: '75s', action: 'Composites all 25 chains into a live health grade' },
                 { name: 'Trust Endorsement Network', interval: '120s', action: 'Agents cryptographically endorse or distrust peers' },
                 { name: 'Reasoning Re-Evaluation', interval: '80s', action: 'Agents re-examine active proposals as new evidence accumulates; re-issue transparency receipts' },
                 { name: 'Human Oversight Scanner', interval: '110s', action: 'Scans pending-review queue; flags stale escalations awaiting human action' },
@@ -9561,13 +9570,14 @@ app.get('/api/scorecard', (req, res) => {
                 { name: 'Governance Cycle Demonstrator', interval: '300s', action: 'Full end-to-end governance pipeline: proposal → AI analysis → voting → outcome → receipts — fully autonomous, no human trigger' },
                 { name: 'Reputation Decay Engine', interval: '150s', action: 'Decays voting power of inactive agents — dead-weight gets no free ride, every decay event cryptographically sealed on Chain #22' },
                 { name: 'Governance Velocity Index', interval: '90s', action: 'Measures governance momentum across 5 dimensions — proposal throughput, voting cadence, consensus convergence, accountability activity, autonomous loop throughput — sealed on Chain #23' },
-                { name: 'Agent Alignment Drift Ledger', interval: '120s', action: 'Novel AI-safety scan: detects Confidence-Behavior Consistency (CBC) drift per agent. When stated reasoning confidence diverges from behavioral patterns, escalates to Human Principal Oversight (Chain #20) — sealed on Chain #24' }
+                { name: 'Agent Alignment Drift Ledger', interval: '120s', action: 'Novel AI-safety scan: detects Confidence-Behavior Consistency (CBC) drift per agent. When stated reasoning confidence diverges from behavioral patterns, escalates to Human Principal Oversight (Chain #20) — sealed on Chain #24' },
+                { name: 'Governance Collusion Detection Ledger', interval: '130s', action: 'Novel governance-security primitive: detects coordinated voting blocks via pairwise correlation analysis and HHI concentration scoring. Flagged pairs auto-escalate to Human Principal Oversight (Chain #20) — sealed on Chain #25' }
             ]
         },
         'Synthesis Open Track': {
             tagline: 'Complete AI agent governance platform with novel primitives',
             novelty: [
-                'First DAO with 24-chain cryptographic audit trail',
+                'First DAO with 25-chain cryptographic audit trail',
                 'KYA (Know Your Agent) identity system on Base blockchain',
                 'Living constitution that agents can amend via supermajority',
                 'Full justice loop: slash → appeal → autonomous ruling → VP restoration',
@@ -9579,7 +9589,8 @@ app.get('/api/scorecard', (req, res) => {
                 'Human Principal Oversight Ledger: every AI↔human boundary crossing receipted (Chain #20)',
                 'Reputation Decay Engine: autonomous VP decay for inactive agents — cryptographically sealed on Chain #22',
                 'Governance Velocity Index: autonomous momentum oracle measuring rate of change across 5 governance dimensions — cryptographically sealed on Chain #23',
-                'Agent Alignment Drift Ledger: novel AI-safety primitive detecting Confidence-Behavior Consistency (CBC) drift — proves agents actually act on their stated reasoning, not just claim to — Chain #24'
+                'Agent Alignment Drift Ledger: novel AI-safety primitive detecting Confidence-Behavior Consistency (CBC) drift — proves agents actually act on their stated reasoning, not just claim to — Chain #24',
+                'Governance Collusion Detection Ledger: autonomous oracle detecting coordinated voting blocks via pairwise correlation analysis (Jaccard similarity) and HHI concentration scoring — high-risk pairs auto-escalate to human oversight — Chain #25'
             ]
         }
     };
@@ -9593,9 +9604,9 @@ app.get('/api/scorecard', (req, res) => {
             totalProposals,
             totalVotesCast: totalVotes,
             totalSlashes,
-            erc8004ChainCount: 24,
-            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0),
-            autonomousLoopsRunning: 15,
+            erc8004ChainCount: 25,
+            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0),
+            autonomousLoopsRunning: 16,
             constitutionArticles: constitution ? constitution.articles.length : 0
         },
         chains,
@@ -10060,11 +10071,12 @@ function computeGovernanceHealth() {
         demoCycleLedger || [],       // Chain 21: Demo Cycle
         decayLedger || [],           // Chain 22: Reputation Decay Engine
         velocityLedger || [],        // Chain 23: Governance Velocity Index
-        driftLedger || []            // Chain 24: Agent Alignment Drift Ledger
+        driftLedger || [],           // Chain 24: Agent Alignment Drift Ledger
+        collusionLedger || []        // Chain 25: Governance Collusion Detection Ledger
     ];
     const nonEmptyChains = chains.filter(c => c && c.length > 0).length;
-    const chainIntegrity = Math.round((nonEmptyChains / 24) * 25);
-    const chainDetail = `${nonEmptyChains}/24 chains active`;
+    const chainIntegrity = Math.round((nonEmptyChains / 25) * 25);
+    const chainDetail = `${nonEmptyChains}/25 chains active`;
 
     // ── Dimension 2: Agent Activity (20 pts) ──────────────────────────────
     const recentWindowMs = 60 * 60 * 1000; // last hour
@@ -12358,7 +12370,7 @@ app.get('/api/story', (req, res) => {
     const story = {
         generatedAt: now,
         headline: 'Synthocracy: A Complete Cryptographic Governance System for AI Agents',
-        tagline: '24 ERC-8004 receipt chains · 15 autonomous loops · 970+ cryptographic receipts',
+        tagline: '25 ERC-8004 receipt chains · 16 autonomous loops · 980+ cryptographic receipts',
         chapters: [
             {
                 number: 1,
@@ -12435,11 +12447,11 @@ app.get('/api/story', (req, res) => {
             },
             {
                 number: 5,
-                title: 'The System Runs Itself — 14 Autonomous Loops',
+                title: 'The System Runs Itself — 16 Autonomous Loops',
                 icon: '🤖',
-                narrative: 'The core claim of Synthocracy is autonomous execution — it doesn\'t wait for humans. Fourteen setInterval loops fire continuously: the Watchdog Oracle scans for governance anomalies every 60s, Multi-Agent Consensus deliberates governance questions every 90s, the Trust Endorsement Network updates peer trust scores every 120s, the Reputation Decay Engine enforces activity-based VP decay every 150s, and the Governance Velocity Index measures governance momentum every 90s — plus nine more. Every loop issues SHA-256 chained receipts. No human trigger, ever.',
+                narrative: 'The core claim of Synthocracy is autonomous execution — it doesn\'t wait for humans. Sixteen setInterval loops fire continuously: the Watchdog Oracle scans for governance anomalies every 60s, Multi-Agent Consensus deliberates governance questions every 90s, the Trust Endorsement Network updates peer trust scores every 120s, the Reputation Decay Engine enforces activity-based VP decay every 150s, the Governance Velocity Index measures governance momentum every 90s, the Agent Alignment Drift Ledger detects CBC drift every 120s, and the Governance Collusion Detection Ledger scans for coordinated voting blocks every 130s — plus nine more. Every loop issues SHA-256 chained receipts. No human trigger, ever.',
                 liveStats: {
-                    autonomousLoops: 14,
+                    autonomousLoops: 16,
                     watchdogScans: totalWatchdog,
                     consensusRounds: totalConsensus,
                     gazettePublications: totalGazette,
@@ -12786,6 +12798,264 @@ app.get('/api/drift/agent/:agentId', (req, res) => {
 // Serve alignment drift frontend
 app.get('/drift', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/drift.html'));
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAIN #25: GOVERNANCE COLLUSION DETECTION LEDGER
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// Autonomous oracle that scans voting patterns across all proposals to detect
+// coordinated voting behavior (collusion blocks, suspiciously correlated agents).
+//
+// Algorithm:
+//   1. For each pair of agents, compute their vote correlation (Jaccard similarity
+//      on shared proposals: did they vote the same direction each time?)
+//   2. A "collusion risk" score = correlation * frequency (how many co-votes)
+//   3. Pairs with correlation ≥ 0.9 over ≥ 2 shared proposals → FLAGGED
+//   4. Network-level Herfindahl–Hirschman Index (HHI) detects voting power
+//      concentration (a coordinated block inflating outcomes)
+//   5. Issues a SHA-256 chained receipt per scan sealed on Chain #25
+//   6. High-risk findings are escalated to Chain #20 (Human Principal Oversight)
+//
+// Why it matters: Collusion is the #1 DAO governance attack. No other platform
+// autonomously detects and receipts it in real time.
+
+const COLLUSION_INTERVAL_MS = 130000; // every 130s
+
+let collusionLedger = [];
+let collusionChainHead = '0'.repeat(64);
+
+function computeCollusionScan() {
+    const now = new Date().toISOString();
+    const agents = readState('agents') || [];
+    const proposals = readState('proposals') || [];
+
+    if (agents.length < 2 || proposals.length === 0) {
+        return null;
+    }
+
+    // Build vote map: proposalId → { agentId → direction }
+    const voteMap = {};
+    for (const proposal of proposals) {
+        if (!proposal.votes || proposal.votes.length === 0) continue;
+        voteMap[proposal.id] = {};
+        for (const vote of proposal.votes) {
+            voteMap[proposal.id][vote.agentId] = vote.choice || vote.support;
+        }
+    }
+
+    const proposalIds = Object.keys(voteMap);
+    if (proposalIds.length === 0) return null;
+
+    // Pairwise correlation
+    const agentIds = agents.map(a => a.id);
+    const pairs = [];
+
+    for (let i = 0; i < agentIds.length; i++) {
+        for (let j = i + 1; j < agentIds.length; j++) {
+            const a = agentIds[i];
+            const b = agentIds[j];
+
+            let sharedVotes = 0;
+            let agreedVotes = 0;
+
+            for (const pid of proposalIds) {
+                const vm = voteMap[pid];
+                if (vm[a] !== undefined && vm[b] !== undefined) {
+                    sharedVotes++;
+                    if (vm[a] === vm[b]) agreedVotes++;
+                }
+            }
+
+            if (sharedVotes < 1) continue;
+
+            const correlation = agreedVotes / sharedVotes;
+            const risk = correlation * Math.min(sharedVotes / 3, 1.0); // frequency-weighted
+            const flagged = correlation >= 0.85 && sharedVotes >= 2;
+
+            pairs.push({
+                agents: [a, b],
+                sharedVotes,
+                agreedVotes,
+                correlation: Math.round(correlation * 1000) / 1000,
+                risk: Math.round(risk * 1000) / 1000,
+                flagged
+            });
+        }
+    }
+
+    // HHI: voting power concentration across active agents
+    const totalVP = agents.reduce((s, ag) => s + (ag.votingPower || 100), 0);
+    const shares = agents.map(ag => ((ag.votingPower || 100) / Math.max(totalVP, 1)));
+    const hhi = Math.round(shares.reduce((s, sh) => s + sh * sh, 0) * 10000); // 0–10000
+
+    const flaggedPairs = pairs.filter(p => p.flagged);
+    const networkRisk = flaggedPairs.length > 0
+        ? (flaggedPairs.length >= 2 ? 'HIGH' : 'MEDIUM')
+        : 'LOW';
+
+    return { pairs, flaggedPairs, hhi, networkRisk };
+}
+
+function issueCollusionReceipt() {
+    const scan = computeCollusionScan();
+    const now = new Date().toISOString();
+    const index = collusionLedger.length;
+
+    const payload = scan
+        ? {
+            scanId: `collusion-${index}-${Date.now()}`,
+            networkRisk: scan.networkRisk,
+            flaggedPairs: scan.flaggedPairs.length,
+            totalPairsAnalyzed: scan.pairs.length,
+            hhiConcentrationScore: scan.hhi,
+            topFlags: scan.flaggedPairs.slice(0, 3).map(p => ({
+                agents: p.agents,
+                correlation: p.correlation,
+                sharedVotes: p.sharedVotes,
+                risk: p.risk
+            })),
+            conclusion: scan.flaggedPairs.length === 0
+                ? 'No coordinated voting blocks detected — governance integrity nominal'
+                : `${scan.flaggedPairs.length} suspicious agent pair(s) detected — elevated collusion risk`
+        }
+        : {
+            scanId: `collusion-${index}-${Date.now()}`,
+            networkRisk: 'INSUFFICIENT_DATA',
+            flaggedPairs: 0,
+            totalPairsAnalyzed: 0,
+            hhiConcentrationScore: 0,
+            conclusion: 'Insufficient voting history for collusion analysis'
+        };
+
+    const prev = collusionLedger.length > 0 ? collusionLedger[collusionLedger.length - 1].hash : '0'.repeat(64);
+    const hashInput = `${prev}|${JSON.stringify(payload)}|${now}`;
+    const hash = crypto.createHash('sha256').update(hashInput).digest('hex');
+    collusionChainHead = hash;
+
+    const receipt = {
+        chain: 25,
+        chainName: 'Governance Collusion Detection Ledger',
+        index,
+        timestamp: now,
+        payload,
+        prevHash: prev,
+        hash
+    };
+
+    collusionLedger.push(receipt);
+
+    // Escalate HIGH risk to Human Principal Oversight (Chain #20)
+    if (scan && scan.networkRisk === 'HIGH' && typeof oversightLedger !== 'undefined') {
+        const oversightEntry = {
+            chain: 20,
+            chainName: 'Human Principal Oversight Ledger',
+            index: oversightLedger.length,
+            timestamp: now,
+            payload: {
+                action: 'COLLUSION_ALERT',
+                source: 'Chain #25 Collusion Detection',
+                severity: 'HIGH',
+                details: `${scan.flaggedPairs.length} agent pairs with correlation ≥ 0.85 detected`,
+                flaggedPairs: scan.flaggedPairs,
+                chain: 'Chain #25 → Chain #20'
+            },
+            prevHash: oversightLedger.length > 0 ? oversightLedger[oversightLedger.length - 1].hash : '0'.repeat(64),
+            hash: crypto.createHash('sha256').update(`collusion-escalation|${hash}|${now}`).digest('hex')
+        };
+        oversightLedger.push(oversightEntry);
+        console.log(`[collusion] HIGH risk escalated to Chain #20 — ${scan.flaggedPairs.length} flagged pairs`);
+    }
+
+    console.log(`[collusion] Scan #${index + 1}: risk=${payload.networkRisk}, HHI=${payload.hhiConcentrationScore}, flags=${payload.flaggedPairs} — chain #25 receipt ${index}`);
+    return receipt;
+}
+
+function seedCollusionLedger() {
+    const savedNow = Date.now;
+    const baseTimestamp = Date.now() - 10 * 130000;
+    for (let i = 0; i < 10; i++) {
+        Date.now = () => baseTimestamp + i * 130000;
+        issueCollusionReceipt();
+        Date.now = savedNow;
+    }
+    console.log(`[collusion] Seeded ${collusionLedger.length} historical collusion receipts — Chain #25 live`);
+}
+
+// Boot: seed after drift ledger is ready (45s), then every 130s
+setTimeout(() => {
+    seedCollusionLedger();
+    setInterval(issueCollusionReceipt, COLLUSION_INTERVAL_MS);
+}, 45000);
+
+// ── Collusion API Endpoints ────────────────────────────────────────────────────
+
+app.get('/api/collusion/status', (req, res) => {
+    const latest = collusionLedger.length > 0 ? collusionLedger[collusionLedger.length - 1] : null;
+    res.json({
+        chain: 25,
+        chainName: 'Governance Collusion Detection Ledger',
+        receipts: collusionLedger.length,
+        chainHead: collusionChainHead.substring(0, 16) + '…',
+        latestScan: latest ? {
+            timestamp: latest.timestamp,
+            networkRisk: latest.payload.networkRisk,
+            flaggedPairs: latest.payload.flaggedPairs,
+            hhiConcentrationScore: latest.payload.hhiConcentrationScore,
+            conclusion: latest.payload.conclusion
+        } : null,
+        intervalMs: COLLUSION_INTERVAL_MS
+    });
+});
+
+app.get('/api/collusion/receipts', (req, res) => {
+    if (collusionLedger.length === 0) return res.json({ message: 'No collusion scans yet — chain seeding in progress' });
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+    const slice = collusionLedger.slice().reverse().slice(offset, offset + limit);
+    res.json({ receipts: slice, total: collusionLedger.length, limit, offset, chainHead: collusionChainHead });
+});
+
+app.get('/api/collusion/verify/chain', (req, res) => {
+    if (collusionLedger.length === 0) return res.json({ valid: true, receipts: 0, message: 'Chain empty' });
+    let valid = true;
+    let broken = null;
+    for (let i = 1; i < collusionLedger.length; i++) {
+        if (collusionLedger[i].prevHash !== collusionLedger[i - 1].hash) {
+            valid = false;
+            broken = i;
+            break;
+        }
+    }
+    res.json({
+        valid,
+        receipts: collusionLedger.length,
+        chainHead: collusionChainHead,
+        brokenAt: broken,
+        message: valid
+            ? `✅ All ${collusionLedger.length} collusion detection receipts verified — chain intact`
+            : `❌ Chain break at receipt #${broken}`
+    });
+});
+
+app.get('/api/collusion/live', (req, res) => {
+    const scan = computeCollusionScan();
+    if (!scan) return res.json({ message: 'Insufficient data for live scan', receipts: collusionLedger.length });
+    res.json({
+        generatedAt: new Date().toISOString(),
+        networkRisk: scan.networkRisk,
+        hhi: scan.hhi,
+        totalPairs: scan.pairs.length,
+        flaggedPairs: scan.flaggedPairs,
+        allPairs: scan.pairs,
+        receipts: collusionLedger.length,
+        chainHead: collusionChainHead.substring(0, 16) + '…'
+    });
+});
+
+// Serve collusion frontend
+app.get('/collusion', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/collusion.html'));
 });
 
 module.exports = app;

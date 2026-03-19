@@ -2085,6 +2085,28 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L084",
+      "type": "autonomous_cycle",
+      "timestamp": "2026-03-19T21:00:00Z",
+      "description": "Chain #25: Governance Collusion Detection Ledger. Novel governance-security primitive: autonomous oracle scans all agent voting patterns every 130s for coordinated blocks via pairwise Jaccard correlation analysis and HHI concentration scoring. Flagged pairs auto-escalate to Human Principal Oversight (Chain #20). Added /collusion frontend page and 4 new API endpoints (/api/collusion/status, /receipts, /verify/chain, /live). Updated scorecard to 25 chains, 16 autonomous loops.",
+      "chains_added": [
+        25
+      ],
+      "loops_added": 1,
+      "files_changed": [
+        "api/server.js",
+        "demo/collusion.html",
+        "agent_log.json"
+      ],
+      "endpoints_added": [
+        "/api/collusion/status",
+        "/api/collusion/receipts",
+        "/api/collusion/verify/chain",
+        "/api/collusion/live",
+        "/collusion"
+      ]
     }
   ]
 }
