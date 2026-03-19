@@ -75,7 +75,21 @@ app.use(express.json());
 app.use(rateLimit); // Apply rate limiting to all endpoints
 
 // 🌐 Serve frontend static files (for Railway deployment)
-app.use(express.static(path.join(__dirname, '../demo')));
+// Serve static assets: HTML no-cache (always revalidate), JS/CSS fingerprinted long-cache
+app.use(express.static(path.join(__dirname, '../demo'), {
+    setHeaders(res, filePath) {
+        if (filePath.endsWith('.html')) {
+            // Browser always revalidates HTML — no hard refresh needed after deploys
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        } else if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            // JS/CSS: revalidate on each request (shared-nav.js changes frequently)
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        } else {
+            // Images, fonts, manifests: cache 1 hour
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
+    }
+}));
 
 // 🏠 Frontend route - serve index.html for root
 app.get('/', (req, res) => {
