@@ -2183,6 +2183,17 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L092",
+      "timestamp": "2026-03-19T22:35:00Z",
+      "type": "feature",
+      "description": "Constitution page rewrite: API-driven, shows 7 articles with immutable tags, amendments section, constitutional audit log. Replaced 922-line hardcoded page with 178-line dynamic version. Fixed judge-dashboard async bug (missing await on json parse).",
+      "tools": [
+        "write",
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

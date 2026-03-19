@@ -109,7 +109,7 @@
             try {
                 // Fetch scorecard
                 const scoreRes = await fetch(`${API}/api/scorecard`);
-                const scoreData = scoreRes.json();
+                const scoreData = await scoreRes.json();
                 const summary = scoreData.summary;
 
                 // Fetch all chain statuses
