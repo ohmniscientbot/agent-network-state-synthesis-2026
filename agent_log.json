@@ -2132,6 +2132,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L087",
+      "timestamp": "2026-03-19T22:20:00Z",
+      "type": "polish",
+      "description": "Update chain/loop counts across story, scorecard, and server.js story API to reflect current state: 26 chains, 17 autonomous loops (was 23/14). Story hero badges, scorecard subtitle, chapter 5 title, footer all updated.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

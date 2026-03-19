@@ -12492,7 +12492,7 @@ app.get('/api/story', (req, res) => {
                     latestGrade: latestHealth ? latestHealth.grade : 'N/A',
                     latestScore: latestHealth ? latestHealth.score : 'N/A',
                     totalCryptographicReceipts: totalReceipts,
-                    totalChains: 23
+                    totalChains: 26
                 },
                 tracks: ['erc8004', 'letcook', 'opentrack'],
                 keyPages: [
@@ -12504,8 +12504,8 @@ app.get('/api/story', (req, res) => {
             }
         ],
         footer: {
-            totalChains: 23,
-            totalAutonomousLoops: 14,
+            totalChains: 26,
+            totalAutonomousLoops: 17,
             totalCryptographicReceipts: totalReceipts,
             baseBlockchainTx: 'https://basescan.org/tx/0x26af95ddf2db265e3e795c383de12a93b68520d1cf0b72a1f78c17760ba2a640',
             github: 'https://github.com/ohmniscientbot/agent-network-state-synthesis-2026'
