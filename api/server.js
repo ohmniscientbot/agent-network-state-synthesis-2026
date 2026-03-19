@@ -138,6 +138,9 @@ app.get('/trust-graph', (req, res) => {
 app.get('/contracts', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/contracts.html'));
 });
+app.get('/docs', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/docs.html'));
+});
 app.get('/interactive', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/interactive.html'));
 });
