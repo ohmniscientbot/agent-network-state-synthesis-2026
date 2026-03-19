@@ -1941,6 +1941,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L071",
+      "timestamp": "2026-03-19T17:12:00Z",
+      "type": "bug_fix",
+      "description": "Phase 2A: Fixed passport snapshot ledger showing No snapshots yet. Root cause: Express route /api/passport/:agentId defined before /api/passport/ledger \u2014 causing ledger to match agentId param and return Agent not found. Fixed by moving ledger route before :agentId route.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

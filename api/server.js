@@ -7997,6 +7997,14 @@ function seedPassportLedger() {
     console.log(`🪪 Seeded ${passportLedger.length} agent passport snapshots into ledger`);
 }
 
+// GET /api/passport/ledger — all passport snapshots (paginated)
+app.get('/api/passport/ledger', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const page = passportLedger.slice(offset, offset + limit);
+    res.json({ snapshots: page, total: passportLedger.length, offset, limit,
+        chainHead: passportChainHead.substring(0, 16) + '…' });
+});
 // GET /api/passport/:agentId — full reputation passport for one agent
 app.get('/api/passport/:agentId', (req, res) => {
     const { agentId } = req.params;
@@ -8028,14 +8036,6 @@ app.get('/api/passport/verify/chain', (req, res) => {
     });
 });
 
-// GET /api/passport/ledger — all passport snapshots (paginated)
-app.get('/api/passport/ledger', (req, res) => {
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
-    const page = passportLedger.slice(offset, offset + limit);
-    res.json({ snapshots: page, total: passportLedger.length, offset, limit,
-        chainHead: passportChainHead.substring(0, 16) + '…' });
-});
 
 // Serve passport frontend
 app.get('/passport', (req, res) => {
