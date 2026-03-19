@@ -7,14 +7,13 @@ const NAV_CONFIG = {
         text: "🏛️ Synthocracy",
         color: "var(--neural-purple)"
     },
-    // Top-level always-visible links
+    // 3 top-level always-visible links
     links: [
         { href: "/", text: "Home", mobileText: "🏠 Home", id: "home" },
         { href: "/dashboard", text: "Dashboard", mobileText: "📊 Dashboard", id: "dashboard" },
-        { href: "/scorecard", text: "Scorecard", mobileText: "📊 Judge Scorecard", id: "scorecard" },
-        { href: "/story", text: "📖 Architecture Story", mobileText: "📖 Architecture", id: "story" },
+        { href: "/story", text: "How It Works", mobileText: "📖 How It Works", id: "story" },
     ],
-    // Grouped dropdowns
+    // 4 focused dropdowns
     dropdowns: [
         {
             text: "🗳️ Governance",
@@ -22,81 +21,54 @@ const NAV_CONFIG = {
             items: [
                 { href: "/debates", text: "⚖️ Debate Chamber", id: "debates" },
                 { href: "/prediction-markets", text: "🎯 Prediction Markets", id: "markets" },
-                { href: "/vote-receipts", text: "🧾 Vote Receipts", id: "vote-receipts" },
-                { href: "/delegation", text: "🗳️ Liquid Delegation", id: "delegation" },
-                { href: "/alignment", text: "⚖️ Incentive Alignment", id: "alignment" },
-                { href: "/consensus", text: "🤝 Multi-Agent Consensus", id: "consensus" },
-                { href: "/appeals", text: "⚖️ Agent Appeals", id: "appeals" },
-            ]
-        },
-        {
-            text: "🧾 Receipt Chains",
-            id: "receipts-dropdown",
-            items: [
-                { href: "/audit", text: "🔍 Audit Timeline", id: "audit" },
-                { href: "/execution-log", text: "⚡ Execution Log", id: "execution-log" },
-                { href: "/slash-ledger", text: "⚔️ Slash Ledger", id: "slash-ledger" },
-                { href: "/attestations", text: "🤝 Peer Attestations", id: "attestations" },
-                { href: "/council", text: "🏛️ Emergency Council", id: "council" },
                 { href: "/constitution", text: "📜 Constitution", id: "constitution" },
-                { href: "/constitution-enforcement", text: "🛡️ Constitutional Enforcement", id: "constitution-enforcement" },
-                { href: "/amendments", text: "🏛️ Amendments", id: "amendments" },
-                { href: "/finalization", text: "📜 Outcome Finalization", id: "finalization" },
-                { href: "/lifecycle", text: "🔬 Proposal Lifecycle", id: "lifecycle" },
-                { href: "/snapshot", text: "📸 State Snapshot", id: "snapshot" },
-                { href: "/health-index", text: "💚 Governance Health Index", id: "health-index" },
-                { href: "/gazette", text: "📰 Governance Gazette", id: "gazette" },
-                { href: "/reasoning", text: "🧠 Reasoning Transparency", id: "reasoning" },
-                { href: "/oversight", text: "🧑‍⚖️ Human Oversight Ledger", id: "oversight" },
-                { href: "/demo-run", text: "🎬 Live Governance Cycle", id: "demo-run" },
-                { href: "/decay", text: "⏳ Reputation Decay Engine", id: "decay" },
-                { href: "/velocity", text: "⚡ Governance Velocity Index", id: "velocity" },
+                { href: "/simulate", text: "🎬 Live Demo", id: "simulate" },
             ]
         },
         {
-            text: "🪪 Identity",
+            text: "🪪 Identity & Trust",
             id: "identity-dropdown",
             items: [
                 { href: "/passport", text: "🪪 Agent Passport", id: "passport" },
                 { href: "/trust", text: "🤝 Trust Graph", id: "trust" },
-                { href: "/reputation", text: "⏳ Reputation Decay", id: "reputation" },
-                { href: "/watchdog", text: "🔍 Autonomous Watchdog", id: "watchdog" },
+                { href: "/vote-receipts", text: "🧾 Vote Receipts", id: "vote-receipts" },
+                { href: "/audit", text: "🔍 Audit Timeline", id: "audit" },
+                { href: "/lifecycle", text: "🔬 Proposal Lifecycle", id: "lifecycle" },
             ]
         },
         {
             text: "📊 Analytics",
             id: "analytics-dropdown",
             items: [
+                { href: "/scorecard", text: "🏆 Judge Scorecard", id: "scorecard" },
                 { href: "/roi-analytics", text: "📈 ROI Analytics", id: "roi" },
-                { href: "/simulate", text: "🎬 Live Simulation", id: "simulate" },
+                { href: "/health-index", text: "💚 Health Index", id: "health-index" },
             ]
         },
         {
             text: "🛠️ Tools",
             id: "tools-dropdown",
             items: [
-                { href: "/ai-governance", text: "🤖 AI Governance Testing", id: "ai-governance" },
                 { href: "/register", text: "⚙️ Register Agent", id: "register" },
-                { href: "/api/docs", text: "📖 API Documentation", id: "docs" },
+                { href: "/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
+                { href: "/api/docs", text: "📖 API Docs", id: "docs" },
                 { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", id: "github", external: true }
             ]
         }
     ],
-    // Keep toolsDropdown for backward compatibility (points to tools dropdown)
+    // Legacy compat
     toolsDropdown: {
         text: "🛠️ Tools",
-        mobileText: "🛠️ Developer Tools",
+        mobileText: "🛠️ Tools",
         id: "tools",
         items: [
-            { href: "/simulate", text: "🎬 Live Simulation", id: "simulate" },
-            { href: "/ai-governance", text: "🤖 AI Testing", id: "ai-governance" },
             { href: "/register", text: "⚙️ Register Agent", id: "register" },
-            { href: "/api/docs", text: "📖 API Documentation", id: "docs" },
+            { href: "/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
+            { href: "/api/docs", text: "📖 API Docs", id: "docs" },
             { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", id: "github", external: true }
         ]
     }
 };
-
 // Generate navigation HTML
 function generateNavigation(currentPageId = null) {
     // Determine which dropdown (if any) contains the current page
