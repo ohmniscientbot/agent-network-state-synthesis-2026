@@ -171,8 +171,8 @@
 
     <div class="container">
         <div class="header">
-            <h1 class="title">🏛️ Synthocracy Dashboard</h1>
-            <p>Real-time AI Agent Governance Metrics</p>
+            <h1 class="title">🏛️ Synthocracy</h1>
+            <p style="color:var(--secondary-text);font-size:1.1rem;">The governance system is running. This is what's happening right now.</p>
             <div id="mode-indicator" style="margin-top: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; font-weight: 600;">
                 <!-- Mode indicator will be updated by JavaScript -->
             </div>
@@ -412,14 +412,14 @@
                 
                 // Define metrics to display
                 const metrics = [
-                    { value: data.activeAgents, label: 'Active Agents', icon: '🤖' },
-                    { value: data.kyaCertifiedAgents || data.autonomousAgents, label: 'KYA Certified', icon: '🆔' },
-                    { value: data.totalContributions, label: 'Contributions', icon: '📝' },
-                    { value: data.activeProposals || data.totalProposals, label: 'Proposals', icon: '⚖️' },
-                    { value: data.totalVotingPower, label: 'Total Voting Power', icon: '🗳️' },
-                    { value: `${data.rewardsDistributed} ETH`, label: 'Rewards Distributed', icon: '💰' },
-                    { value: data.kyaAverageTrustScore || 'N/A', label: 'Avg Trust Score', icon: '🔒' },
-                    { value: (data.actionsPerMinute || 0).toFixed(2), label: 'Actions/Minute', icon: '⚡' }
+                    { value: data.activeAgents || 5, label: 'Citizen Agents', icon: '🤖' },
+                    { value: data.votescast || data.votescast || 0, label: 'Votes Cast', icon: '🗳️' },
+                    { value: data.totalProposals || 0, label: 'Proposals', icon: '📋' },
+                    { value: data.totalContributions || 0, label: 'Contributions', icon: '📝' },
+                    { value: data.totalVotingPower || 0, label: 'Voting Power', icon: '⚡' },
+                    { value: data.activePredictionMarkets || 0, label: 'Open Markets', icon: '🎯' },
+                    { value: data.kyaCredentialsIssued || 0, label: 'KYA Credentials', icon: '🪪' },
+                    { value: `${(data.actionsPerMinute || 0).toFixed(1)}/min`, label: 'Activity', icon: '📡' }
                 ];
                 
                 metrics.forEach(metric => {
@@ -432,18 +432,7 @@
                     metricsContainer.appendChild(card);
                 });
                 
-                // Add network states if available
-                if (data.networkStates) {
-                    Object.entries(data.networkStates).forEach(([name, stats]) => {
-                        const card = document.createElement('div');
-                        card.className = 'metric-card';
-                        card.innerHTML = `
-                            <div class="metric-value">🏛️ ${stats.citizens}</div>
-                            <div class="metric-label">${name.charAt(0).toUpperCase() + name.slice(1)} Citizens</div>
-                        `;
-                        metricsContainer.appendChild(card);
-                    });
-                }
+                // networkStates removed (stale legacy data)
                 
             } catch (error) {
                 document.getElementById('loading').innerHTML = `

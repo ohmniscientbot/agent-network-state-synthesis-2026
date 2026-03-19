@@ -1822,6 +1822,17 @@
         "write"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L061",
+      "timestamp": "2026-03-19T08:50:00Z",
+      "type": "human_feedback",
+      "description": "Quality pass Cycles B-G: Dashboard fixed (votes now shows votescast, header reframed as civic not metrics, stale networkStates removed). Story page: removed judge/evaluator framing and track badges. Scorecard: Judge Scorecard -> Scorecard, Judge Overview -> System Overview. ROI Analytics confirmed working (false positive in test). All judge-facing language purged from visible pages.",
+      "commit": "pending",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

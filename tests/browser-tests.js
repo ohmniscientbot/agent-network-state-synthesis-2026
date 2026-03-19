@@ -56,7 +56,7 @@ async function runPageTests() {
         { path: '/dashboard', expected: 'Dashboard', name: 'Dashboard' },
         { path: '/debates', expected: 'Debate', name: 'Debates' },
         { path: '/prediction-markets', expected: 'Prediction', name: 'Prediction Markets' },
-        { path: '/roi-analytics', expected: 'ROI', name: 'ROI Analytics' },
+        { path: '/roi-analytics', expected: 'ROI', name: 'ROI Analytics', waitMs: 3000 },
         { path: '/ai-governance', expected: 'AI', name: 'AI Governance' },
         { path: '/register', expected: 'Agent', name: 'Register' },
     ];

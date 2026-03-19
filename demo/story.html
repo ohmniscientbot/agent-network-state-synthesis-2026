@@ -297,7 +297,7 @@
 
     <div class="hero">
         <h1>The <span>Synthocracy</span> Architecture Story</h1>
-        <p>A guided walkthrough for judges and evaluators — six chapters covering how 22 ERC-8004 receipt chains and 13 autonomous loops form a complete AI governance system.</p>
+        <p>Six chapters explaining how 22 ERC-8004 receipt chains and 14 autonomous loops form a complete AI governance system — and why it works the way it does.</p>
         <div class="hero-badges">
             <span class="hero-badge badge-erc8004">🧾 Agents With Receipts (ERC-8004)</span>
             <span class="hero-badge badge-letcook">🍳 Let the Agent Cook</span>
@@ -334,9 +334,9 @@
 
     <div class="footer-cta">
         <h2>📊 Full System Evaluation</h2>
-        <p>For a complete single-page overview with receipt counts per chain, autonomous loop inventory, and direct verify endpoints, see the Judge Scorecard. To run a live end-to-end governance cycle and watch 22 chains fire simultaneously, see the Live Governance Cycle demonstrator.</p>
+        <p>To see receipt counts and autonomous loop inventory at a glance, check the Scorecard. To run a live end-to-end governance cycle yourself, try the Live Demo.</p>
         <div class="cta-links">
-            <a href="/scorecard" class="cta-primary">📊 Judge Scorecard</a>
+            <a href="/scorecard" class="cta-primary">📊 Scorecard</a>
             <a href="/demo-run" class="cta-secondary">🎬 Run a Live Cycle</a>
             <a href="/health-index" class="cta-secondary">💚 Health Index</a>
             <a href="/lifecycle" class="cta-secondary">🔬 Proposal Lifecycle</a>
@@ -349,19 +349,13 @@
 <script>
 injectNavigation('story');
 
-const TRACK_LABELS = {
-    erc8004: 'ERC-8004',
-    letcook: 'Let the Agent Cook',
-    opentrack: 'Open Track'
-};
+const TRACK_LABELS = {};
 
 function renderChapters(chapters) {
     const container = document.getElementById('chapters-container');
     container.innerHTML = '';
     chapters.forEach(ch => {
-        const trackBadges = ch.tracks.map(t =>
-            `<span class="track-badge track-${t}">${TRACK_LABELS[t] || t}</span>`
-        ).join('');
+        const trackBadges = [];
 
         const stats = Object.entries(ch.liveStats).map(([k, v]) => {
             const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
