@@ -793,7 +793,7 @@ async function checkCompliance() {
 
 async function loadAuditLog() {
     try {
-        const r = await fetch(`${API}/api/constitution/audit/log?limit=20`);
+        const r = await fetch(`${API}/api/constitution/audit/log?limit=20&t=${Date.now()}`, {cache: 'no-store'});
         const data = await r.json();
 
         document.getElementById('auditCount').textContent = data.total || 0;
