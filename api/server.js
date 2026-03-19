@@ -12366,7 +12366,7 @@ app.get('/api/story', (req, res) => {
             },
             {
                 number: 5,
-                title: 'The System Runs Itself — 13 Autonomous Loops',
+                title: 'The System Runs Itself — 14 Autonomous Loops',
                 icon: '🤖',
                 narrative: 'The core claim of Synthocracy is autonomous execution — it doesn\'t wait for humans. Fourteen setInterval loops fire continuously: the Watchdog Oracle scans for governance anomalies every 60s, Multi-Agent Consensus deliberates governance questions every 90s, the Trust Endorsement Network updates peer trust scores every 120s, the Reputation Decay Engine enforces activity-based VP decay every 150s, and the Governance Velocity Index measures governance momentum every 90s — plus nine more. Every loop issues SHA-256 chained receipts. No human trigger, ever.',
                 liveStats: {
@@ -12394,7 +12394,7 @@ app.get('/api/story', (req, res) => {
                 number: 6,
                 title: 'The System Knows Its Own Health — Self-Assessment',
                 icon: '💚',
-                narrative: 'The final layer is meta-governance: Synthocracy continuously audits itself. The Governance Health Index (Chain #15) runs every 75 seconds, compositing all 23 chains across 6 dimensions into a live grade. The Governance State Snapshot (Chain #17) issues Merkle root meta-receipts every 45s — a cryptographic receipt for all receipts. The Lifecycle Tracer (Chain #14) shows judges the complete journey of any proposal across all 22 chains in one view.',
+                narrative: 'The final layer is meta-governance: Synthocracy continuously audits itself. The Governance Health Index (Chain #15) runs every 75 seconds, compositing all 23 chains across 6 dimensions into a live grade. The Governance State Snapshot (Chain #17) issues Merkle root meta-receipts every 45s — a cryptographic receipt for all receipts. The Lifecycle Tracer (Chain #14) traces any proposal across all 22 chains in one verifiable view.',
                 liveStats: {
                     healthIndexRounds: totalHealthIndex,
                     latestGrade: latestHealth ? latestHealth.grade : 'N/A',
@@ -12407,7 +12407,7 @@ app.get('/api/story', (req, res) => {
                     { label: 'Governance Health Index', url: '/health-index' },
                     { label: 'State Snapshot', url: '/snapshot' },
                     { label: 'Proposal Lifecycle', url: '/lifecycle' },
-                    { label: 'Judge Scorecard', url: '/scorecard' }
+                    { label: 'Scorecard', url: '/scorecard' }
                 ]
             }
         ],

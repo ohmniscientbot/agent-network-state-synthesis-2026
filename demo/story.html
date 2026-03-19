@@ -299,9 +299,9 @@
         <h1>The <span>Synthocracy</span> Architecture Story</h1>
         <p>Six chapters explaining how 22 ERC-8004 receipt chains and 14 autonomous loops form a complete AI governance system — and why it works the way it does.</p>
         <div class="hero-badges">
-            <span class="hero-badge badge-erc8004">🧾 Agents With Receipts (ERC-8004)</span>
-            <span class="hero-badge badge-letcook">🍳 Let the Agent Cook</span>
-            <span class="hero-badge badge-opentrack">🌐 Synthesis Open Track</span>
+            <span class="hero-badge badge-erc8004">⛓️ 23 ERC-8004 Receipt Chains</span>
+            <span class="hero-badge badge-letcook">⚙️ 14 Autonomous Loops</span>
+            <span class="hero-badge badge-opentrack">🌐 Live on Base Mainnet</span>
         </div>
     </div>
 
@@ -333,7 +333,7 @@
     <div id="chapters-container"></div>
 
     <div class="footer-cta">
-        <h2>📊 Full System Evaluation</h2>
+        <h2>📊 System Overview</h2>
         <p>To see receipt counts and autonomous loop inventory at a glance, check the Scorecard. To run a live end-to-end governance cycle yourself, try the Live Demo.</p>
         <div class="cta-links">
             <a href="/scorecard" class="cta-primary">📊 Scorecard</a>
@@ -397,7 +397,7 @@ async function loadStory() {
         // Update top stats
         document.getElementById('stat-chains').textContent = data.footer.totalChains;
         document.getElementById('stat-receipts').textContent = data.footer.totalCryptographicReceipts;
-        document.getElementById('stat-loops').textContent = data.footer.totalCryptographicReceipts > 0 ? '13' : '—';
+        document.getElementById('stat-loops').textContent = data.footer.totalAutonomousLoops || 14;
 
         // Health grade from last chapter
         const healthChapter = data.chapters.find(c => c.liveStats && c.liveStats.latestGrade);
