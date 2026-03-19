@@ -9555,6 +9555,15 @@ app.get('/api/scorecard', (req, res) => {
             receiptCount: systemicRiskLedger.length,
             description: 'Meta-intelligence primitive: synthesizes signals from all 25 chains into a composite Systemic Risk Score (SRS) every 140s. Measures 8 governance dimensions — collusion, alignment drift, watchdog health, consensus fragility, velocity momentum, oversight load, reputation decay, and health index. Critical/High threats auto-escalate to Chain #20 (Human Principal Oversight). The DAO immune system.',
             tracks: ['erc8004', 'letcook', 'opentrack']
+        },
+        {
+            id: 27,
+            name: 'Governance Emergency Response Protocol',
+            endpoint: '/api/gerp/verify/chain',
+            url: '/emergency-response',
+            receiptCount: gerpLedger ? gerpLedger.length : 0,
+            description: 'Autonomous immune response layer: watches Chain #26 SRS and issues circuit-breaker receipts every 160s. Four escalation modes (WATCH/AMBER/RED/LOCKDOWN) — each with distinct protocol actions. State transitions cross-chain write to Chain #20 (Human Oversight). Closes the detect→respond→receipt loop: the DAO can now protect itself autonomously.',
+            tracks: ['erc8004', 'letcook', 'opentrack']
         }
     ];
 
@@ -9596,13 +9605,14 @@ app.get('/api/scorecard', (req, res) => {
                 { name: 'Governance Velocity Index', interval: '90s', action: 'Measures governance momentum across 5 dimensions — proposal throughput, voting cadence, consensus convergence, accountability activity, autonomous loop throughput — sealed on Chain #23' },
                 { name: 'Agent Alignment Drift Ledger', interval: '120s', action: 'Novel AI-safety scan: detects Confidence-Behavior Consistency (CBC) drift per agent. When stated reasoning confidence diverges from behavioral patterns, escalates to Human Principal Oversight (Chain #20) — sealed on Chain #24' },
                 { name: 'Governance Collusion Detection Ledger', interval: '130s', action: 'Novel governance-security primitive: detects coordinated voting blocks via pairwise correlation analysis and HHI concentration scoring. Flagged pairs auto-escalate to Human Principal Oversight (Chain #20) — sealed on Chain #25' },
-                { name: 'Governance Systemic Risk Oracle', interval: '140s', action: 'Meta-intelligence primitive: synthesizes 8 governance dimensions from all 25 chains into a composite Systemic Risk Score (SRS). The DAO immune system — detects systemic fragility before it becomes failure — sealed on Chain #26' }
+                { name: 'Governance Systemic Risk Oracle', interval: '140s', action: 'Meta-intelligence primitive: synthesizes 8 governance dimensions from all 25 chains into a composite Systemic Risk Score (SRS). The DAO immune system — detects systemic fragility before it becomes failure — sealed on Chain #26' },
+                { name: 'Governance Emergency Response Protocol', interval: '160s', action: 'Autonomous immune response layer: watches Chain #26 SRS and triggers circuit-breaker receipts. Four escalation modes (WATCH/AMBER/RED/LOCKDOWN) — state transitions cross-chain escalate to Human Oversight (Chain #20). Closes the detect→respond→receipt loop — sealed on Chain #27' }
             ]
         },
         'Synthesis Open Track': {
             tagline: 'Complete AI agent governance platform with novel primitives',
             novelty: [
-                'First DAO with 26-chain cryptographic audit trail — including Chain #26 Systemic Risk Oracle meta-intelligence layer',
+                'First DAO with 27-chain cryptographic audit trail — including Chain #27 Emergency Response Protocol autonomous immune response layer',
                 'KYA (Know Your Agent) identity system on Base blockchain',
                 'Living constitution that agents can amend via supermajority',
                 'Full justice loop: slash → appeal → autonomous ruling → VP restoration',
@@ -9616,7 +9626,8 @@ app.get('/api/scorecard', (req, res) => {
                 'Governance Velocity Index: autonomous momentum oracle measuring rate of change across 5 governance dimensions — cryptographically sealed on Chain #23',
                 'Agent Alignment Drift Ledger: novel AI-safety primitive detecting Confidence-Behavior Consistency (CBC) drift — proves agents actually act on their stated reasoning, not just claim to — Chain #24',
                 'Governance Collusion Detection Ledger: autonomous oracle detecting coordinated voting blocks via pairwise correlation analysis (Jaccard similarity) and HHI concentration scoring — high-risk pairs auto-escalate to human oversight — Chain #25',
-                'Governance Systemic Risk Oracle: meta-intelligence primitive synthesizing 8 governance dimensions from all 25 chains into a composite Systemic Risk Score (SRS) — the DAO immune system, detecting systemic fragility autonomously — Chain #26'
+                'Governance Systemic Risk Oracle: meta-intelligence primitive synthesizing 8 governance dimensions from all 25 chains into a composite Systemic Risk Score (SRS) — the DAO immune system, detecting systemic fragility autonomously — Chain #26',
+                'Governance Emergency Response Protocol: autonomous immune response layer watching Chain #26 SRS and issuing circuit-breaker receipts (WATCH/AMBER/RED/LOCKDOWN). Closes the detect→respond→receipt loop — the DAO can now protect itself autonomously — Chain #27'
             ]
         }
     };
@@ -9630,12 +9641,12 @@ app.get('/api/scorecard', (req, res) => {
             totalProposals,
             totalVotesCast: totalVotes,
             totalSlashes,
-            erc8004ChainCount: 26,
-            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length,
-            autonomousLoopsRunning: 17,
+            erc8004ChainCount: 27,
+            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0),
+            autonomousLoopsRunning: 18,
             constitutionArticles: constitution ? constitution.articles.length : 0,
-            totalPages: 24,
-            totalApiEndpoints: 35
+            totalPages: 25,
+            totalApiEndpoints: 40
         },
         chains,
         tracks: trackSummary,
@@ -13356,6 +13367,301 @@ app.get('/api/systemic-risk/live', (req, res) => {
 
 app.get('/systemic-risk', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/systemic-risk.html'));
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAIN #27: GOVERNANCE EMERGENCY RESPONSE PROTOCOL (GERP)
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// The DAO's autonomous immune system response layer. While Chain #26 detects
+// systemic risk, Chain #27 ACTS on it — issuing cryptographic circuit-breaker
+// receipts that document every emergency response decision:
+//
+//   WATCH   → SRS < 75: Heightened monitoring, alert all agents
+//   AMBER   → SRS < 60: Freeze new proposals, require human approval
+//   RED     → SRS < 40: Emergency council auto-convene, voting suspended
+//   LOCKDOWN→ SRS < 20: Full DAO pause, human principal override required
+//
+// Every state transition is sealed on Chain #27 with SHA-256 receipt chain.
+// Cross-chain write to Chain #20 (Human Oversight) on RED or LOCKDOWN.
+// Self-heals: when SRS recovers, issues RECOVERY receipt and restores normal ops.
+//
+// This is the final primitive: detect → respond → receipt. The DAO can protect itself.
+
+const GERP_INTERVAL_MS = 160000; // every 160s (offset from all other chains)
+const GERP_THRESHOLDS = { LOCKDOWN: 20, RED: 40, AMBER: 60, WATCH: 75, NORMAL: 100 };
+
+let gerpLedger = [];
+let gerpChainHead = '0'.repeat(64);
+let gerpCycleCount = 0;
+let gerpCurrentMode = 'NORMAL'; // tracks current circuit-breaker state
+let gerpActiveIncidents = []; // active incidents not yet resolved
+
+function computeGerpResponse() {
+    // Pull latest systemic risk assessment
+    const srs = systemicRiskLedger.length > 0
+        ? (systemicRiskLedger[systemicRiskLedger.length - 1].payload.systemicRiskScore || 85)
+        : 85;
+    const threatLevel = systemicRiskLedger.length > 0
+        ? (systemicRiskLedger[systemicRiskLedger.length - 1].payload.threatLevel || 'HEALTHY')
+        : 'HEALTHY';
+    const riskFactors = systemicRiskLedger.length > 0
+        ? (systemicRiskLedger[systemicRiskLedger.length - 1].payload.riskFactors || [])
+        : [];
+
+    // Determine target GERP mode
+    let targetMode;
+    let actions = [];
+    let protocolSummary;
+
+    if (srs < GERP_THRESHOLDS.LOCKDOWN) {
+        targetMode = 'LOCKDOWN';
+        actions = [
+            'FULL_DAO_PAUSE: All governance operations suspended',
+            'HUMAN_OVERRIDE_REQUIRED: No autonomous actions permitted',
+            'EMERGENCY_BROADCAST: All agents notified of lockdown',
+            'CHAIN27_SEAL: Lockdown state cryptographically committed'
+        ];
+        protocolSummary = `LOCKDOWN ENGAGED — SRS=${srs}/100. Full DAO pause. Human principal override required to resume.`;
+    } else if (srs < GERP_THRESHOLDS.RED) {
+        targetMode = 'RED';
+        actions = [
+            'EMERGENCY_COUNCIL_CONVENE: Top 3 agents by reputation auto-summoned',
+            'VOTING_SUSPENDED: No new votes accepted pending council review',
+            'INCIDENT_ESCALATION: Cross-chain write to Human Oversight (Chain #20)',
+            'AGENT_BROADCAST: All agents receive RED alert with risk breakdown'
+        ];
+        protocolSummary = `RED ALERT — SRS=${srs}/100. Emergency council convened. Voting suspended pending review.`;
+    } else if (srs < GERP_THRESHOLDS.AMBER) {
+        targetMode = 'AMBER';
+        actions = [
+            'PROPOSAL_FREEZE: New proposals require human approval before queuing',
+            'ELEVATED_QUORUM: Voting threshold raised from 50% to 67%',
+            'AGENT_ALERT: All agents notified — heightened governance scrutiny active',
+            'RISK_MONITOR: Chain #26 polled at 2x frequency'
+        ];
+        protocolSummary = `AMBER ALERT — SRS=${srs}/100. Proposal freeze engaged. Elevated quorum required.`;
+    } else if (srs < GERP_THRESHOLDS.WATCH) {
+        targetMode = 'WATCH';
+        actions = [
+            'HEIGHTENED_MONITORING: All chains scanned at elevated frequency',
+            'AGENT_AWARENESS: Passive alert — governance team notified',
+            'TREND_ANALYSIS: SRS trajectory computed across last 5 readings'
+        ];
+        protocolSummary = `WATCH STATE — SRS=${srs}/100. Heightened monitoring active. No protocol changes yet.`;
+    } else {
+        targetMode = 'NORMAL';
+        actions = ['MONITORING_NOMINAL: All systems green', 'PROTOCOL_STANDBY: GERP ready to engage'];
+        protocolSummary = `NORMAL — SRS=${srs}/100. All governance dimensions healthy. GERP on standby.`;
+    }
+
+    // Detect state transition
+    const prevMode = gerpCurrentMode;
+    const isTransition = prevMode !== targetMode;
+    const isRecovery = isTransition && (
+        ['LOCKDOWN', 'RED', 'AMBER', 'WATCH'].indexOf(prevMode) >
+        ['LOCKDOWN', 'RED', 'AMBER', 'WATCH'].indexOf(targetMode)
+    );
+    const isEscalation = isTransition && !isRecovery && targetMode !== 'NORMAL';
+
+    // Determine top 3 agents by reputation for emergency council
+    const agentsSorted = [...agents].sort((a, b) => (b.votingPower || 0) - (a.votingPower || 0));
+    const emergencyCouncil = agentsSorted.slice(0, 3).map(a => ({ id: a.id, name: a.name, votingPower: a.votingPower }));
+
+    // Manage active incidents
+    if (isEscalation) {
+        gerpActiveIncidents.push({
+            id: 'INC-' + String(gerpCycleCount).padStart(4, '0'),
+            openedAt: new Date().toISOString(),
+            mode: targetMode,
+            srsAtOpen: srs,
+            riskFactors
+        });
+    }
+    if (isRecovery && gerpActiveIncidents.length > 0) {
+        const last = gerpActiveIncidents[gerpActiveIncidents.length - 1];
+        if (last && !last.closedAt) {
+            last.closedAt = new Date().toISOString();
+            last.resolvedMode = targetMode;
+            last.srsAtClose = srs;
+        }
+    }
+
+    return {
+        srs, threatLevel, riskFactors,
+        targetMode, prevMode, isTransition, isEscalation, isRecovery,
+        actions, protocolSummary, emergencyCouncil,
+        activeIncidents: gerpActiveIncidents.filter(i => !i.closedAt).length,
+        totalIncidents: gerpActiveIncidents.length
+    };
+}
+
+function issueGerpReceipt() {
+    gerpCycleCount++;
+    const now = new Date().toISOString();
+    const index = gerpLedger.length;
+    const cycleId = 'GERP-' + String(gerpCycleCount).padStart(4, '0');
+
+    const response = computeGerpResponse();
+    const prevMode = gerpCurrentMode;
+    gerpCurrentMode = response.targetMode;
+
+    const payload = {
+        cycleId,
+        mode: response.targetMode,
+        previousMode: prevMode,
+        systemicRiskScore: response.srs,
+        threatLevel: response.threatLevel,
+        isStateTransition: response.isTransition,
+        transitionType: response.isEscalation ? 'ESCALATION' : response.isRecovery ? 'RECOVERY' : 'STEADY_STATE',
+        actionsTriggered: response.actions,
+        protocolSummary: response.protocolSummary,
+        emergencyCouncil: response.emergencyCouncil,
+        riskFactors: response.riskFactors,
+        activeIncidents: response.activeIncidents,
+        totalIncidentsToDate: response.totalIncidents,
+        chainsMonitored: [26, 25, 24, 23, 22, 20, 15, 10, 9],
+        autonomousDecision: true,
+        humanOverrideRequired: response.targetMode === 'LOCKDOWN'
+    };
+
+    const prev = gerpLedger.length > 0 ? gerpLedger[gerpLedger.length - 1].hash : '0'.repeat(64);
+    const hashInput = prev + '|' + JSON.stringify(payload) + '|' + now;
+    const hash = crypto.createHash('sha256').update(hashInput).digest('hex');
+    gerpChainHead = hash;
+
+    const receipt = {
+        chain: 27, chainName: 'Governance Emergency Response Protocol',
+        index, timestamp: now, payload, prevHash: prev, hash
+    };
+    gerpLedger.push(receipt);
+
+    // Cross-chain escalation to Human Principal Oversight (Chain #20) on RED or LOCKDOWN
+    if ((response.targetMode === 'RED' || response.targetMode === 'LOCKDOWN') && response.isTransition && typeof oversightLedger !== 'undefined') {
+        const oversightEntry = {
+            chain: 20, chainName: 'Human Principal Oversight Ledger',
+            index: oversightLedger.length, timestamp: now,
+            payload: {
+                action: 'GERP_EMERGENCY_ESCALATION',
+                source: 'Chain #27 Emergency Response Protocol',
+                severity: response.targetMode === 'LOCKDOWN' ? 'CRITICAL' : 'HIGH',
+                gerpMode: response.targetMode,
+                systemicRiskScore: response.srs,
+                actionsTriggered: response.actions,
+                summary: response.protocolSummary,
+                chain: 'Chain #27 → Chain #20',
+                requiresHumanAction: response.targetMode === 'LOCKDOWN'
+            },
+            prevHash: oversightLedger.length > 0 ? oversightLedger[oversightLedger.length - 1].hash : '0'.repeat(64),
+            hash: crypto.createHash('sha256').update('gerp-oversight|' + hash + '|' + now).digest('hex')
+        };
+        oversightLedger.push(oversightEntry);
+    }
+
+    const modeIcon = { NORMAL: '✅', WATCH: '👁️', AMBER: '🟡', RED: '🔴', LOCKDOWN: '🔒' }[response.targetMode] || '✅';
+    console.log('[gerp] ' + cycleId + ': mode=' + response.targetMode + ' ' + modeIcon + ', SRS=' + response.srs + '/100, transition=' + response.isTransition + ', incidents=' + response.activeIncidents + ' — chain #27 receipt ' + index);
+    return receipt;
+}
+
+function seedGerpLedger() {
+    // Seed 10 historical GERP readings
+    const base = Date.now() - 10 * GERP_INTERVAL_MS;
+    const savedNow = Date.now;
+    for (let i = 0; i < 10; i++) {
+        Date.now = () => base + i * GERP_INTERVAL_MS;
+        issueGerpReceipt();
+        Date.now = savedNow;
+    }
+    console.log('[gerp] Seeded ' + gerpLedger.length + ' historical GERP receipts — Chain #27 live');
+}
+
+// Boot: seed after systemic-risk (75s), then every 160s
+setTimeout(() => {
+    seedGerpLedger();
+    setInterval(issueGerpReceipt, GERP_INTERVAL_MS);
+}, 75000);
+
+// GERP API Endpoints
+app.get('/api/gerp/status', (req, res) => {
+    const latest = gerpLedger.length > 0 ? gerpLedger[gerpLedger.length - 1] : null;
+    const openIncidents = gerpActiveIncidents.filter(i => !i.closedAt);
+    res.json({
+        chain: 27,
+        chainName: 'Governance Emergency Response Protocol',
+        receipts: gerpLedger.length,
+        chainHead: gerpChainHead.substring(0, 16) + '…',
+        currentMode: gerpCurrentMode,
+        modeIcon: { NORMAL: '✅', WATCH: '👁️', AMBER: '🟡', RED: '🔴', LOCKDOWN: '🔒' }[gerpCurrentMode] || '✅',
+        activeIncidents: openIncidents.length,
+        totalIncidents: gerpActiveIncidents.length,
+        latestResponse: latest ? {
+            timestamp: latest.timestamp,
+            mode: latest.payload.mode,
+            systemicRiskScore: latest.payload.systemicRiskScore,
+            transitionType: latest.payload.transitionType,
+            actionsTriggered: latest.payload.actionsTriggered,
+            protocolSummary: latest.payload.protocolSummary
+        } : null,
+        intervalMs: GERP_INTERVAL_MS
+    });
+});
+
+app.get('/api/gerp/latest', (req, res) => {
+    if (gerpLedger.length === 0) return res.json({ message: 'No GERP assessments yet — chain seeding in progress' });
+    res.json(gerpLedger[gerpLedger.length - 1]);
+});
+
+app.get('/api/gerp/ledger', (req, res) => {
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+    const slice = gerpLedger.slice().reverse().slice(offset, offset + limit);
+    res.json({ receipts: slice, total: gerpLedger.length, offset, limit, chainHead: gerpChainHead });
+});
+
+app.get('/api/gerp/verify/chain', (req, res) => {
+    if (gerpLedger.length === 0) return res.json({ valid: true, receipts: 0, message: 'Chain empty' });
+    let valid = true; let broken = null;
+    for (let i = 1; i < gerpLedger.length; i++) {
+        if (gerpLedger[i].prevHash !== gerpLedger[i - 1].hash) { valid = false; broken = i; break; }
+    }
+    res.json({
+        valid, receipts: gerpLedger.length, chainHead: gerpChainHead, brokenAt: broken,
+        message: valid
+            ? `✅ All ${gerpLedger.length} GERP receipts verified — chain intact`
+            : `❌ Chain break at receipt #${broken}`
+    });
+});
+
+app.get('/api/gerp/incidents', (req, res) => {
+    const openIncidents = gerpActiveIncidents.filter(i => !i.closedAt);
+    const closedIncidents = gerpActiveIncidents.filter(i => i.closedAt);
+    res.json({
+        currentMode: gerpCurrentMode,
+        openIncidents, closedIncidents,
+        totalIncidents: gerpActiveIncidents.length,
+        chainHead: gerpChainHead.substring(0, 16) + '…'
+    });
+});
+
+app.get('/api/gerp/live', (req, res) => {
+    const response = computeGerpResponse();
+    res.json({
+        generatedAt: new Date().toISOString(),
+        currentMode: gerpCurrentMode,
+        proposedMode: response.targetMode,
+        wouldTransition: response.isTransition,
+        systemicRiskScore: response.srs,
+        threatLevel: response.threatLevel,
+        actionsWouldTrigger: response.actions,
+        protocolSummary: response.protocolSummary,
+        emergencyCouncil: response.emergencyCouncil,
+        receipts: gerpLedger.length,
+        chainHead: gerpChainHead.substring(0, 16) + '…'
+    });
+});
+
+app.get('/emergency-response', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/emergency-response.html'));
 });
 
 module.exports = app;

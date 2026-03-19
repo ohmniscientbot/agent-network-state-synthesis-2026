@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Response Protocol — Synthocracy</title>
+    <link rel="stylesheet" href="/design-system-dark.css">
+    <style>
+        :root {
+            --gerp-normal: #22c55e;
+            --gerp-watch: #3b82f6;
+            --gerp-amber: #f59e0b;
+            --gerp-red: #ef4444;
+            --gerp-lockdown: #7c3aed;
+        }
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); }
+        .hero {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a0a0a 50%, #0f0a1a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 40px 32px 32px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 2rem; font-weight: 800; margin: 0 0 8px; color: #fff; }
+        .hero .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+        .chain-badge {
+            display: inline-block;
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.4);
+            color: #ef4444;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+        .page-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        .mode-card {
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .mode-card.NORMAL  { background: rgba(34,197,94,0.07);  border-color: rgba(34,197,94,0.3); }
+        .mode-card.WATCH   { background: rgba(59,130,246,0.07); border-color: rgba(59,130,246,0.3); }
+        .mode-card.AMBER   { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.3); }
+        .mode-card.RED     { background: rgba(239,68,68,0.07);  border-color: rgba(239,68,68,0.3); }
+        .mode-card.LOCKDOWN{ background: rgba(124,58,237,0.07); border-color: rgba(124,58,237,0.3); }
+        .mode-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .mode-title .icon { font-size: 2rem; }
+        .mode-desc { color: var(--text-muted); font-size: 0.87rem; margin-bottom: 16px; line-height: 1.6; }
+        .srs-display {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: -2px;
+        }
+        .srs-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+        @media (max-width: 700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .stat-card .label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+        .stat-card .value { font-size: 1.6rem; font-weight: 800; }
+        .stat-card .sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+        .actions-list { list-style: none; padding: 0; margin: 0; }
+        .actions-list li {
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.04);
+            border-left: 3px solid var(--gerp-red);
+            border-radius: 4px;
+            font-size: 0.83rem;
+            color: var(--text-secondary);
+        }
+        .actions-list li::before { content: '▶ '; color: var(--gerp-red); font-size: 0.7rem; }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 32px 0 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .receipt-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            font-size: 0.82rem;
+        }
+        .receipt-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .receipt-card .hash { font-family: monospace; font-size: 0.7rem; color: var(--text-muted); word-break: break-all; margin-top: 8px; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .badge.NORMAL   { background: rgba(34,197,94,0.2);  color: #22c55e; }
+        .badge.WATCH    { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .badge.AMBER    { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .badge.RED      { background: rgba(239,68,68,0.2);  color: #ef4444; }
+        .badge.LOCKDOWN { background: rgba(124,58,237,0.2); color: #a78bfa; }
+        .badge.ESCALATION { background: rgba(239,68,68,0.2);  color: #ef4444; }
+        .badge.RECOVERY   { background: rgba(34,197,94,0.2);  color: #22c55e; }
+        .badge.STEADY_STATE { background: rgba(100,116,139,0.2); color: #94a3b8; }
+        .verify-banner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(34,197,94,0.05);
+            border: 1px solid rgba(34,197,94,0.2);
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .verify-banner .icon { font-size: 1.4rem; }
+        .council-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .council-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ef4444, #7c3aed);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1rem; color: #fff;
+            flex-shrink: 0;
+        }
+        .council-name { font-weight: 700; font-size: 0.9rem; }
+        .council-vp { font-size: 0.75rem; color: var(--text-muted); }
+        .loading { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 40px; }
+        .threshold-bar {
+            display: flex;
+            gap: 2px;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        .threshold-seg {
+            flex: 1;
+            border-radius: 2px;
+        }
+        .srs-pointer {
+            position: relative;
+            margin-top: 4px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+
+<div class="hero">
+    <div class="chain-badge">CHAIN #27 · ERC-8004</div>
+    <h1>🚨 Governance Emergency Response Protocol</h1>
+    <p class="subtitle">Autonomous immune response layer — detect → respond → receipt<br>
+    Watches Chain #26 SRS · Issues circuit-breaker receipts every 160s · Cross-chain escalation to Human Oversight</p>
+</div>
+
+<div class="page-content">
+    <!-- Current Mode Display -->
+    <div id="mode-container">
+        <div class="loading">Loading emergency protocol status…</div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid-3" id="stats-grid" style="margin-bottom: 24px; display: none;">
+        <div class="stat-card">
+            <div class="label">Chain Receipts</div>
+            <div class="value" id="stat-receipts">—</div>
+            <div class="sub">cryptographic proofs</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Active Incidents</div>
+            <div class="value" id="stat-incidents">—</div>
+            <div class="sub">open incident cases</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Total Incidents</div>
+            <div class="value" id="stat-total-incidents">—</div>
+            <div class="sub">since genesis</div>
+        </div>
+    </div>
+
+    <!-- Chain verification -->
+    <div id="verify-section"></div>
+
+    <!-- Escalation Modes Reference -->
+    <div class="section-title">⚙️ Escalation Modes</div>
+    <div class="grid-2" style="margin-bottom: 24px;">
+        <div class="mode-card WATCH">
+            <div class="mode-title"><span class="icon">👁️</span> WATCH <span style="font-size:0.7rem;color:#60a5fa;font-weight:400;">SRS &lt; 75</span></div>
+            <div class="mode-desc">Heightened monitoring. All chains scanned at elevated frequency. Passive agent notification. No governance changes.</div>
+        </div>
+        <div class="mode-card AMBER">
+            <div class="mode-title"><span class="icon">🟡</span> AMBER <span style="font-size:0.7rem;color:#f59e0b;font-weight:400;">SRS &lt; 60</span></div>
+            <div class="mode-desc">Proposal freeze — new proposals require human approval. Voting quorum raised from 50% → 67%. All agents alerted.</div>
+        </div>
+        <div class="mode-card RED">
+            <div class="mode-title"><span class="icon">🔴</span> RED <span style="font-size:0.7rem;color:#ef4444;font-weight:400;">SRS &lt; 40</span></div>
+            <div class="mode-desc">Emergency council auto-convened. Voting suspended pending review. Cross-chain escalation to Human Oversight (Chain #20).</div>
+        </div>
+        <div class="mode-card LOCKDOWN">
+            <div class="mode-title"><span class="icon">🔒</span> LOCKDOWN <span style="font-size:0.7rem;color:#a78bfa;font-weight:400;">SRS &lt; 20</span></div>
+            <div class="mode-desc">Full DAO pause. No autonomous actions permitted. Human principal override required to resume any operations.</div>
+        </div>
+    </div>
+
+    <!-- Emergency Council -->
+    <div class="section-title">🛡️ Emergency Council (Auto-Convened on RED)</div>
+    <div id="council-container" style="margin-bottom: 32px;">
+        <div class="loading">Loading council…</div>
+    </div>
+
+    <!-- Recent Receipts -->
+    <div class="section-title">📋 Recent GERP Receipts</div>
+    <div id="receipts-container">
+        <div class="loading">Loading receipts…</div>
+    </div>
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+const modeColors = { NORMAL: '#22c55e', WATCH: '#60a5fa', AMBER: '#f59e0b', RED: '#ef4444', LOCKDOWN: '#a78bfa' };
+const modeIcons = { NORMAL: '✅', WATCH: '👁️', AMBER: '🟡', RED: '🔴', LOCKDOWN: '🔒' };
+
+async function loadStatus() {
+    try {
+        const [status, verify] = await Promise.all([
+            fetch('/api/gerp/status').then(r => r.json()),
+            fetch('/api/gerp/verify/chain').then(r => r.json())
+        ]);
+
+        const mode = status.currentMode || 'NORMAL';
+        const color = modeColors[mode] || '#22c55e';
+        const icon = modeIcons[mode] || '✅';
+        const lr = status.latestResponse || {};
+
+        document.getElementById('mode-container').innerHTML = `
+            <div class="mode-card ${mode}" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+                    <div>
+                        <div class="mode-title">
+                            <span class="icon">${icon}</span>
+                            ${mode}
+                            <span style="font-size:0.75rem;color:${color};font-weight:400;background:rgba(255,255,255,0.05);padding:3px 10px;border-radius:20px;">CURRENT MODE</span>
+                        </div>
+                        <div class="mode-desc" style="max-width: 600px;">${lr.protocolSummary || 'Protocol active — monitoring all governance chains.'}</div>
+                        ${(lr.actionsTriggered || []).length > 0 ? `
+                        <ul class="actions-list">
+                            ${(lr.actionsTriggered || []).map(a => `<li style="border-left-color:${color}">${a}</li>`).join('')}
+                        </ul>` : ''}
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="srs-label">Systemic Risk Score</div>
+                        <div class="srs-display" style="color: ${color};">${lr.systemicRiskScore !== undefined ? lr.systemicRiskScore : '—'}<span style="font-size:1.2rem;color:var(--text-muted)">/100</span></div>
+                        <div class="threshold-bar">
+                            <div class="threshold-seg" style="background: var(--gerp-lockdown); flex: 20;"></div>
+                            <div class="threshold-seg" style="background: var(--gerp-red); flex: 20;"></div>
+                            <div class="threshold-seg" style="background: var(--gerp-amber); flex: 20;"></div>
+                            <div class="threshold-seg" style="background: var(--gerp-watch); flex: 15;"></div>
+                            <div class="threshold-seg" style="background: var(--gerp-normal); flex: 25;"></div>
+                        </div>
+                        <div class="srs-pointer">0 — LOCKDOWN — 20 — RED — 40 — AMBER — 60 — WATCH — 75 — NORMAL — 100</div>
+                        <div style="margin-top: 8px;">
+                            <span class="badge ${lr.transitionType || 'STEADY_STATE'}">${lr.transitionType || 'STEADY_STATE'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('stat-receipts').textContent = status.receipts || 0;
+        document.getElementById('stat-incidents').textContent = status.activeIncidents || 0;
+        document.getElementById('stat-total-incidents').textContent = '—';
+        document.getElementById('stats-grid').style.display = 'grid';
+
+        document.getElementById('verify-section').innerHTML = `
+            <div class="verify-banner" style="margin-bottom: 24px;">
+                <span class="icon">${verify.valid ? '🔒' : '⚠️'}</span>
+                <div>
+                    <div style="font-weight: 700; color: ${verify.valid ? '#22c55e' : '#ef4444'}">
+                        Chain #27 — ${verify.valid ? 'Integrity Verified' : 'Chain Integrity Issue'}
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">${verify.message}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Head: <code>${(verify.chainHead || '').substring(0, 24)}…</code></div>
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        document.getElementById('mode-container').innerHTML = '<div class="loading">Error loading status: ' + e.message + '</div>';
+    }
+}
+
+async function loadCouncil() {
+    try {
+        const live = await fetch('/api/gerp/live').then(r => r.json());
+        const council = live.emergencyCouncil || [];
+        if (council.length === 0) {
+            document.getElementById('council-container').innerHTML = '<div class="loading">No agents registered yet</div>';
+            return;
+        }
+        document.getElementById('council-container').innerHTML = `
+            <div class="grid-3">
+                ${council.map((a, i) => `
+                    <div class="council-card">
+                        <div class="council-avatar">${(a.name || 'A').charAt(0)}</div>
+                        <div>
+                            <div class="council-name">${a.name || a.id}</div>
+                            <div class="council-vp">${a.votingPower || 0} VP · Seat #${i + 1}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 10px;">
+                Council auto-convened on RED alert. Members selected by voting power ranking. Receipted on Chain #27.
+            </div>
+        `;
+    } catch(e) {
+        document.getElementById('council-container').innerHTML = '<div class="loading">Error loading council</div>';
+    }
+}
+
+async function loadReceipts() {
+    try {
+        const data = await fetch('/api/gerp/ledger?limit=10').then(r => r.json());
+        const receipts = data.receipts || [];
+        if (receipts.length === 0) {
+            document.getElementById('receipts-container').innerHTML = '<div class="loading">No receipts yet — GERP chain seeding in progress (75s after boot)</div>';
+            return;
+        }
+        document.getElementById('receipts-container').innerHTML = receipts.map(r => {
+            const p = r.payload || {};
+            const mode = p.mode || 'NORMAL';
+            const icon = modeIcons[mode] || '✅';
+            const ts = new Date(r.timestamp).toLocaleString();
+            return `
+                <div class="receipt-card">
+                    <div class="meta">
+                        <div>
+                            <span style="font-weight: 700;">${icon} ${p.cycleId || r.index}</span>
+                            <span class="badge ${mode}" style="margin-left: 8px;">${mode}</span>
+                            <span class="badge ${p.transitionType || 'STEADY_STATE'}" style="margin-left: 4px;">${p.transitionType || 'STEADY_STATE'}</span>
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.75rem;">${ts}</div>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.82rem; margin-bottom: 6px;">${p.protocolSummary || '—'}</div>
+                    ${(p.actionsTriggered || []).length > 0 ? `
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                        ${(p.actionsTriggered || []).map(a => `<span style="margin-right: 8px;">▶ ${a.split(':')[0]}</span>`).join('')}
+                    </div>` : ''}
+                    <div class="hash">
+                        <span style="color: var(--text-muted)">hash: </span>${r.hash}<br>
+                        <span style="color: var(--text-muted)">prev: </span>${r.prevHash}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch(e) {
+        document.getElementById('receipts-container').innerHTML = '<div class="loading">Error loading receipts: ' + e.message + '</div>';
+    }
+}
+
+async function loadIncidentStats() {
+    try {
+        const data = await fetch('/api/gerp/incidents').then(r => r.json());
+        document.getElementById('stat-total-incidents').textContent = data.totalIncidents || 0;
+    } catch(e) {}
+}
+
+// Init
+loadStatus();
+loadCouncil();
+loadReceipts();
+loadIncidentStats();
+
+// Refresh every 30s
+setInterval(() => { loadStatus(); loadReceipts(); loadIncidentStats(); }, 30000);
+</script>
+</body>
+</html>
