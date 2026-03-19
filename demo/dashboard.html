@@ -262,6 +262,47 @@
             </div>
         </div>
 
+        <!-- Autonomous Intelligence Panel (dedicated sandbox for autonomous cycles) -->
+        <div id="autonomous-panel" style="margin-top: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; color: var(--primary-text);">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--neural-purple); margin-right: 8px; animation: pulse 3s infinite;"></span>
+                    🤖 Autonomous Intelligence
+                </h2>
+                <span style="font-size: 0.8rem; color: var(--secondary-text);">14 loops running · no human triggers</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <!-- Watchdog -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(139,92,246,0.3); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: var(--neural-purple); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🔍 Watchdog Oracle · Chain #9</div>
+                    <div id="auto-watchdog-status" style="font-size: 1.1rem; font-weight: 600; color: var(--primary-text); margin-bottom: 6px;">—</div>
+                    <div id="auto-watchdog-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-watchdog-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;">—</div>
+                </div>
+                <!-- Gazette -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(6,182,212,0.3); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: var(--neural-cyan); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">📰 Governance Gazette · Chain #18</div>
+                    <div id="auto-gazette-headline" style="font-size: 1rem; font-weight: 600; color: var(--primary-text); margin-bottom: 6px; line-height: 1.4;">—</div>
+                    <div id="auto-gazette-body" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-gazette-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;">—</div>
+                </div>
+                <!-- Velocity -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: var(--neural-green); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">⚡ Governance Velocity · Chain #23</div>
+                    <div id="auto-velocity-score" style="font-size: 2rem; font-weight: 700; color: var(--neural-green); margin-bottom: 6px;">—</div>
+                    <div id="auto-velocity-breakdown" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-velocity-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;">—</div>
+                </div>
+                <!-- Consensus -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: var(--neural-yellow); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🤝 Multi-Agent Consensus · Chain #10</div>
+                    <div id="auto-consensus-outcome" style="font-size: 1.1rem; font-weight: 600; color: var(--primary-text); margin-bottom: 6px;">—</div>
+                    <div id="auto-consensus-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-consensus-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;">—</div>
+                </div>
+            </div>
+        </div>
+
         <style>
             @keyframes pulse {
                 0%, 100% { opacity: 1; }
@@ -453,6 +494,75 @@
         // ========================================
         // AI GOVERNANCE INSIGHTS
         // ========================================
+        async function loadAutonomousPanel() {
+            try {
+                const [watchdogRes, gazetteRes, velocityRes, consensusRes] = await Promise.all([
+                    fetch('/api/watchdog/latest', {cache:'no-store'}).catch(() => null),
+                    fetch('/api/gazette/latest', {cache:'no-store'}).catch(() => null),
+                    fetch('/api/velocity/latest', {cache:'no-store'}).catch(() => null),
+                    fetch('/api/consensus/latest', {cache:'no-store'}).catch(() => null)
+                ]);
+
+                // Watchdog
+                if (watchdogRes?.ok) {
+                    const w = await watchdogRes.json();
+                    const alertCount = w.alertCount ?? (w.alerts || []).length;
+                    document.getElementById('auto-watchdog-status').textContent =
+                        w.status === 'HEALTHY' ? '✅ HEALTHY — No Anomalies' : `⚠️ ${alertCount} Alert${alertCount!==1?'s':''}`;
+                    document.getElementById('auto-watchdog-status').style.color =
+                        w.status === 'HEALTHY' ? 'var(--neural-green)' : 'var(--neural-yellow)';
+                    const stats = w.stats || {};
+                    document.getElementById('auto-watchdog-detail').textContent =
+                        `${stats.agentCount||0} agents · ${stats.proposalCount||0} proposals · ${stats.totalVotes||0} votes scanned`;
+                    document.getElementById('auto-watchdog-time').textContent =
+                        w.timestamp ? `Cycle ${w.cycleId} · ${new Date(w.timestamp).toLocaleTimeString()}` : '';
+                }
+
+                // Gazette
+                if (gazetteRes?.ok) {
+                    const g = await gazetteRes.json();
+                    document.getElementById('auto-gazette-headline').textContent =
+                        g.headline || 'Governance Bulletin';
+                    const body = g.sections?.[0]?.content || '';
+                    document.getElementById('auto-gazette-body').textContent =
+                        body.substring(0, 110) + (body.length > 110 ? '…' : '');
+                    document.getElementById('auto-gazette-time').textContent =
+                        g.publishedAt ? `Edition #${g.editionNumber} · ${new Date(g.publishedAt).toLocaleTimeString()}` : '';
+                }
+
+                // Velocity
+                if (velocityRes?.ok) {
+                    const v = await velocityRes.json();
+                    document.getElementById('auto-velocity-score').textContent =
+                        `${v.score ?? '—'} ${v.grade ? '('+v.grade+')' : ''}`;
+                    document.getElementById('auto-velocity-score').style.color =
+                        v.color || 'var(--neural-green)';
+                    const dims = v.dimensions || {};
+                    const dimText = Object.entries(dims).slice(0, 3)
+                        .map(([k, d]) => `${d.label || k}: ${d.score ?? d}/${d.max ?? 20}`)
+                        .join(' · ');
+                    document.getElementById('auto-velocity-breakdown').textContent =
+                        dimText || `Momentum: ${v.momentum || '—'}`;
+                    document.getElementById('auto-velocity-time').textContent =
+                        v.timestamp ? `${v.chain || 'Chain #23'} · ${new Date(v.timestamp).toLocaleTimeString()}` : '';
+                }
+
+                // Consensus
+                if (consensusRes?.ok) {
+                    const c = await consensusRes.json();
+                    const outcome = c.forPct > 50 ? `✅ PASSED (${c.forPct}% FOR)` :
+                        c.forPct !== undefined ? `❌ REJECTED (${c.forPct}% FOR)` : c.outcome || '—';
+                    document.getElementById('auto-consensus-outcome').textContent = outcome;
+                    document.getElementById('auto-consensus-detail').textContent =
+                        (c.question || '').substring(0, 80) + ((c.question||'').length > 80 ? '…' : '');
+                    document.getElementById('auto-consensus-time').textContent =
+                        c.timestamp ? `Round ${c.roundId} · ${new Date(c.timestamp).toLocaleTimeString()}` : '';
+                }
+            } catch(e) {
+                console.warn('Autonomous panel load failed:', e.message);
+            }
+        }
+
         async function loadAIInsights() {
             try {
                 // Fetch batch analysis and security scan in parallel
@@ -603,6 +713,10 @@
         updateModeButtons();
         loadDashboard();
         loadAIInsights();
+        loadAutonomousPanel();
+        
+        // Refresh autonomous panel every 90 seconds
+        setInterval(loadAutonomousPanel, 90000);
         
         // Refresh every 30 seconds for metrics (SSE handles real-time activity)
         setInterval(loadDashboard, 30000);
@@ -812,6 +926,7 @@
                     updateModeButtons();
                     loadDashboard();
                     loadAIInsights();
+                    loadAutonomousPanel();
                     // Reconnect activity feed for new mode
                     const feed = document.getElementById('activity-feed');
                     if (feed) feed.innerHTML = '<div id="feed-empty" style="text-align: center; padding: 40px; color: var(--secondary-text);">🔄 Switching to ' + newMode + ' feed...</div>';
