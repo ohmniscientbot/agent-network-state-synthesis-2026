@@ -175,7 +175,8 @@ body { background: var(--bg-primary); color: var(--primary-text); font-family: '
         <div class="stat-pill">Cycles Run: <strong id="cycleCount">—</strong></div>
         <div class="stat-pill">Chain #21 Receipts: <strong id="receiptCount">—</strong></div>
         <div class="stat-pill">Last Outcome: <strong id="lastOutcome">—</strong></div>
-        <div class="stat-pill">Chain Head: <strong id="chainHead" style="font-family:monospace">—</strong></div>
+        <div class="stat-pill">Next Auto-Cycle: <strong id="nextCycle">—</strong></div>
+        <div class="stat-pill" style="background:rgba(16,185,129,0.1);border-color:var(--neural-green)">🤖 Autonomous Loop: <strong style="color:var(--neural-green)">300s interval</strong></div>
     </div>
 
     <div class="verify-bar">
@@ -259,6 +260,11 @@ async function loadStatus() {
         if (d.latest) {
             const o = d.latest.outcome;
             document.getElementById('lastOutcome').textContent = o.toUpperCase().replace('_',' ');
+        }
+        if (d.autonomousLoop && d.autonomousLoop.nextCycleMs) {
+            const secs = Math.round(d.autonomousLoop.nextCycleMs / 1000);
+            const m = Math.floor(secs / 60), s = secs % 60;
+            document.getElementById('nextCycle').textContent = m > 0 ? `${m}m ${s}s` : `${s}s`;
         }
     } catch(_) {}
 
