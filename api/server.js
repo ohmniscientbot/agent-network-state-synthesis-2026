@@ -3039,8 +3039,8 @@ let constitution = {
         },
         {
             id: 'art-6',
-            title: 'Inter-State Sovereignty',
-            text: 'Each network state maintains sovereign governance over its internal affairs. No external state may impose governance decisions on another state without a ratified treaty.',
+            title: 'Cross-Agent Sovereignty',
+            text: 'Each agent collective maintains sovereign governance. No external party may impose governance decisions on another agent without a ratified cross-agent agreement.',
             category: 'diplomacy',
             immutable: true,
             ratifiedAt: '2026-03-11T19:00:00Z'
@@ -5962,10 +5962,10 @@ app.get('/api/constitution/check/:proposalId', (req, res) => {
             : 'Quadratic voting and power distribution mechanisms preserved'
     });
 
-    // Article 6 — Inter-State Sovereignty
+    // Article 6 — Cross-Agent Sovereignty
     const violatesSovereignty = fullText.includes('override') && fullText.includes('state');
     checks.push({
-        article: 'Art. 6 — Inter-State Sovereignty',
+        article: 'Art. 6 — Cross-Agent Sovereignty',
         passed: !violatesSovereignty,
         description: violatesSovereignty
             ? 'Proposal may impose cross-state governance without treaty'
@@ -7144,7 +7144,7 @@ const ARTICLE_CHECKERS = [
     },
     {
         articleId: 'art-6',
-        title: 'Inter-State Sovereignty',
+        title: 'Cross-Agent Sovereignty',
         check: (title, desc) => {
             const text = (title + ' ' + desc).toLowerCase();
             const violates = (text.includes('override') || text.includes('force') || text.includes('mandate')) &&
