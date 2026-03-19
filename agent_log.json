@@ -2065,6 +2065,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L082",
+      "timestamp": "2026-03-19T20:47:00Z",
+      "type": "polish",
+      "description": "Live mode polish pass: (1) Constitutional articles count fixed \u2014 was hardcoded 0, now reads from constitution.articles/amendments/violations. (2) Live mode context banner added to dashboard \u2014 shows when in live mode explaining autonomous-only data. (3) /drift page: replaced hackathon track badges with descriptive labels (ERC-8004 Chain #24, Autonomous Loop #15, AI Safety Primitive).",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }
