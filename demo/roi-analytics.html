@@ -483,15 +483,15 @@
             document.getElementById('value-change').textContent = `+$${Math.round(totalValue * 0.15).toLocaleString()} this week`;
 
             // Cost per action (based on real activity and agent count)
+            const activeAgents = metrics.activeAgents || 1;
             const totalActions = totalContributions + totalVotes + totalProposals;
             const costPerAgentPerMonth = 500; // $500/month per agent for compute + storage
-            const estimatedMonthlyCost = (activeAgents || 1) * costPerAgentPerMonth;
+            const estimatedMonthlyCost = activeAgents * costPerAgentPerMonth;
             const costPerAction = totalActions > 0 ? estimatedMonthlyCost / totalActions : 0;
             
             document.getElementById('cost-per-action').textContent = `$${costPerAction.toFixed(2)}`;
 
             // Governance efficiency (proposals passed / total proposals)
-            const activeAgents = metrics.activeAgents || 1;
             const efficiency = activeAgents > 0 ? Math.min(95, (totalActions / activeAgents) * 8) : 0;
             document.getElementById('efficiency').textContent = `${efficiency.toFixed(1)}%`;
             document.getElementById('efficiency-bar').style.width = `${efficiency}%`;
