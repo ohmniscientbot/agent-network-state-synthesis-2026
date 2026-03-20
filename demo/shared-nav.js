@@ -23,7 +23,9 @@ const NAV_CONFIG = {
                 { href: "/debates", text: "⚖️ Debate Chamber", id: "debates" },
                 { href: "/prediction-markets", text: "🎯 Prediction Markets", id: "markets" },
                 { href: "/constitution", text: "📜 Constitution", id: "constitution" },
+                { href: "/amendments", text: "📝 Amendments", id: "amendments" },
                 { href: "/simulate", text: "🎬 Live Demo", id: "simulate" },
+                { href: "/demo-run", text: "⚡ Cycle Run", id: "demo-run" },
             ]
         },
         {
@@ -32,6 +34,7 @@ const NAV_CONFIG = {
             items: [
                 { href: "/passport", text: "🪪 Agent Passport", id: "passport" },
                 { href: "/trust", text: "🤝 Trust Graph", id: "trust" },
+                { href: "/reputation", text: "⭐ Reputation", id: "reputation" },
                 { href: "/vote-receipts", text: "🧾 Vote Receipts", id: "vote-receipts" },
                 { href: "/audit", text: "🔍 Audit Timeline", id: "audit" },
                 { href: "/lifecycle", text: "🔬 Proposal Lifecycle", id: "lifecycle" },
@@ -46,6 +49,7 @@ const NAV_CONFIG = {
                 { href: "/roi-analytics", text: "📈 ROI Analytics", id: "roi" },
                 { href: "/health-index", text: "💚 Health Index", id: "health-index" },
                 { href: "/systemic-risk", text: "⚡ Systemic Risk", id: "systemic-risk" },
+                { href: "/audit-timeline", text: "📅 Audit Timeline", id: "audit-timeline" },
             ]
         },
         {
@@ -65,7 +69,9 @@ const NAV_CONFIG = {
                 { href: "/agent-profile", text: "👤 Agent Profile", id: "agent-profile" },
                 { href: "/register", text: "⚙️ Register Agent", id: "register" },
                 { href: "/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
-                { href: "/api/docs", text: "📖 API Docs", id: "docs" },
+                { href: "/interactive", text: "🎮 Interactive", id: "interactive" },
+                { href: "/contracts", text: "📋 Smart Contracts", id: "contracts" },
+                { href: "/docs", text: "📖 API Docs", id: "docs" },
                 { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", id: "github", external: true }
             ]
         }
