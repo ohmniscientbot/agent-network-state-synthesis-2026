@@ -272,7 +272,7 @@
                     <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--neural-purple); margin-right: 8px; animation: pulse 3s infinite;"></span>
                     🤖 Autonomous Intelligence
                 </h2>
-                <span style="font-size: 0.8rem; color: var(--secondary-text);">32 loops running · no human triggers</span>
+                <span style="font-size: 0.8rem; color: var(--secondary-text);">33 loops running · no human triggers</span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
                 <!-- Watchdog -->
@@ -402,6 +402,13 @@
                     <div id="auto-acap-case" style="font-size: 0.85rem; font-weight: 700; color: var(--primary-text); margin-bottom: 6px; line-height: 1.4;">—</div>
                     <div id="auto-acap-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
                     <div id="auto-acap-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/conflict-arbitration" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Agent Quorum Adaptation Protocol -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(5,150,105,0.5); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #34d399; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🎯 Quorum Adaptation · Chain #42 <span style="background:rgba(5,150,105,0.15);color:#34d399;font-size:0.65rem;padding:1px 5px;border-radius:4px;margin-left:3px;">NEW</span></div>
+                    <div id="auto-aqap-quorum" style="font-size: 2rem; font-weight: 700; color: #34d399; margin-bottom: 6px;">—</div>
+                    <div id="auto-aqap-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-aqap-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/quorum-adaptation" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
                 </div>
             </div>
         </div>
@@ -947,6 +954,23 @@
                         document.getElementById('auto-acap-time').innerHTML = acap.timestamp
                             ? `${new Date(acap.timestamp).toLocaleTimeString()} · <a href="/conflict-arbitration" style="color:inherit;opacity:0.7;">View ledger →</a>`
                             : '<a href="/conflict-arbitration" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                    }
+                }
+
+                // AQAP — Chain #42
+                const aqapRes = await fetch('/api/aqap/live', {cache:'no-store'}).catch(() => null);
+                if (aqapRes?.ok) {
+                    const aqap = await aqapRes.json();
+                    if (aqap && aqap.status === 'ACTIVE') {
+                        document.getElementById('auto-aqap-quorum').textContent =
+                            (aqap.adaptedQuorum * 100).toFixed(1) + '%';
+                        const modeLabel = aqap.adaptationMode?.replace(/_/g,' ') || '';
+                        const fatigueNote = aqap.fatigueDetected ? ` · ⚠️ fatigue detected` : '';
+                        document.getElementById('auto-aqap-detail').textContent =
+                            `${modeLabel} · ${aqap.proposalType?.replace(/_/g,' ')} · ${aqap.gridlocksPrevented} gridlocks prevented${fatigueNote}`;
+                        document.getElementById('auto-aqap-time').innerHTML = aqap.timestamp
+                            ? `${new Date(aqap.timestamp).toLocaleTimeString()} · <a href="/quorum-adaptation" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                            : '<a href="/quorum-adaptation" style="color:inherit;opacity:0.7;">View full ledger →</a>';
                     }
                 }
 

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Quorum Adaptation Protocol — Chain #42 | Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); margin: 0; padding: 0; }
+  .page-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .hero { background: linear-gradient(135deg, #0a1628 0%, #0e1f3d 50%, #0c2a1a 100%); border: 1px solid #059669; border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+  .hero h1 { font-size: 2rem; margin: 0 0 8px; color: #d1fae5; }
+  .hero .subtitle { color: #6ee7b7; font-size: 1.05rem; margin: 0 0 20px; }
+  .chain-badge { display: inline-block; background: #059669; color: white; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em; margin-right: 8px; }
+  .track-badge { display: inline-block; background: #1f2937; border: 1px solid #374151; color: #9ca3af; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; margin-right: 4px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; }
+  .metric-card .value { font-size: 2rem; font-weight: 700; color: var(--text-primary); }
+  .metric-card .label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+  .metric-card.highlight { border-color: #059669; }
+  .metric-card.highlight .value { color: #34d399; }
+  .metric-card.warn { border-color: #f59e0b; }
+  .metric-card.warn .value { color: #fbbf24; }
+  .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+  .section h2 { margin: 0 0 20px; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+  .cycle-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .cycle-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .cycle-id { font-size: 0.8rem; font-family: monospace; color: #34d399; font-weight: 700; }
+  .mode-badge { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .mode-QUORUM_LOWERED { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .mode-QUORUM_RAISED { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .mode-QUORUM_STABILIZED { background: rgba(16,185,129,0.2); color: #34d399; }
+  .mode-EMERGENCY_OVERRIDE { background: rgba(239,68,68,0.25); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+  .mode-FATIGUE_CIRCUIT_BREAKER { background: rgba(239,68,68,0.35); color: #fca5a5; border: 1px solid #ef4444; animation: pulse 2s infinite; }
+  .quorum-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .quorum-box { background: #1f2937; border-radius: 6px; padding: 12px; text-align: center; }
+  .quorum-value { font-size: 1.8rem; font-weight: 700; }
+  .quorum-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .quorum-baseline { color: #6b7280; }
+  .quorum-adapted { color: #34d399; }
+  .arrow-delta { text-align: center; }
+  .delta-positive { color: #818cf8; font-weight: 700; font-size: 1.1rem; }
+  .delta-negative { color: #fbbf24; font-weight: 700; font-size: 1.1rem; }
+  .delta-zero { color: #6b7280; font-weight: 700; font-size: 1.1rem; }
+  .signal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 10px; }
+  .signal-chip { background: rgba(5,150,105,0.10); border: 1px solid rgba(5,150,105,0.25); border-radius: 6px; padding: 8px 10px; font-size: 0.75rem; }
+  .signal-name { color: #6ee7b7; font-weight: 600; margin-bottom: 2px; }
+  .signal-val { color: var(--text-primary); font-size: 0.9rem; font-weight: 700; }
+  .cycle-meta { display: flex; gap: 16px; font-size: 0.75rem; color: var(--text-secondary); flex-wrap: wrap; margin-top: 10px; }
+  .fatigue-pill { background: rgba(245,158,11,0.2); color: #fbbf24; border-radius: 10px; padding: 1px 7px; font-size: 0.65rem; font-weight: 700; }
+  .safe-pill { background: rgba(16,185,129,0.2); color: #34d399; border-radius: 10px; padding: 1px 7px; font-size: 0.65rem; font-weight: 700; }
+  .emergency-pill { background: rgba(239,68,68,0.2); color: #f87171; border-radius: 10px; padding: 1px 7px; font-size: 0.65rem; font-weight: 700; }
+  .hash-mono { font-family: monospace; font-size: 0.72rem; color: var(--text-secondary); }
+  .live-indicator { width: 8px; height: 8px; border-radius: 50%; background: #059669; animation: pulse 2s infinite; display: inline-block; margin-right: 6px; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  .verify-box { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .quorum-bar-wrap { margin: 16px 0; }
+  .quorum-bar-bg { background: #1f2937; border-radius: 6px; height: 8px; position: relative; overflow: hidden; }
+  .quorum-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #059669, #34d399); transition: width 0.5s; }
+  .quorum-bar-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px; }
+  .novelty-box { background: rgba(5,150,105,0.07); border: 1px solid rgba(5,150,105,0.25); border-radius: 10px; padding: 20px; }
+  .novelty-box h3 { margin: 0 0 12px; color: #6ee7b7; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .novelty-list { list-style: none; padding: 0; margin: 0; }
+  .novelty-list li { padding: 6px 0; font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: 8px; }
+  .novelty-list li::before { content: '→'; color: #059669; flex-shrink: 0; font-weight: 700; }
+  .type-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .type-row { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .type-name { font-size: 0.78rem; color: #34d399; font-weight: 600; margin-bottom: 4px; }
+  .type-baseline { font-size: 0.8rem; color: var(--text-secondary); }
+  .type-current { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="/shared-nav.js"></script>
+
+<div class="page-content">
+  <!-- Hero -->
+  <div class="hero">
+    <div>
+      <span class="chain-badge">ERC-8004 Chain #42</span>
+      <span class="track-badge">Agents With Receipts</span>
+      <span class="track-badge">Let the Agent Cook</span>
+      <span class="track-badge">Open Track</span>
+    </div>
+    <h1 style="margin-top: 16px;">⚖️ Agent Quorum Adaptation Protocol</h1>
+    <p class="subtitle">Dynamic quorum threshold calibration — the DAO that governs its own governance rules.</p>
+    <p style="color: #a7f3d0; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+      Governance gridlock is a silent DAO killer. AQAP detects voter fatigue signals, governance velocity patterns, and proposal complexity — then autonomously adapts quorum thresholds to prevent gridlock without sacrificing security guarantees. Every calibration cycle is cryptographically sealed on-chain.
+    </p>
+  </div>
+
+  <!-- Live metrics -->
+  <div id="metrics-grid" class="metrics-grid">
+    <div class="metric-card highlight">
+      <div class="value" id="current-quorum">—%</div>
+      <div class="label">Current Global Quorum</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="total-cycles">—</div>
+      <div class="label">Calibration Cycles</div>
+    </div>
+    <div class="metric-card warn">
+      <div class="value" id="gridlocks-prevented">—</div>
+      <div class="label">Gridlocks Prevented</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="fatigue-episodes">—</div>
+      <div class="label">Fatigue Episodes Detected</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="chain-length">—</div>
+      <div class="label">Receipts On-Chain</div>
+    </div>
+  </div>
+
+  <!-- Current quorum bar -->
+  <div class="section">
+    <h2>📊 Live Quorum Calibration</h2>
+    <div id="live-mode-badge" style="margin-bottom: 16px;">
+      <span class="live-indicator"></span>
+      <span style="color: #34d399; font-size: 0.85rem; font-weight: 600;">LIVE — autonomous calibration every 280s</span>
+    </div>
+    <div id="live-proposal-type" style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px;">Loading latest cycle...</div>
+    <div id="live-quorum-bars"></div>
+    <div id="live-adaptation-mode" style="margin-top: 16px;"></div>
+    <div id="live-fatigue-signal" style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);"></div>
+  </div>
+
+  <!-- Adaptation Modes Explained -->
+  <div class="section">
+    <h2>🔮 Five Adaptation Modes</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+      <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 14px;">
+        <div class="mode-badge mode-QUORUM_LOWERED" style="margin-bottom: 8px;">QUORUM_LOWERED</div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">Fatigue detected. Threshold reduced to prevent governance gridlock while maintaining minimum security floor.</div>
+      </div>
+      <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.3); border-radius: 8px; padding: 14px;">
+        <div class="mode-badge mode-QUORUM_RAISED" style="margin-bottom: 8px;">QUORUM_RAISED</div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">High-activity period. Threshold raised for stronger democratic legitimacy.</div>
+      </div>
+      <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 14px;">
+        <div class="mode-badge mode-QUORUM_STABILIZED" style="margin-bottom: 8px;">QUORUM_STABILIZED</div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">Governance health within optimal range. No threshold change needed this cycle.</div>
+      </div>
+      <div style="background: rgba(239,68,68,0.10); border: 1px solid rgba(239,68,68,0.4); border-radius: 8px; padding: 14px;">
+        <div class="mode-badge mode-EMERGENCY_OVERRIDE" style="margin-bottom: 8px;">EMERGENCY_OVERRIDE</div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">Critical proposal (e.g. KILL_SWITCH_ACTIVATION). Hard floor of 75% enforced regardless of fatigue signals.</div>
+      </div>
+      <div style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 14px;">
+        <div class="mode-badge mode-FATIGUE_CIRCUIT_BREAKER" style="margin-bottom: 8px; animation: none;">FATIGUE_CIRCUIT_BREAKER</div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">Severe fatigue (severity &gt;85%). Non-critical votes paused. Human Principal Oversight (Chain #20) auto-escalated.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Proposal Type Baseline Table -->
+  <div class="section">
+    <h2>📋 Quorum Baselines by Proposal Type</h2>
+    <div class="type-breakdown" id="type-breakdown">
+      <div class="type-row"><div class="type-name">KILL_SWITCH_ACTIVATION</div><div class="type-baseline">Baseline: 75% · Complexity: 1.5×</div><div class="type-current">Hard floor: 75%</div></div>
+      <div class="type-row"><div class="type-name">CONSTITUTIONAL_AMENDMENT</div><div class="type-baseline">Baseline: 67% · Complexity: 1.3×</div><div class="type-current">~67% adapted</div></div>
+      <div class="type-row"><div class="type-name">FEDERATION_TREATY</div><div class="type-baseline">Baseline: 60% · Complexity: 1.2×</div><div class="type-current">~60% adapted</div></div>
+      <div class="type-row"><div class="type-name">TREASURY_ALLOCATION</div><div class="type-baseline">Baseline: 51% · Complexity: 1.1×</div><div class="type-current">~51% adapted</div></div>
+      <div class="type-row"><div class="type-name">AGENT_SLASH</div><div class="type-baseline">Baseline: 40% · Complexity: 0.95×</div><div class="type-current">~40% adapted</div></div>
+      <div class="type-row"><div class="type-name">PARAMETER_CHANGE</div><div class="type-baseline">Baseline: 33% · Complexity: 0.85×</div><div class="type-current">~33% adapted</div></div>
+      <div class="type-row"><div class="type-name">ROUTINE_GOVERNANCE</div><div class="type-baseline">Baseline: 30% · Complexity: 0.80×</div><div class="type-current">~30% adapted</div></div>
+      <div class="type-row"><div class="type-name">EMERGENCY_RESPONSE</div><div class="type-baseline">Baseline: 25% · Complexity: 0.70×</div><div class="type-current">~25% adapted</div></div>
+    </div>
+  </div>
+
+  <!-- Live Ledger -->
+  <div class="section">
+    <h2>🔗 Calibration Ledger <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 400;">(latest first)</span></h2>
+    <div id="ledger-container">
+      <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Loading calibration receipts...</div>
+    </div>
+    <div id="ledger-load-more" style="display:none; text-align: center; margin-top: 16px;">
+      <button onclick="loadMore()" style="background: #059669; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">Load more</button>
+    </div>
+  </div>
+
+  <!-- Chain Integrity -->
+  <div class="section">
+    <h2>🔐 Chain Integrity</h2>
+    <div id="verify-container">
+      <div style="color: var(--text-secondary); font-size: 0.9rem;">Verifying chain...</div>
+    </div>
+  </div>
+
+  <!-- Novelty Box -->
+  <div class="novelty-box" style="margin-bottom: 32px;">
+    <h3>🏆 Why AQAP is Novel</h3>
+    <ul class="novelty-list">
+      <li>First DAO to autonomously adapt quorum thresholds based on real-time governance health signals — not static rules</li>
+      <li>8 cross-chain evidence signals per cycle (velocity, accountability, participation, delegation depth, collusion risk...)</li>
+      <li>FATIGUE_CIRCUIT_BREAKER: severe voter fatigue triggers automatic pause + human escalation — prevents legitimacy collapse</li>
+      <li>Per-proposal-type calibration: Kill Switch requires 75% hard floor; routine governance adapts freely</li>
+      <li>Cryptographic receipt per calibration cycle — judges can audit every quorum change, when and why</li>
+      <li>Meta-governance: the DAO's governing rules are themselves governed by an autonomous oracle</li>
+      <li>Gridlock prevention counter: visible proof that adaptive governance prevented failed votes</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+let offset = 0;
+const limit = 10;
+
+async function loadStatus() {
+  try {
+    const r = await fetch('/api/aqap/status');
+    const d = await r.json();
+    document.getElementById('current-quorum').textContent = (d.currentGlobalQuorum * 100).toFixed(1) + '%';
+    document.getElementById('total-cycles').textContent = d.totalCycles;
+    document.getElementById('gridlocks-prevented').textContent = d.gridlocksPrevented;
+    document.getElementById('fatigue-episodes').textContent = d.fatigueEpisodesDetected;
+    document.getElementById('chain-length').textContent = d.totalCycles;
+  } catch(e) {}
+}
+
+async function loadLive() {
+  try {
+    const r = await fetch('/api/aqap/live');
+    const d = await r.json();
+    if (d.status === 'PENDING') return;
+
+    document.getElementById('live-proposal-type').innerHTML =
+      `Latest calibration cycle <span class="cycle-id">#${d.cycleSeq}</span> — Proposal type: <strong style="color: #34d399;">${d.proposalType}</strong>`;
+
+    const delta = d.quorumDelta;
+    const deltaStr = delta > 0 ? '+' + (delta * 100).toFixed(2) + '%' : (delta * 100).toFixed(2) + '%';
+    const deltaClass = delta > 0.001 ? 'delta-positive' : delta < -0.001 ? 'delta-negative' : 'delta-zero';
+
+    document.getElementById('live-quorum-bars').innerHTML = `
+      <div class="quorum-row">
+        <div class="quorum-box">
+          <div class="quorum-label">Baseline</div>
+          <div class="quorum-value quorum-baseline">${(d.baselineQuorum * 100).toFixed(1)}%</div>
+        </div>
+        <div class="arrow-delta">
+          <div class="${deltaClass}">${delta >= 0 ? '↑' : '↓'} ${deltaStr}</div>
+          <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px;">adaptation</div>
+        </div>
+        <div class="quorum-box">
+          <div class="quorum-label">Adapted</div>
+          <div class="quorum-value quorum-adapted">${(d.adaptedQuorum * 100).toFixed(1)}%</div>
+        </div>
+      </div>
+      <div class="quorum-bar-wrap">
+        <div class="quorum-bar-bg">
+          <div class="quorum-bar-fill" style="width: ${d.adaptedQuorum * 100}%;"></div>
+        </div>
+        <div class="quorum-bar-label"><span>0%</span><span>Current: ${(d.adaptedQuorum * 100).toFixed(1)}%</span><span>100%</span></div>
+      </div>
+    `;
+
+    const modeClass = 'mode-' + d.adaptationMode;
+    document.getElementById('live-adaptation-mode').innerHTML =
+      `<span class="mode-badge ${modeClass}">${d.adaptationMode}</span>
+       <span style="font-size:0.82rem; color: var(--text-secondary); margin-left: 10px;">Gridlocks prevented: <strong style="color:#fbbf24;">${d.gridlocksPrevented}</strong> · Fatigue episodes: <strong style="color:#f87171;">${d.totalFatigueEpisodes}</strong></span>`;
+
+    if (d.fatigueDetected && d.detectedFatigueSignal) {
+      document.getElementById('live-fatigue-signal').innerHTML =
+        `⚠️ Fatigue signal: <span class="fatigue-pill">${d.detectedFatigueSignal}</span> (severity: ${(d.fatigueSeverity || 0).toFixed(2)})`;
+    } else {
+      document.getElementById('live-fatigue-signal').innerHTML =
+        `<span class="safe-pill">✅ No fatigue detected this cycle</span>`;
+    }
+  } catch(e) {}
+}
+
+async function loadLedger() {
+  try {
+    const r = await fetch(`/api/aqap/ledger?limit=${limit}&offset=${offset}`);
+    const d = await r.json();
+    const container = document.getElementById('ledger-container');
+    if (offset === 0) container.innerHTML = '';
+
+    if (!d.ledger || d.ledger.length === 0) {
+      container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 20px;">No calibration cycles yet</div>';
+      return;
+    }
+
+    d.ledger.forEach(entry => {
+      const p = entry.payload;
+      const deltaVal = p.quorumDelta;
+      const deltaStr = deltaVal > 0 ? '+' + (deltaVal * 100).toFixed(2) + '%' : (deltaVal * 100).toFixed(2) + '%';
+      const deltaClass = deltaVal > 0.001 ? 'delta-positive' : deltaVal < -0.001 ? 'delta-negative' : 'delta-zero';
+      const modeCls = 'mode-' + p.adaptationMode;
+      const ts = new Date(entry.timestamp).toLocaleString();
+      const fatigueHtml = p.fatigueDetected
+        ? `<span class="fatigue-pill">⚠️ ${p.detectedFatigueSignal || 'FATIGUE'}</span>`
+        : `<span class="safe-pill">✅ No fatigue</span>`;
+      const emergHtml = p.emergencyOverride
+        ? `<span class="emergency-pill">🚨 EMERGENCY OVERRIDE</span>`
+        : '';
+
+      const card = document.createElement('div');
+      card.className = 'cycle-card';
+      card.innerHTML = `
+        <div class="cycle-header">
+          <span class="cycle-id">Cycle #${entry.seq} · ${p.proposalType}</span>
+          <span class="mode-badge ${modeCls}">${p.adaptationMode}</span>
+        </div>
+        <div class="quorum-row">
+          <div class="quorum-box">
+            <div class="quorum-label">Baseline</div>
+            <div class="quorum-value quorum-baseline" style="font-size:1.3rem;">${(p.baselineQuorum * 100).toFixed(1)}%</div>
+          </div>
+          <div class="arrow-delta">
+            <div class="${deltaClass}">${deltaVal >= 0 ? '↑' : '↓'} ${deltaStr}</div>
+          </div>
+          <div class="quorum-box">
+            <div class="quorum-label">Adapted</div>
+            <div class="quorum-value quorum-adapted" style="font-size:1.3rem;">${(p.adaptedQuorum * 100).toFixed(1)}%</div>
+          </div>
+        </div>
+        <div style="margin-bottom: 10px;">${fatigueHtml} ${emergHtml}</div>
+        <div class="cycle-meta">
+          <span>Velocity: ${(p.velocityScore * 100).toFixed(0)}%</span>
+          <span>Turnout: ${(p.rawTurnoutSignal * 100).toFixed(0)}%</span>
+          <span>Complexity: ${p.complexityFactor}×</span>
+          <span>Collusion risk: ${(p.collusionRiskModifier * 100).toFixed(0)}%</span>
+          <span>Gridlock risk: <strong style="color:#fbbf24;">${p.gridlockRisk}</strong></span>
+          <span>${ts}</span>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <span class="hash-mono">receipt: ${entry.receiptId ? entry.receiptId.substring(0, 20) + '…' : '—'}</span>
+          <span class="hash-mono">chain: ${entry.chainHead || '—'}</span>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    offset += d.ledger.length;
+    if (offset < d.total) {
+      document.getElementById('ledger-load-more').style.display = 'block';
+    } else {
+      document.getElementById('ledger-load-more').style.display = 'none';
+    }
+  } catch(e) {
+    document.getElementById('ledger-container').innerHTML = '<div style="color:#f87171; padding:20px;">Failed to load ledger</div>';
+  }
+}
+
+function loadMore() {
+  loadLedger();
+}
+
+async function loadVerify() {
+  try {
+    const r = await fetch('/api/aqap/verify/chain');
+    const d = await r.json();
+    document.getElementById('verify-container').innerHTML = `
+      <div class="verify-box">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <span style="font-size: 1.5rem;">${d.valid ? '✅' : '❌'}</span>
+          <div>
+            <div style="font-weight: 700; color: ${d.valid ? '#34d399' : '#f87171'};">Chain Integrity: ${d.integrityStatus}</div>
+            <div class="verify-label" style="font-size: 0.85rem; margin-top: 2px;">${d.chainLength} receipts verified · Genesis: ${d.genesisAnchor}</div>
+          </div>
+        </div>
+        <div class="hash-mono">Chain head: ${d.chainHead}</div>
+        <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+          ${(d.tracks || []).map(t => `<span class="track-badge">${t}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  } catch(e) {}
+}
+
+// Initialize
+loadStatus();
+loadLive();
+loadLedger();
+loadVerify();
+
+// Auto-refresh every 30s
+setInterval(() => {
+  loadStatus();
+  loadLive();
+}, 30000);
+</script>
+</body>
+</html>
