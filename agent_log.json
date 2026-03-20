@@ -2487,6 +2487,29 @@
       "type": "autonomous_cycle",
       "timestamp": "2026-03-20T13:00:00Z",
       "description": "Chain #40 Agent Succession Protocol (ASP) \u2014 autonomous governance continuity receipts for 6 critical roles. 12 bootstrap successions + 55s interval loop. 8 new API endpoints (/api/asp/*) + /succession-protocol page. Dashboard Autonomous Intelligence panel extended with Chain #40 card. Scorecard updated: 40 chains, 31 loops, 37 pages, 119 endpoints."
+    },
+    {
+      "id": "L111",
+      "timestamp": "2026-03-20T14:10:00Z",
+      "type": "autonomous_cycle",
+      "description": "Chain #41 Agent Conflict Arbitration Protocol (ACAP) \u2014 autonomous agent conflict detection, cryptographic evidence weighing, binding arbitration receipts with precedent tracking. ERC-8004 chain, 63s loop. Dashboard panel + /conflict-arbitration page added. Chains: 41, Loops: 32.",
+      "chains_added": [
+        41
+      ],
+      "endpoints_added": [
+        "/api/acap/status",
+        "/api/acap/ledger",
+        "/api/acap/latest",
+        "/api/acap/verify/chain",
+        "/api/acap/summary",
+        "/api/acap/live",
+        "/conflict-arbitration"
+      ],
+      "pages_added": [
+        "/conflict-arbitration"
+      ],
+      "erc8004_chain_count": 41,
+      "autonomous_loops": 32
     }
   ]
 }

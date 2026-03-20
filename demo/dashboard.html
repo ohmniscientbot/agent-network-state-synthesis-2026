@@ -272,7 +272,7 @@
                     <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--neural-purple); margin-right: 8px; animation: pulse 3s infinite;"></span>
                     🤖 Autonomous Intelligence
                 </h2>
-                <span style="font-size: 0.8rem; color: var(--secondary-text);">30 loops running · no human triggers</span>
+                <span style="font-size: 0.8rem; color: var(--secondary-text);">32 loops running · no human triggers</span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
                 <!-- Watchdog -->
@@ -395,6 +395,13 @@
                     <div id="auto-asp-status" style="font-size: 1.1rem; font-weight: 700; color: #38bdf8; margin-bottom: 6px;">—</div>
                     <div id="auto-asp-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
                     <div id="auto-asp-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/succession-protocol" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Agent Conflict Arbitration Protocol -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(124,58,237,0.5); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">⚖️ Conflict Arbitration · Chain #41 <span style="background:rgba(124,58,237,0.15);color:#a78bfa;font-size:0.65rem;padding:1px 5px;border-radius:4px;margin-left:3px;">NEW</span></div>
+                    <div id="auto-acap-case" style="font-size: 0.85rem; font-weight: 700; color: var(--primary-text); margin-bottom: 6px; line-height: 1.4;">—</div>
+                    <div id="auto-acap-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-acap-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/conflict-arbitration" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
                 </div>
             </div>
         </div>
@@ -925,6 +932,21 @@
                         document.getElementById('auto-asp-time').innerHTML = asp.timestamp
                             ? `${new Date(asp.timestamp).toLocaleTimeString()} · <a href="/succession-protocol" style="color:inherit;opacity:0.7;">View ledger →</a>`
                             : '<a href="/succession-protocol" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                    }
+                }
+
+                // ACAP — Chain #41
+                const acapRes = await fetch('/api/acap/live', {cache:'no-store'}).catch(() => null);
+                if (acapRes?.ok) {
+                    const acap = await acapRes.json();
+                    if (acap && acap.status === 'ACTIVE') {
+                        document.getElementById('auto-acap-case').textContent =
+                            `⚖️ ${acap.caseId} · ${acap.conflictType?.replace(/_/g,' ') || ''}`;
+                        document.getElementById('auto-acap-detail').textContent =
+                            `${acap.resolution?.replace(/_/g,' ')} · winner: ${acap.winningParty} · ${acap.totalCases} cases · ${acap.evidenceCount} evidence pieces`;
+                        document.getElementById('auto-acap-time').innerHTML = acap.timestamp
+                            ? `${new Date(acap.timestamp).toLocaleTimeString()} · <a href="/conflict-arbitration" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                            : '<a href="/conflict-arbitration" style="color:inherit;opacity:0.7;">View full ledger →</a>';
                     }
                 }
 

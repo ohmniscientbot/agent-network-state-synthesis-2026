@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Conflict Arbitration Protocol — Chain #41 | Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); margin: 0; padding: 0; }
+  .page-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .hero { background: linear-gradient(135deg, #1a1a2e 0%, #1e1030 50%, #2d1b69 100%); border: 1px solid #7c3aed; border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+  .hero h1 { font-size: 2rem; margin: 0 0 8px; color: #ede9fe; }
+  .hero .subtitle { color: #c4b5fd; font-size: 1.05rem; margin: 0 0 20px; }
+  .chain-badge { display: inline-block; background: #7c3aed; color: white; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em; margin-right: 8px; }
+  .track-badge { display: inline-block; background: #1f2937; border: 1px solid #374151; color: #9ca3af; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; margin-right: 4px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; }
+  .metric-card .value { font-size: 2rem; font-weight: 700; color: var(--text-primary); }
+  .metric-card .label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+  .metric-card.highlight { border-color: #7c3aed; }
+  .metric-card.highlight .value { color: #a78bfa; }
+  .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+  .section h2 { margin: 0 0 20px; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+  .case-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .case-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .case-id { font-size: 0.8rem; font-family: monospace; color: #a78bfa; font-weight: 700; }
+  .resolution-badge { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .res-ARBITRATED_CONSENSUS { background: rgba(16,185,129,0.2); color: #34d399; }
+  .res-ESCALATED_TO_COUNCIL { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .res-SPLIT_RULING { background: rgba(239,68,68,0.2); color: #f87171; }
+  .res-PRECEDENT_ESTABLISHED { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .res-DEFERRED_TO_CONSTITUTION { background: rgba(6,182,212,0.2); color: #22d3ee; }
+  .res-MEDIATED_SETTLEMENT { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+  .res-BINDING_OVERRIDE { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .parties-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .party-box { background: #1f2937; border-radius: 6px; padding: 10px 12px; font-size: 0.82rem; }
+  .party-label { font-size: 0.68rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .party-name { font-weight: 600; color: var(--text-primary); }
+  .party-role { font-size: 0.72rem; color: #7c3aed; }
+  .vs { text-align: center; font-size: 1.1rem; font-weight: 700; color: #f87171; }
+  .evidence-bar { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .evidence-chip { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; font-size: 0.68rem; padding: 2px 8px; color: #c4b5fd; }
+  .case-meta { display: flex; gap: 16px; font-size: 0.75rem; color: var(--text-secondary); flex-wrap: wrap; margin-top: 10px; }
+  .case-meta span { display: flex; align-items: center; gap: 4px; }
+  .precedent-pill { background: rgba(99,102,241,0.2); color: #818cf8; border-radius: 10px; padding: 1px 7px; font-size: 0.65rem; font-weight: 700; }
+  .hash-mono { font-family: monospace; font-size: 0.72rem; color: var(--text-secondary); }
+  .live-indicator { width: 8px; height: 8px; border-radius: 50%; background: #7c3aed; animation: pulse 2s infinite; display: inline-block; margin-right: 6px; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  .verify-box { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .verify-label { color: var(--text-secondary); }
+  .verify-value { color: #34d399; font-weight: 600; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--text-secondary); }
+  .stat-value { font-weight: 600; color: var(--text-primary); }
+  .conflict-types { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .ct-badge { background: #1f2937; border: 1px solid #374151; border-radius: 8px; font-size: 0.72rem; padding: 4px 10px; color: #9ca3af; }
+  .ct-count { font-weight: 700; color: var(--text-primary); }
+  .winner-tag { font-size: 0.68rem; background: rgba(16,185,129,0.15); color: #34d399; border-radius: 8px; padding: 2px 7px; font-weight: 700; }
+</style>
+</head>
+<body>
+<script src="/demo/shared-nav.js"></script>
+<div class="page-content">
+
+  <div class="hero">
+    <h1>⚖️ Agent Conflict Arbitration Protocol</h1>
+    <p class="subtitle">Autonomous detection, evidence weighing, and cryptographic binding arbitration for agent disputes</p>
+    <div>
+      <span class="chain-badge">Chain #41</span>
+      <span class="track-badge">🏆 ERC-8004</span>
+      <span class="track-badge">🍳 Let the Agent Cook</span>
+      <span class="track-badge">🌐 Open Track</span>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card highlight">
+      <div class="value" id="m-cases">—</div>
+      <div class="label">Arbitration Cases</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-precedents">—</div>
+      <div class="label">Precedents Set</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-avg-ms">—</div>
+      <div class="label">Avg Deliberation (ms)</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-loops">—</div>
+      <div class="label">Autonomous Loops</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-chain-len">—</div>
+      <div class="label">Chain Length</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-integrity">INTACT</div>
+      <div class="label">Chain Integrity</div>
+    </div>
+  </div>
+
+  <!-- Live arbitration feed -->
+  <div class="section">
+    <h2><span class="live-indicator"></span>Live Arbitration Feed</h2>
+    <div id="case-feed">
+      <div style="color: var(--text-secondary); text-align: center; padding: 30px;">⏳ Loading arbitration cases...</div>
+    </div>
+  </div>
+
+  <!-- Conflict type breakdown -->
+  <div class="section">
+    <h2>📊 Conflict Type Breakdown</h2>
+    <div id="conflict-breakdown" class="conflict-types" style="min-height: 40px;">
+      <div style="color: var(--text-secondary); font-size: 0.85rem;">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Resolution outcomes -->
+  <div class="section">
+    <h2>✅ Resolution Outcomes</h2>
+    <div id="resolution-breakdown">
+      <div style="color: var(--text-secondary); font-size: 0.85rem;">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Chain verification -->
+  <div class="section">
+    <h2>🔐 ERC-8004 Chain Verification</h2>
+    <div class="verify-box">
+      <div class="stat-row">
+        <span class="verify-label">Chain Status</span>
+        <span class="verify-value" id="v-status">Verifying…</span>
+      </div>
+      <div class="stat-row">
+        <span class="verify-label">Chain Length</span>
+        <span class="stat-value" id="v-len">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="verify-label">Receipts Verified</span>
+        <span class="stat-value" id="v-receipts">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="verify-label">Chain Head</span>
+        <span class="hash-mono" id="v-head">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="verify-label">Genesis Anchor</span>
+        <span class="hash-mono" id="v-genesis">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="verify-label">Integrity</span>
+        <span class="verify-value" id="v-integrity">—</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function resClass(r) {
+  return 'resolution-badge res-' + r.replace(/ /g,'_');
+}
+function formatConflict(c) {
+  return c.replace(/_/g,' ').toLowerCase().replace(/\b\w/g, x => x.toUpperCase());
+}
+function relTime(ts) {
+  const d = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+  if (d < 60) return d + 's ago';
+  if (d < 3600) return Math.floor(d/60) + 'm ago';
+  return Math.floor(d/3600) + 'h ago';
+}
+
+async function loadSummary() {
+  const r = await fetch('/api/acap/summary').then(x => x.json());
+  document.getElementById('m-cases').textContent = r.totalCases;
+  document.getElementById('m-precedents').textContent = r.precedentsEstablished;
+  document.getElementById('m-avg-ms').textContent = r.avgDeliberationMs?.toLocaleString() || '—';
+  document.getElementById('m-loops').textContent = r.loopCount;
+
+  // Conflict breakdown
+  const cb = document.getElementById('conflict-breakdown');
+  cb.innerHTML = Object.entries(r.conflictTypeBreakdown || {}).sort((a,b) => b[1]-a[1]).map(([k,v]) =>
+    `<div class="ct-badge">${formatConflict(k)}: <span class="ct-count">${v}</span></div>`
+  ).join('') || '<em style="color:var(--text-secondary)">None yet</em>';
+
+  // Resolution breakdown
+  const rb = document.getElementById('resolution-breakdown');
+  rb.innerHTML = Object.entries(r.resolutionBreakdown || {}).sort((a,b) => b[1]-a[1]).map(([k,v]) =>
+    `<div class="stat-row"><span class="stat-label"><span class="${resClass(k)}">${k.replace(/_/g,' ')}</span></span><span class="stat-value">${v}</span></div>`
+  ).join('') || '<div style="color:var(--text-secondary)">None yet</div>';
+}
+
+async function loadFeed() {
+  const r = await fetch('/api/acap/ledger?limit=10').then(x => x.json());
+  document.getElementById('m-chain-len').textContent = r.total;
+
+  const feed = document.getElementById('case-feed');
+  if (!r.ledger || r.ledger.length === 0) {
+    feed.innerHTML = '<div style="color:var(--text-secondary);text-align:center;padding:30px;">No cases yet — loop initializing…</div>';
+    return;
+  }
+
+  feed.innerHTML = r.ledger.map(e => {
+    const p = e.payload;
+    const winner = p.winningParty === p.party1 ? p.party1Label : p.party2Label;
+    const ev = (p.evidencePieces || []).map(x => `<span class="evidence-chip">${x.type.replace(/_/g,' ')}</span>`).join('');
+    return `<div class="case-card">
+      <div class="case-header">
+        <span class="case-id">📋 ${e.caseId}</span>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          ${p.precedentSet ? '<span class="precedent-pill">📖 PRECEDENT</span>' : ''}
+          <span class="${resClass(p.resolution)}">${p.resolution.replace(/_/g,' ')}</span>
+        </div>
+      </div>
+      <div style="font-size:0.75rem;color:#a78bfa;font-weight:600;margin-bottom:10px;">⚔️ ${formatConflict(p.conflictType)}</div>
+      <div class="parties-row">
+        <div class="party-box">
+          <div class="party-label">Party 1</div>
+          <div class="party-name">${p.party1Label}</div>
+          <div class="party-role">Evidence weight: ${p.party1EvidenceWeight}</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="party-box">
+          <div class="party-label">Party 2</div>
+          <div class="party-name">${p.party2Label}</div>
+          <div class="party-role">Evidence weight: ${p.party2EvidenceWeight}</div>
+        </div>
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:8px;">
+        ⚖️ Arbiter: <strong style="color:#c4b5fd">${p.arbiterLabel}</strong> · Trust: ${p.arbiterTrustScore} · Deliberation: ${p.deliberationMs}ms · Binding score: ${p.bindingScore}
+      </div>
+      <div style="font-size:0.82rem;color:#34d399;margin-bottom:8px;">
+        🏆 Winner: <strong>${winner}</strong> ${p.appealable ? '· <span style="color:#fbbf24">⚠ Appealable</span>' : ''}
+      </div>
+      <div class="evidence-bar">${ev}</div>
+      <div class="case-meta">
+        <span>🕐 ${relTime(e.timestamp)}</span>
+        <span class="hash-mono">receipt: ${e.receiptId?.substring(0,12)}…</span>
+        <span class="hash-mono">chain: ${e.chainHead}</span>
+        ${p.constitutionArticlesCited > 0 ? `<span>📜 ${p.constitutionArticlesCited} article(s) cited</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadVerify() {
+  const r = await fetch('/api/acap/verify/chain').then(x => x.json());
+  document.getElementById('v-status').textContent = r.valid ? '✅ VALID' : '❌ INVALID';
+  document.getElementById('v-len').textContent = r.chainLength;
+  document.getElementById('v-receipts').textContent = r.receiptsVerified;
+  document.getElementById('v-head').textContent = r.chainHead;
+  document.getElementById('v-genesis').textContent = r.genesisAnchor;
+  document.getElementById('v-integrity').textContent = r.integrityStatus;
+}
+
+async function loadAll() {
+  await Promise.all([loadSummary(), loadFeed(), loadVerify()]);
+}
+
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>
