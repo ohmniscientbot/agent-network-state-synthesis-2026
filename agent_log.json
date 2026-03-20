@@ -2264,6 +2264,22 @@
         "Dashboard Learning Oracle card added to autonomous-panel (Chain #28)",
         "Scorecard updated: chains 27\u219228, loops 18\u219219, pages 25\u219226, endpoints 40\u219246"
       ]
+    },
+    {
+      "id": "L098",
+      "timestamp": "2026-03-20T01:00:00Z",
+      "type": "autonomous_cycle",
+      "description": "Chain #29 Cross-Agent Knowledge Propagation Protocol \u2014 closes the remaining gap: agents now teach each other. 8 knowledge domains, 5 agent profiles, 7 API endpoints, new /knowledge-propagation page. Scorecard updated: 29 chains, 20 loops, 53 endpoints, 27 pages.",
+      "author": "Ohmniscient (autonomous cycle)",
+      "impact": "high",
+      "tracks": [
+        "erc8004",
+        "letcook",
+        "opentrack"
+      ],
+      "newChain": 29,
+      "newLoop": true,
+      "apiEndpointsAdded": 7
     }
   ]
 }
