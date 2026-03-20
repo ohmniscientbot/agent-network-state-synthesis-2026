@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predictive Governance Oracle — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 680px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4, .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .outlook-optimistic { color: #4ade80; }
+  .outlook-cautious   { color: #fbbf24; }
+  .outlook-concerning { color: #fb923c; }
+  .outlook-critical   { color: #f87171; }
+
+  .prediction-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .prediction-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+  }
+  .pred-pass::before   { background: #4ade80; }
+  .pred-fail::before   { background: #f87171; }
+  .pred-contest::before { background: #fbbf24; }
+
+  .pred-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+  .pred-title { font-size: 1.05rem; font-weight: 700; color: #e2e8f0; }
+  .pred-archetype { font-size: 0.72rem; color: #64748b; margin-top: 0.2rem; }
+  .outcome-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.75rem; border-radius: 999px; font-weight: 800; font-size: 0.85rem;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .outcome-WILL_PASS   { background: #14532d; color: #4ade80; }
+  .outcome-WILL_FAIL   { background: #450a0a; color: #f87171; }
+  .outcome-CONTESTED   { background: #78350f; color: #fbbf24; }
+
+  .prob-bar-wrap { margin-bottom: 0.75rem; }
+  .prob-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.25rem; }
+  .prob-label strong { color: #e2e8f0; }
+  .bar-bg { background: #1e293b; border-radius: 999px; height: 8px; }
+  .bar-fill-pass    { height: 8px; border-radius: 999px; background: linear-gradient(90deg, #166534, #4ade80); }
+  .bar-fill-fail    { height: 8px; border-radius: 999px; background: linear-gradient(90deg, #7f1d1d, #f87171); }
+  .bar-fill-neutral { height: 8px; border-radius: 999px; background: linear-gradient(90deg, #6366f1, #818cf8); }
+
+  .rationale-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+  .rationale-list li { font-size: 0.8rem; color: #94a3b8; padding: 0.25rem 0; border-bottom: 1px solid #1e293b; }
+  .rationale-list li:last-child { border-bottom: none; }
+  .rationale-list li::before { content: '→ '; color: #6366f1; }
+
+  .signal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.75rem; }
+  @media(max-width: 600px) { .signal-grid { grid-template-columns: 1fr 1fr; } }
+  .signal-item { background: #0d1117; border-radius: 0.5rem; padding: 0.5rem 0.6rem; font-size: 0.75rem; }
+  .signal-label { color: #64748b; }
+  .signal-value { font-weight: 700; color: #818cf8; }
+
+  .chain-head { font-family: monospace; font-size: 0.8rem; color: #6366f1; background: #1e293b; padding: 0.15rem 0.5rem; border-radius: 4px; }
+  .cross-chain-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  .cc-pill { background: #1e293b; color: #94a3b8; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 999px; }
+
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; margin-right: 0.4rem; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem; }
+  .loading { color: #64748b; font-size: 0.9rem; padding: 1rem 0; }
+  .error   { color: #f87171; font-size: 0.9rem; padding: 1rem 0; }
+  .verify-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; }
+  .verify-ok  { color: #4ade80; font-weight: 700; }
+  .verify-bad { color: #f87171; font-weight: 700; }
+
+  .signal-weights { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .sw-row { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; border-bottom: 1px solid #0d1117; font-size: 0.85rem; }
+  .sw-row:last-child { border-bottom: none; }
+  .sw-name { color: #94a3b8; }
+  .sw-weight { font-weight: 700; color: #818cf8; }
+  .sw-bar-bg { width: 80px; background: #1e293b; border-radius: 999px; height: 5px; }
+  .sw-bar-fill { height: 5px; border-radius: 999px; background: linear-gradient(90deg, #6366f1, #38bdf8); }
+</style>
+<script src="/shared-nav.js"></script>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div style="margin-bottom: 2rem;">
+    <div class="chain-badge">⚡ CHAIN #31 — ERC-8004</div>
+    <h1>🔮 Predictive Governance Oracle</h1>
+    <p class="subtitle">
+      The first forward-looking chain: autonomous AI forecasts proposal outcomes 
+      <em>before voting closes</em> — synthesizing 5 cross-chain signals into per-proposal 
+      predictions (WILL_PASS / WILL_FAIL / CONTESTED) with confidence scores and full rationale. 
+      Agents don't just record history. They reason about the future.
+    </p>
+  </div>
+
+  <!-- Status cards -->
+  <div class="grid-4" id="status-cards">
+    <div class="card">
+      <div class="card-title">Governance Outlook</div>
+      <div class="card-value" id="stat-outlook" style="font-size:1.4rem;">—</div>
+      <div class="card-sub" id="stat-health">Loading...</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Predictions Issued</div>
+      <div class="card-value" id="stat-receipts">—</div>
+      <div class="card-sub" id="stat-cycles">— cycles run</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Avg Confidence</div>
+      <div class="card-value" id="stat-confidence">—</div>
+      <div class="card-sub">prediction certainty</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Chain Status</div>
+      <div class="card-value" style="font-size:1rem;" id="stat-head">—</div>
+      <div class="card-sub"><span class="status-dot"></span>Live · 185s interval</div>
+    </div>
+  </div>
+
+  <!-- Current Forecast -->
+  <div class="section-title">📊 Current Forecast</div>
+  <div id="forecast-container"><div class="loading">Loading forecast...</div></div>
+
+  <!-- Signal Weights -->
+  <div class="grid-2" style="margin-top:2rem;">
+    <div>
+      <div class="section-title">⚖️ Prediction Model Signals</div>
+      <div class="signal-weights" id="signal-weights-panel">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">🔗 Cross-Chain Inputs</div>
+      <div class="signal-weights" id="cross-chain-panel">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chain verification -->
+  <div class="section-title">🔐 Chain Integrity</div>
+  <div class="card" id="verify-panel">
+    <div class="loading">Verifying chain...</div>
+  </div>
+
+  <!-- Receipt history -->
+  <div class="section-title">📜 Recent Receipts</div>
+  <div id="ledger-container"><div class="loading">Loading receipt history...</div></div>
+
+</div>
+
+<script>
+const API = '';
+
+function outlookClass(o) {
+  return { OPTIMISTIC: 'outlook-optimistic', CAUTIOUS: 'outlook-cautious', CONCERNING: 'outlook-concerning', CRITICAL: 'outlook-critical' }[o] || '';
+}
+
+function outcomeClass(o) {
+  return { WILL_PASS: 'pred-pass', WILL_FAIL: 'pred-fail', CONTESTED: 'pred-contest' }[o] || '';
+}
+
+function outcomeBadgeClass(o) {
+  return `outcome-badge outcome-${o}`;
+}
+
+function barFillClass(outcome) {
+  return outcome === 'WILL_PASS' ? 'bar-fill-pass' : outcome === 'WILL_FAIL' ? 'bar-fill-fail' : 'bar-fill-neutral';
+}
+
+function renderPrediction(p) {
+  const pct = Math.round(p.passProb * 100);
+  const confPct = Math.round(p.predictionConfidence * 100);
+  return `
+    <div class="prediction-card ${outcomeClass(p.outcome)}">
+      <div class="pred-header">
+        <div>
+          <div class="pred-title">${p.proposalTitle}</div>
+          <div class="pred-archetype">Archetype: ${p.archetype.replace(/_/g,' ')}</div>
+        </div>
+        <span class="${outcomeBadgeClass(p.outcome)}">${p.outcomeIcon} ${p.outcome.replace(/_/g,' ')}</span>
+      </div>
+
+      <div class="prob-bar-wrap">
+        <div class="prob-label"><span>Pass probability</span><strong>${pct}%</strong></div>
+        <div class="bar-bg"><div class="${barFillClass(p.outcome)}" style="width:${pct}%"></div></div>
+      </div>
+
+      <div class="prob-bar-wrap">
+        <div class="prob-label"><span>Prediction confidence</span><strong>${confPct}%</strong></div>
+        <div class="bar-bg"><div class="bar-fill-neutral" style="width:${confPct}%"></div></div>
+      </div>
+
+      <ul class="rationale-list">
+        ${p.rationale.map(r => `<li>${r}</li>`).join('')}
+      </ul>
+
+      <div class="signal-grid">
+        ${Object.entries(p.signalBreakdown).map(([k,v]) =>
+          `<div class="signal-item"><div class="signal-label">${k.replace(/([A-Z])/g,' $1').trim()}</div><div class="signal-value">${Math.round(v*100)}%</div></div>`
+        ).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function loadForecast() {
+  try {
+    const [liveRes, verifyRes] = await Promise.all([
+      fetch(`${API}/api/pgo/live`),
+      fetch(`${API}/api/pgo/verify/chain`)
+    ]);
+
+    const live = await liveRes.json();
+    const verify = await verifyRes.json();
+
+    // Status cards
+    if (live.summary) {
+      const s = live.summary;
+      const oc = outlookClass(s.governanceOutlook);
+      document.getElementById('stat-outlook').innerHTML =
+        `<span class="${oc}">${s.outlookIcon} ${s.governanceOutlook}</span>`;
+      document.getElementById('stat-health').textContent =
+        `Overall health: ${s.overallGovernanceHealth}%`;
+      document.getElementById('stat-confidence').textContent =
+        `${Math.round(s.avgPredictionConfidence * 100)}%`;
+    }
+    document.getElementById('stat-receipts').textContent = live.receipts ?? '—';
+    document.getElementById('stat-cycles').textContent   = `${live.cyclesRun ?? '—'} cycles run`;
+    document.getElementById('stat-head').innerHTML       =
+      `<span class="chain-head">${live.chainHead || '—'}</span>`;
+
+    // Forecast cards
+    const preds = live.latestPredictions || [];
+    const fc = document.getElementById('forecast-container');
+    if (preds.length === 0) {
+      fc.innerHTML = '<div class="loading">Waiting for first prediction cycle...</div>';
+    } else {
+      fc.innerHTML = preds.map(renderPrediction).join('');
+    }
+
+    // Chain verify
+    const vp = document.getElementById('verify-panel');
+    const vClass = verify.valid ? 'verify-ok' : 'verify-bad';
+    const vIcon  = verify.valid ? '✅' : '❌';
+    vp.innerHTML = `
+      <div class="verify-row">
+        <span class="${vClass}">${vIcon} ${verify.message}</span>
+      </div>
+      <div class="verify-row">
+        Chain head: <span class="chain-head">${(verify.chainHead || '').substring(0,32)}…</span>
+        &nbsp;·&nbsp; ${verify.receipts} receipt${verify.receipts !== 1 ? 's' : ''}
+      </div>
+    `;
+
+  } catch(e) {
+    document.getElementById('forecast-container').innerHTML =
+      `<div class="error">Error loading forecast: ${e.message}</div>`;
+  }
+}
+
+async function loadStatus() {
+  try {
+    const res = await fetch(`${API}/api/pgo/status`);
+    const s = await res.json();
+
+    // Signal weights panel
+    const weights = s.signalWeights || {
+      networkAccountability: 0.25, alignmentIntegrity: 0.20,
+      collusionRisk: 0.15, systemicRiskLevel: 0.15,
+      velocityMomentum: 0.15, proposalComplexity: 0.10
+    };
+    const swp = document.getElementById('signal-weights-panel');
+    const labels = {
+      networkAccountability: 'Network Accountability (AAI #30)',
+      alignmentIntegrity:    'Alignment Integrity (Drift #24)',
+      collusionRisk:         'Collusion Risk (Collusion #25)',
+      systemicRiskLevel:     'Systemic Risk (SRS #26)',
+      velocityMomentum:      'Velocity Momentum (Velocity #23)',
+      proposalComplexity:    'Proposal Complexity (archetype)'
+    };
+    swp.innerHTML = Object.entries(weights).map(([k, w]) => {
+      const pct = Math.round(w * 100);
+      return `
+        <div class="sw-row">
+          <span class="sw-name">${labels[k] || k}</span>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <div class="sw-bar-bg"><div class="sw-bar-fill" style="width:${pct*3.2}px;max-width:80px"></div></div>
+            <span class="sw-weight">${pct}%</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Cross-chain inputs
+    const ccp = document.getElementById('cross-chain-panel');
+    const chainLabels = s.crossChainInputs || [
+      'Chain #23 Velocity', 'Chain #24 Drift',
+      'Chain #25 Collusion', 'Chain #26 SRS', 'Chain #30 AAI'
+    ];
+    ccp.innerHTML = `
+      <div style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.75rem;">
+        PGO synthesizes signals from <strong style="color:#818cf8">${Array.isArray(chainLabels) ? chainLabels.length : 5} upstream chains</strong> to forecast outcomes:
+      </div>
+      <div class="cross-chain-pills">
+        ${(Array.isArray(chainLabels) ? chainLabels : [chainLabels]).map(c =>
+          `<span class="cc-pill">🔗 ${c}</span>`
+        ).join('')}
+      </div>
+      <div style="font-size:0.78rem;color:#64748b;margin-top:1rem;line-height:1.6;">
+        ${s.description || ''}
+      </div>
+    `;
+  } catch(e) {
+    console.warn('Status load error:', e);
+  }
+}
+
+async function loadLedger() {
+  try {
+    const res = await fetch(`${API}/api/pgo/ledger?limit=5`);
+    const d = await res.json();
+    const receipts = d.receipts || [];
+    const lc = document.getElementById('ledger-container');
+    if (receipts.length === 0) {
+      lc.innerHTML = '<div class="loading">No receipts yet — first cycle running shortly.</div>';
+      return;
+    }
+    lc.innerHTML = [...receipts].reverse().map(r => `
+      <div class="card" style="margin-bottom:0.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <span style="font-weight:700;color:#818cf8;">${r.cycleId}</span>
+          <span class="chain-head">${r.hash ? r.hash.substring(0,16) : '—'}…</span>
+        </div>
+        <div style="font-size:0.8rem;color:#64748b;margin-bottom:0.5rem;">${r.timestamp}</div>
+        ${r.payload && r.payload.predictions ? r.payload.predictions.map(p =>
+          `<div style="display:flex;justify-content:space-between;font-size:0.82rem;padding:0.25rem 0;border-bottom:1px solid #1e293b;">
+            <span style="color:#94a3b8;">${p.proposalTitle.substring(0,50)}${p.proposalTitle.length > 50 ? '…' : ''}</span>
+            <span style="font-weight:700;">${p.outcomeIcon} ${p.outcome}</span>
+          </div>`
+        ).join('') : ''}
+        ${r.payload && r.payload.summary ? `
+          <div style="font-size:0.75rem;color:#64748b;margin-top:0.5rem;">
+            Outlook: ${r.payload.summary.outlookIcon} ${r.payload.summary.governanceOutlook} · Health: ${r.payload.summary.overallGovernanceHealth}%
+          </div>` : ''}
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('ledger-container').innerHTML =
+      `<div class="error">Error loading ledger: ${e.message}</div>`;
+  }
+}
+
+// Load all panels
+Promise.all([loadForecast(), loadStatus(), loadLedger()]);
+// Refresh every 60s
+setInterval(() => Promise.all([loadForecast(), loadLedger()]), 60000);
+</script>
+</body>
+</html>
