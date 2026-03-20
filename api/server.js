@@ -141,6 +141,9 @@ app.get('/contracts', (req, res) => {
 app.get('/docs', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/docs.html'));
 });
+app.get('/chains', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/chains.html'));
+});
 app.get('/interactive', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/interactive.html'));
 });
@@ -9841,7 +9844,7 @@ app.get('/api/scorecard', (req, res) => {
             totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0) + (learningLedger ? learningLedger.length : 0) + kpLedger.length + aaiLedger.length + pgoLedger.length + goaLedger.length + gdrLedger.length + fgbLedger.length + gstoLedger.length + aderLedger.length + gpilLedger.length + apapLedger.length + accmLedger.length + aspLedger.length + acapLedger.length + aqapLedger.length + ardrpLedger.length + alipState.chain.length + (aiafpLedger ? aiafpLedger.length : 0) + (agcoLedger ? agcoLedger.length : 0),
             autonomousLoopsRunning: 38,
             constitutionArticles: constitution ? constitution.articles.length : 0,
-            totalPages: 42,
+            totalPages: 43,
             totalApiEndpoints: 153
         },
         chains,

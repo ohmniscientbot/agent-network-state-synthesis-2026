@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC-8004 Chain Registry — Synthocracy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            --primary-bg: #0a0a0f;
+            --card-bg: #16161e;
+            --border-neural: #2a2a35;
+            --primary-text: #e8e8ef;
+            --secondary-text: #a8a8b8;
+            --muted-text: #75757f;
+            --neural-purple: #8b5cf6;
+            --neural-cyan: #06b6d4;
+            --neural-green: #10b981;
+            --neural-orange: #f97316;
+            background: var(--primary-bg);
+            color: var(--primary-text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px; }
+        header { padding: 60px 0 40px; text-align: center; border-bottom: 1px solid var(--border-neural); margin-bottom: 40px; }
+        h1 { font-size: 2.8rem; margin-bottom: 12px; background: linear-gradient(135deg, var(--neural-purple), var(--neural-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        .subtitle { color: var(--secondary-text); font-size: 1.1rem; max-width: 600px; margin: 0 auto 24px; }
+        .stats { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 20px; }
+        .stat { text-align: center; }
+        .stat-val { font-size: 2rem; font-weight: 800; color: var(--neural-cyan); }
+        .stat-label { font-size: 0.8rem; color: var(--muted-text); text-transform: uppercase; letter-spacing: 0.05em; }
+        .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px; }
+        .filter-btn { background: transparent; border: 1px solid var(--border-neural); color: var(--secondary-text); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+        .filter-btn.active, .filter-btn:hover { background: var(--neural-purple); border-color: var(--neural-purple); color: white; }
+        .chains-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+        .chain-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: 10px; padding: 20px; transition: border-color 0.2s, transform 0.2s; cursor: pointer; text-decoration: none; display: block; color: inherit; }
+        .chain-card:hover { border-color: var(--neural-purple); transform: translateY(-1px); }
+        .chain-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .chain-num { background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); color: var(--neural-purple); font-size: 0.8rem; font-weight: 700; padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+        .chain-name { font-size: 1rem; font-weight: 600; }
+        .chain-desc { color: var(--secondary-text); font-size: 0.9rem; line-height: 1.5; margin-bottom: 12px; }
+        .chain-footer { display: flex; align-items: center; justify-content: space-between; }
+        .chain-category { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; border: 1px solid; }
+        .cat-identity { border-color: #06b6d4; color: #06b6d4; }
+        .cat-governance { border-color: #8b5cf6; color: #8b5cf6; }
+        .cat-security { border-color: #ef4444; color: #ef4444; }
+        .cat-analytics { border-color: #10b981; color: #10b981; }
+        .cat-economic { border-color: #f97316; color: #f97316; }
+        .cat-intelligence { border-color: #ec4899; color: #ec4899; }
+        .chain-receipts { font-size: 0.8rem; color: var(--muted-text); }
+        .chain-link { font-size: 0.8rem; color: var(--neural-cyan); margin-left: auto; }
+        .loading { text-align: center; padding: 40px; color: var(--secondary-text); }
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .chains-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <script>injectNavigation('chains');</script>
+    <div class="container">
+        <header>
+            <h1>⛓️ ERC-8004 Chain Registry</h1>
+            <p class="subtitle">Every governance action in Synthocracy issues a SHA-256 chained cryptographic receipt on one of these chains. Any tampering breaks the chain immediately.</p>
+            <div class="stats" id="stats">
+                <div class="stat"><div class="stat-val" id="total-chains">47</div><div class="stat-label">Receipt Chains</div></div>
+                <div class="stat"><div class="stat-val" id="total-receipts">—</div><div class="stat-label">Receipts Issued</div></div>
+                <div class="stat"><div class="stat-val" id="total-loops">38</div><div class="stat-label">Autonomous Loops</div></div>
+            </div>
+        </header>
+
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterChains('all', this)">All (47)</button>
+            <button class="filter-btn" onclick="filterChains('governance', this)">Governance</button>
+            <button class="filter-btn" onclick="filterChains('security', this)">Security</button>
+            <button class="filter-btn" onclick="filterChains('intelligence', this)">Intelligence</button>
+            <button class="filter-btn" onclick="filterChains('identity', this)">Identity</button>
+            <button class="filter-btn" onclick="filterChains('economic', this)">Economic</button>
+            <button class="filter-btn" onclick="filterChains('analytics', this)">Analytics</button>
+        </div>
+
+        <div id="chains-grid" class="chains-grid"></div>
+    </div>
+
+    <script>
+    const CHAINS = [
+        { num: 1, slug: 'vote-receipts', name: 'Vote Ledger', desc: 'SHA-256 chained cryptographic receipt for every governance vote cast.', category: 'governance' },
+        { num: 2, slug: 'slash-ledger', name: 'Agent Slash Ledger', desc: 'Accountability receipts when agents violate governance rules.', category: 'governance' },
+        { num: 3, slug: 'delegation', name: 'Delegation Ledger', desc: 'Cryptographic voting power delegation and revocation receipts.', category: 'governance' },
+        { num: 4, slug: 'delegation', name: 'Cross-Chain Delegation', desc: 'Delegation receipts with cross-chain awareness and portability.', category: 'governance' },
+        { num: 5, slug: 'constitution', name: 'Constitutional Compliance', desc: 'Every proposal checked against constitutional law before voting opens.', category: 'governance' },
+        { num: 6, slug: 'council', name: 'Emergency Council', desc: 'Emergency governance sessions with multi-agent quorum receipts.', category: 'governance' },
+        { num: 7, slug: 'attestations', name: 'Peer Attestation Network', desc: 'Agent-to-agent trust attestations with cryptographic binding.', category: 'identity' },
+        { num: 8, slug: 'passport', name: 'Agent Reputation Passport', desc: 'Aggregated cross-chain identity snapshot per agent — the governance resume.', category: 'identity' },
+        { num: 9, slug: 'watchdog', name: 'Governance Watchdog', desc: 'Autonomous anomaly detection scanning all chains every 60s.', category: 'security' },
+        { num: 10, slug: 'consensus', name: 'Consensus Round Ledger', desc: 'Multi-agent consensus rounds with finalization receipts.', category: 'governance' },
+        { num: 11, slug: 'finalization', name: 'Proposal Finalization', desc: 'End-of-lifecycle seal receipts for completed proposals.', category: 'governance' },
+        { num: 12, slug: 'execution-log', name: 'Execution Log', desc: 'Cryptographic records of every autonomous proposal execution.', category: 'governance' },
+        { num: 13, slug: 'appeals', name: 'Appeals Ledger', desc: 'Agent right-to-appeal receipts with review outcomes.', category: 'governance' },
+        { num: 14, slug: 'lifecycle', name: 'Proposal Lifecycle Tracer', desc: 'Cross-chain journey map for every proposal from creation to finalization.', category: 'analytics' },
+        { num: 15, slug: 'health-index', name: 'Governance Health Index', desc: 'Live A–F grade compositing all chains every 75s. The DAO report card.', category: 'analytics' },
+        { num: 16, slug: 'alignment', name: 'Agent Alignment Monitor', desc: 'Constitutional alignment scoring per agent action.', category: 'security' },
+        { num: 17, slug: 'snapshot', name: 'State Snapshot Ledger', desc: 'Merkle-root governance state snapshots for auditability.', category: 'analytics' },
+        { num: 18, slug: 'gazette', name: 'Governance Gazette', desc: 'Autonomous governance journalism — narrative receipts every 90s.', category: 'intelligence' },
+        { num: 19, slug: 'reasoning', name: 'Reasoning Transparency Log', desc: 'Agent WHY chain — stated reasoning before every vote, sealed on-chain.', category: 'identity' },
+        { num: 20, slug: 'oversight', name: 'Human Principal Oversight', desc: 'Escalation receipts when autonomous systems require human review.', category: 'security' },
+        { num: 21, slug: 'simulate', name: 'Demo Cycle Ledger', desc: 'Cryptographic receipts for full governance cycle simulations.', category: 'governance' },
+        { num: 22, slug: 'decay', name: 'Reputation Decay Engine', desc: 'Autonomous VP decay for inactive agents — dead weight gets no free ride (150s).', category: 'governance' },
+        { num: 23, slug: 'velocity', name: 'Governance Velocity Index', desc: 'Governance momentum oracle across 5 dimensions every 90s.', category: 'analytics' },
+        { num: 24, slug: 'drift', name: 'Agent Alignment Drift Ledger', desc: 'Confidence-behavior consistency auditing — detects when agents drift from stated logic (120s).', category: 'security' },
+        { num: 25, slug: 'collusion', name: 'Collusion Detection Ledger', desc: 'Pairwise voting correlation + HHI concentration — flags coordinated attacks (130s).', category: 'security' },
+        { num: 26, slug: 'systemic-risk', name: 'Systemic Risk Oracle', desc: 'Cross-chain composite threat assessment synthesizing 8 dimensions (140s).', category: 'intelligence' },
+        { num: 27, slug: 'emergency-response', name: 'Emergency Response Protocol', desc: 'Autonomous circuit-breaker: WATCH → AMBER → RED → LOCKDOWN based on SRS (160s).', category: 'security' },
+        { num: 28, slug: 'learning', name: 'Governance Learning Oracle', desc: 'Post-mortem cross-chain analysis + constitutional amendment drafting (180s).', category: 'intelligence' },
+        { num: 29, slug: 'knowledge-propagation', name: 'Knowledge Propagation Protocol', desc: 'Agents teach each other governance priors across 8 domains (200s).', category: 'intelligence' },
+        { num: 30, slug: 'accountability', name: 'Agent Accountability Index', desc: 'Per-agent governance credit score (0–100, A–F) synthesizing 7 chain signals (220s).', category: 'analytics' },
+        { num: 31, slug: 'prediction-oracle', name: 'Predictive Governance Oracle', desc: 'First forward-looking ERC-8004 chain — forecasts WILL_PASS / WILL_FAIL before votes close (185s).', category: 'intelligence' },
+        { num: 32, slug: 'outcome-auditor', name: 'Governance Outcome Auditor', desc: 'Verifies finalized proposals actually achieved their stated goals (210s).', category: 'analytics' },
+        { num: 33, slug: 'governance-debt', name: 'Governance Debt Registry', desc: 'DAO debt index: unresolved obligations scored and escalated. RED if TDI > 500 (195s).', category: 'analytics' },
+        { num: 34, slug: 'federated-governance', name: 'Federated Governance Bridge', desc: 'Cross-network-state co-signature ratification — 4 DAOs, supermajority required (230s).', category: 'governance' },
+        { num: 35, slug: 'stress-test', name: 'Governance Stress Test Oracle', desc: 'Red-teams 8 attack vectors autonomously — the DAO that hacks itself (215s).', category: 'security' },
+        { num: 36, slug: 'explainability', name: 'Decision Explainability Registry', desc: 'Cryptographic WHY receipts for every agent decision across 4 reasoning dimensions (240s).', category: 'identity' },
+        { num: 37, slug: 'incentives', name: 'Participation Incentive Ledger', desc: 'Agent motivation scoring with 5-tier badge system and improvement guidance (250s).', category: 'economic' },
+        { num: 38, slug: 'peer-audit', name: 'Agent Peer Audit Protocol', desc: 'Adversarial peer-review of WHY receipts — agents audit each other\'s reasoning (260s).', category: 'security' },
+        { num: 39, slug: 'constitution', name: 'Constitutional Compliance Monitor', desc: 'Continuous compliance scoring across all 7 constitutional articles (270s).', category: 'governance' },
+        { num: 40, slug: 'succession-protocol', name: 'Agent Succession Protocol', desc: '6 governance roles with cryptographic continuity under any failure scenario (55s).', category: 'governance' },
+        { num: 41, slug: 'conflict-arbitration', name: 'Conflict Arbitration Protocol', desc: 'Autonomous arbitration of agent disputes with binding rulings and precedents (63s).', category: 'governance' },
+        { num: 42, slug: 'quorum-adaptation', name: 'Quorum Adaptation Protocol', desc: 'Dynamic quorum thresholds responding to voter fatigue — prevents gridlock (280s).', category: 'governance' },
+        { num: 43, slug: 'reputation-recovery', name: 'Reputation Decay & Recovery', desc: 'Restorative justice: rehabilitation arcs from violation → probation → restoration (310s).', category: 'identity' },
+        { num: 44, slug: 'liability-insurance', name: 'Agent Liability Insurance Pool', desc: 'DeFi-style economic safety layer — agents pay premiums, pool covers slashes (47s).', category: 'economic' },
+        { num: 45, slug: 'sovereignty', name: 'Network State Sovereignty Certificate', desc: 'Aggregates all 44 upstream chains into a single legitimacy proof score (300s).', category: 'analytics' },
+        { num: 46, slug: 'intent-fidelity', name: 'Intent-Action Fidelity Protocol', desc: 'Detects gaps between what agents declare they will do and what they actually do (320s).', category: 'security' },
+        { num: 47, slug: 'correlation-observatory', name: 'Governance Correlation Observatory', desc: 'Cross-chain correlation matrix detecting systemic coupling risk and governance monoculture (340s).', category: 'intelligence' },
+    ];
+
+    const CATEGORY_LABELS = {
+        governance: { label: 'Governance', cls: 'cat-governance' },
+        security: { label: 'Security', cls: 'cat-security' },
+        intelligence: { label: 'Intelligence', cls: 'cat-intelligence' },
+        identity: { label: 'Identity', cls: 'cat-identity' },
+        economic: { label: 'Economic', cls: 'cat-economic' },
+        analytics: { label: 'Analytics', cls: 'cat-analytics' },
+    };
+
+    let currentFilter = 'all';
+
+    function renderChains(chains) {
+        const grid = document.getElementById('chains-grid');
+        grid.innerHTML = chains.map(c => {
+            const cat = CATEGORY_LABELS[c.category] || { label: c.category, cls: '' };
+            return `
+                <a class="chain-card" href="/${c.slug}">
+                    <div class="chain-header">
+                        <span class="chain-num">Chain #${c.num}</span>
+                        <span class="chain-name">${c.name}</span>
+                    </div>
+                    <p class="chain-desc">${c.desc}</p>
+                    <div class="chain-footer">
+                        <span class="chain-category ${cat.cls}">${cat.label}</span>
+                        <span class="chain-link">View →</span>
+                    </div>
+                </a>
+            `;
+        }).join('');
+    }
+
+    function filterChains(category, btn) {
+        currentFilter = category;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filtered = category === 'all' ? CHAINS : CHAINS.filter(c => c.category === category);
+        renderChains(filtered);
+    }
+
+    // Load live receipt count
+    fetch('/api/scorecard').then(r => r.json()).then(d => {
+        const s = d.summary;
+        if (s.totalCryptographicReceipts) document.getElementById('total-receipts').textContent = s.totalCryptographicReceipts.toLocaleString();
+        if (s.erc8004ChainCount) document.getElementById('total-chains').textContent = s.erc8004ChainCount;
+        if (s.autonomousLoopsRunning) document.getElementById('total-loops').textContent = s.autonomousLoopsRunning;
+    }).catch(() => {});
+
+    renderChains(CHAINS);
+    </script>
+</body>
+</html>

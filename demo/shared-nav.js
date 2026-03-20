@@ -7,10 +7,11 @@ const NAV_CONFIG = {
         text: "🏛️ Synthocracy",
         color: "var(--neural-purple)"
     },
-    // 3 top-level always-visible links
+    // Top-level always-visible links
     links: [
         { href: "/", text: "Home", mobileText: "🏠 Home", id: "home" },
         { href: "/dashboard", text: "Dashboard", mobileText: "📊 Dashboard", id: "dashboard" },
+        { href: "/chains", text: "⛓️ All Chains", mobileText: "⛓️ All Chains", id: "chains" },
         { href: "/story", text: "How It Works", mobileText: "📖 How It Works", id: "story" },
     ],
     // 4 focused dropdowns

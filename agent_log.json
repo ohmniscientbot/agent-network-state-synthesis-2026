@@ -2660,6 +2660,17 @@
         "/api/agco/summary",
         "/correlation-observatory"
       ]
+    },
+    {
+      "id": "L118",
+      "timestamp": "2026-03-20T20:50:00Z",
+      "type": "feature",
+      "description": "Chain Registry page (/chains): filterable catalog of all 47 ERC-8004 chains with name, description, category, and direct links. Categories: governance, security, intelligence, identity, economic, analytics. Added to nav as top-level link. Disabled autonomous improvement cron (no new chains until March 22). README updated: 47 chains, 38 loops. scorecard totalPages 43.",
+      "tools": [
+        "write",
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }
