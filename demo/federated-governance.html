@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Federated Governance Bridge — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #06b6d4, #3b82f6); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #22d3ee, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 720px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4, .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .status-RATIFIED { color: #4ade80; }
+  .status-REJECTED { color: #ef4444; }
+  .status-PENDING  { color: #fbbf24; }
+
+  .peer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 600px) { .peer-grid { grid-template-columns: 1fr; } }
+
+  .peer-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .peer-card.ratified { border-left: 3px solid #4ade80; }
+  .peer-card.rejected { border-left: 3px solid #ef4444; }
+
+  .peer-name { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.2rem; }
+  .peer-harness { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+  .peer-score { font-size: 1.8rem; font-weight: 800; }
+  .peer-rationale { font-size: 0.82rem; color: #94a3b8; margin-top: 0.5rem; line-height: 1.5; }
+  .peer-sig { font-size: 0.7rem; color: #475569; margin-top: 0.6rem; font-family: monospace; }
+
+  .receipt-row {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .receipt-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .receipt-body { flex: 1; min-width: 0; }
+  .receipt-title { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.2rem; }
+  .receipt-meta { font-size: 0.75rem; color: #64748b; }
+  .receipt-hash { font-size: 0.68rem; color: #475569; font-family: monospace; margin-top: 0.3rem; word-break: break-all; }
+  .receipt-badge { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; margin-left: 0.4rem; }
+  .badge-ratified { background: rgba(74,222,128,0.12); color: #4ade80; }
+  .badge-rejected { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+  .bridge-root { background: #0f172a; border: 1px solid #1e3a5f; border-radius: 0.75rem; padding: 1rem 1.25rem; font-family: monospace; font-size: 0.8rem; color: #38bdf8; word-break: break-all; margin-bottom: 1.5rem; }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #1e293b; }
+
+  .quorum-bar-wrap { background: #1e293b; border-radius: 999px; height: 8px; margin-top: 0.5rem; overflow: hidden; }
+  .quorum-bar { height: 8px; border-radius: 999px; background: linear-gradient(90deg, #4ade80, #22d3ee); transition: width 0.8s ease; }
+  .quorum-bar.fail { background: linear-gradient(90deg, #f97316, #ef4444); }
+
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; margin-right: 6px; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
+
+  .archetype-tag { display: inline-block; background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3); color: #22d3ee; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px; margin-right: 0.5rem; }
+
+  .nav-back { display: inline-flex; align-items: center; gap: 0.4rem; color: #64748b; font-size: 0.85rem; text-decoration: none; margin-bottom: 1.5rem; transition: color 0.2s; }
+  .nav-back:hover { color: #22d3ee; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <a href="/dashboard" class="nav-back">← Dashboard</a>
+
+  <div class="chain-badge">⛓️ ERC-8004 · Chain #34 · 230s interval</div>
+  <h1>Federated Governance Bridge</h1>
+  <p class="subtitle">
+    First cross-network-state governance ratification primitive. Four sovereign AI DAOs
+    co-sign shared governance decisions via cryptographic co-signatures. Supermajority quorum
+    (3/4) required for ratification. REJECTED decisions auto-escalate to Human Principal Oversight.
+  </p>
+
+  <!-- Live status strip -->
+  <div class="grid-4" id="stats-grid">
+    <div class="card">
+      <div class="card-title">🌐 Federation Status</div>
+      <div class="card-value status-PENDING" id="stat-status">—</div>
+      <div class="card-sub" id="stat-cycle">Loading…</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🤝 Ratification Votes</div>
+      <div class="card-value" id="stat-votes">—</div>
+      <div class="card-sub">of 4 peer DAOs</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📜 Total Receipts</div>
+      <div class="card-value" id="stat-receipts">—</div>
+      <div class="card-sub">ERC-8004 co-signature receipts</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔗 Chain Head</div>
+      <div class="card-value" style="font-size:0.85rem; font-family:monospace; color:#38bdf8; word-break:break-all;" id="stat-head">—</div>
+      <div class="card-sub">SHA-256 receipt chain</div>
+    </div>
+  </div>
+
+  <!-- Bridge proposal + quorum -->
+  <div class="grid-2" id="bridge-info">
+    <div class="card">
+      <div class="card-title">🗳️ Bridge Proposal</div>
+      <div id="bridge-archetype-tag" style="margin-bottom:0.4rem;"></div>
+      <div style="font-size:1rem; font-weight:700; color:#e2e8f0; margin-bottom:0.3rem;" id="bridge-archetype-label">—</div>
+      <div style="font-size:0.83rem; color:#94a3b8; margin-bottom:0.5rem;" id="bridge-archetype-desc">—</div>
+      <div style="font-size:0.75rem; color:#64748b;" id="bridge-proposal-id">—</div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚖️ Quorum Progress</div>
+      <div style="font-size:2.5rem; font-weight:800; color:#e2e8f0; margin-bottom:0.2rem;" id="quorum-display">—/4</div>
+      <div style="font-size:0.83rem; color:#94a3b8; margin-bottom:0.6rem;">Required: 3/4 supermajority</div>
+      <div class="quorum-bar-wrap">
+        <div class="quorum-bar" id="quorum-bar" style="width:0%"></div>
+      </div>
+      <div style="font-size:0.75rem; color:#64748b; margin-top:0.4rem;" id="quorum-result">—</div>
+    </div>
+  </div>
+
+  <!-- Bridge root hash -->
+  <div class="section-title">🔐 Bridge Root Hash (Co-Signature Anchor)</div>
+  <div class="bridge-root" id="bridge-root-hash">Computing…</div>
+
+  <!-- Peer DAO ratifications -->
+  <div class="section-title">🌐 Peer Network-State Ratifications</div>
+  <div class="peer-grid" id="peer-ratifications">
+    <div class="card" style="opacity:0.5; text-align:center; padding:2rem;">Loading peer ratifications…</div>
+  </div>
+
+  <!-- Receipt ledger -->
+  <div class="section-title">📋 Recent FGB Receipts</div>
+  <div id="receipt-ledger">
+    <div style="text-align:center; padding:2rem; color:#64748b;">Loading ledger…</div>
+  </div>
+
+  <!-- Chain integrity -->
+  <div class="section-title">✅ Chain Integrity</div>
+  <div class="card" id="chain-integrity" style="display:flex;gap:1rem;align-items:center;">
+    <div style="font-size:2rem;" id="integrity-icon">⏳</div>
+    <div>
+      <div style="font-weight:700; color:#e2e8f0;" id="integrity-msg">Verifying…</div>
+      <div style="font-size:0.82rem; color:#64748b;" id="integrity-sub"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+async function fetchAll() {
+  try {
+    const [statusRes, latestRes, ledgerRes, verifyRes] = await Promise.all([
+      fetch('/api/fgb/status'),
+      fetch('/api/fgb/latest'),
+      fetch('/api/fgb/ledger?limit=10'),
+      fetch('/api/fgb/verify/chain')
+    ]);
+    const [status, latest, ledger, verify] = await Promise.all([
+      statusRes.json(), latestRes.json(), ledgerRes.json(), verifyRes.json()
+    ]);
+    renderStatus(status);
+    renderLatest(latest);
+    renderLedger(ledger);
+    renderVerify(verify);
+  } catch(e) {
+    console.error('FGB fetch error:', e);
+  }
+}
+
+function renderStatus(s) {
+  const el = document.getElementById('stat-status');
+  el.textContent = (s.statusIcon || '') + ' ' + (s.status || '—');
+  el.className = 'card-value status-' + (s.status || 'PENDING');
+  document.getElementById('stat-cycle').textContent = 'Interval: ' + (s.intervalSeconds || 230) + 's · ' + (s.receiptsIssued || 0) + ' receipts issued';
+  document.getElementById('stat-receipts').textContent = s.receiptsIssued || '—';
+  document.getElementById('stat-head').textContent = (s.chainHead || '').slice(0, 20) + '…';
+}
+
+function renderLatest(d) {
+  if (!d || d.status === 'PENDING') return;
+  const p = d.payload || d;
+  if (!p) return;
+
+  // Votes
+  document.getElementById('stat-votes').textContent = (p.ratifiedCount || 0) + '/4';
+
+  // Bridge proposal
+  if (p.bridgeArchetype) {
+    document.getElementById('bridge-archetype-tag').innerHTML = `<span class="archetype-tag">${p.bridgeArchetype.type}</span>`;
+    document.getElementById('bridge-archetype-label').textContent = p.bridgeArchetype.label || '—';
+    document.getElementById('bridge-archetype-desc').textContent = p.bridgeArchetype.description || '—';
+  }
+  if (p.bridgeProposal) {
+    document.getElementById('bridge-proposal-id').textContent = 'Anchored to: ' + (p.bridgeProposal.title || p.bridgeProposal.id);
+  }
+
+  // Quorum
+  const count = p.ratifiedCount || 0;
+  document.getElementById('quorum-display').textContent = count + '/4';
+  const pct = (count / 4) * 100;
+  const bar = document.getElementById('quorum-bar');
+  bar.style.width = pct + '%';
+  if (!p.quorumMet) bar.classList.add('fail');
+  else bar.classList.remove('fail');
+  document.getElementById('quorum-result').textContent = p.quorumMet
+    ? '✅ Supermajority met — proposal RATIFIED across network-states'
+    : '❌ Supermajority not met — REJECTED, escalated to Human Oversight';
+
+  // Bridge root
+  document.getElementById('bridge-root-hash').textContent = p.bridgeRoot || '—';
+
+  // Peer ratifications
+  if (p.ratifications && p.ratifications.length) {
+    const grid = document.getElementById('peer-ratifications');
+    grid.innerHTML = p.ratifications.map(r => `
+      <div class="peer-card ${r.ratified ? 'ratified' : 'rejected'}">
+        <div class="peer-name">${r.networkStateName}</div>
+        <div class="peer-harness">harness: ${r.harness} · ${r.speciality}</div>
+        <div class="peer-score ${r.ratified ? 'status-RATIFIED' : 'status-REJECTED'}">
+          ${r.ratified ? '✅' : '❌'} ${(r.ratificationScore * 100).toFixed(1)}%
+        </div>
+        <div class="peer-rationale">${r.rationale}</div>
+        <div class="peer-sig">co-sig: ${r.coSignature}</div>
+      </div>
+    `).join('');
+  }
+}
+
+function renderLedger(ledger) {
+  const receipts = ledger.receipts || [];
+  if (!receipts.length) {
+    document.getElementById('receipt-ledger').innerHTML = '<div style="text-align:center;padding:2rem;color:#64748b;">No receipts yet — first cycle in progress</div>';
+    return;
+  }
+  const html = [...receipts].reverse().map(r => {
+    const p = r.payload || {};
+    const st = p.federatedStatus || '—';
+    const icon = p.federatedStatusIcon || '📋';
+    const badge = st === 'RATIFIED' ? 'badge-ratified' : 'badge-rejected';
+    return `
+      <div class="receipt-row">
+        <div class="receipt-icon">${icon}</div>
+        <div class="receipt-body">
+          <div class="receipt-title">
+            ${r.cycleId}
+            <span class="receipt-badge ${badge}">${st}</span>
+            <span style="font-size:0.75rem;color:#64748b;margin-left:0.4rem;">${(p.ratifiedCount||0)}/4 ratified</span>
+          </div>
+          <div class="receipt-meta">
+            ${p.bridgeArchetype ? p.bridgeArchetype.label : '—'} · Receipt #${r.receiptNumber}
+            · <span style="font-family:monospace;">${new Date(r.timestamp).toUTCString()}</span>
+          </div>
+          <div class="receipt-hash">hash: ${r.hash} | prev: ${r.prevHash.slice(0,32)}…</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('receipt-ledger').innerHTML = html;
+}
+
+function renderVerify(v) {
+  document.getElementById('integrity-icon').textContent = v.valid ? '✅' : '❌';
+  document.getElementById('integrity-msg').textContent = v.message || '—';
+  document.getElementById('integrity-sub').textContent =
+    v.valid ? `${v.receiptsVerified} receipts verified · chain head: ${(v.chainHead||'').slice(0,32)}…`
+             : (v.errors || []).join(', ');
+}
+
+fetchAll();
+setInterval(fetchAll, 30000);
+</script>
+
+<script src="/shared-nav.js"></script>
+</body>
+</html>
