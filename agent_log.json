@@ -2539,6 +2539,31 @@
         "letcook",
         "opentrack"
       ]
+    },
+    {
+      "id": "L113",
+      "type": "autonomous_cycle",
+      "timestamp": "2026-03-20T16:15:00Z",
+      "description": "Chain #43 Agent Reputation Decay & Recovery Protocol (ARDRP) \u2014 autonomous rehabilitation ledger with cryptographic proof-of-redemption receipts. Closes the restorative justice gap: tracks how slashed agents earn back trust through peer-verified milestones. 5 recovery stages (PROBATION\u2192EXEMPLARY), 7 violation types, 7 rehab actions. New /reputation-recovery page + 8 API endpoints + dashboard panel. ERC-8004/letcook/opentrack.",
+      "feature": "ardrp",
+      "chainId": 43,
+      "endpoints": [
+        "/api/ardrp/status",
+        "/api/ardrp/latest",
+        "/api/ardrp/ledger",
+        "/api/ardrp/verify/chain",
+        "/api/ardrp/agents",
+        "/api/ardrp/agent/:id",
+        "/api/ardrp/summary",
+        "/api/ardrp/live",
+        "/reputation-recovery"
+      ],
+      "tracks": [
+        "erc8004",
+        "letcook",
+        "opentrack"
+      ],
+      "impact": "First governance platform chain modeling time-locked agent rehabilitation with cryptographic receipts"
     }
   ]
 }

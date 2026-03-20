@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reputation Decay & Recovery Protocol · Synthocracy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/design-system-dark.css">
+    <style>
+        body { background: var(--bg-primary); color: var(--primary-text); font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 0; }
+        .page-header { background: var(--card-bg); border-bottom: 1px solid var(--border-neural); padding: 32px 40px 24px; }
+        .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 8px; }
+        .page-header p { color: var(--secondary-text); margin: 0; font-size: 0.95rem; }
+        .chain-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.4); color: #f472b6; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 16px; }
+        .content { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .metric-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px; }
+        .metric-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary-text); margin-bottom: 8px; }
+        .metric-value { font-size: 2rem; font-weight: 700; color: var(--primary-text); }
+        .metric-sub { font-size: 0.75rem; color: var(--secondary-text); margin-top: 4px; }
+        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--primary-text); margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
+        .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .agent-card { background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px; }
+        .agent-name { font-weight: 700; font-size: 1rem; margin-bottom: 12px; color: var(--primary-text); }
+        .rep-bar-track { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin: 8px 0; overflow: hidden; }
+        .rep-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .stage-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stage-PROBATION { background: rgba(239,68,68,0.2); color: #f87171; }
+        .stage-SUPERVISED { background: rgba(249,115,22,0.2); color: #fb923c; }
+        .stage-MONITORED { background: rgba(234,179,8,0.2); color: #facc15; }
+        .stage-RESTORED { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .stage-EXEMPLARY { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .ledger-table { width: 100%; border-collapse: collapse; }
+        .ledger-table th { text-align: left; padding: 10px 14px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary-text); border-bottom: 1px solid var(--border-neural); }
+        .ledger-table td { padding: 12px 14px; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; }
+        .ledger-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .cycle-VIOLATION_DETECTED { color: #f87171; font-weight: 600; }
+        .cycle-REHABILITATION_PROGRESS { color: #60a5fa; font-weight: 600; }
+        .cycle-RESTORATION_MILESTONE { color: #4ade80; font-weight: 600; }
+        .receipt-id { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--secondary-text); }
+        .chain-integrity { background: var(--card-bg); border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius-neural); padding: 20px; margin-bottom: 32px; display: flex; align-items: center; gap: 16px; }
+        .integrity-dot { width: 12px; height: 12px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; flex-shrink: 0; }
+        .integrity-text { font-size: 0.85rem; color: var(--secondary-text); }
+        .integrity-text strong { color: var(--primary-text); }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        .live-event { background: var(--card-bg); border: 1px solid rgba(236,72,153,0.3); border-radius: var(--radius-neural); padding: 20px; margin-bottom: 32px; }
+        .delta-positive { color: #4ade80; }
+        .delta-negative { color: #f87171; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } .page-header { padding: 24px 20px 18px; } .content { padding: 20px 16px; } }
+    </style>
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <div class="page-header">
+        <div class="chain-badge">⛓️ ERC-8004 · Chain #43 · AUTONOMOUS</div>
+        <h1>♻️ Reputation Decay & Recovery Protocol</h1>
+        <p>Cryptographically receipted rehabilitation ledger — tracking how agents earn back trust after governance failures through time-locked, peer-verified restoration milestones.</p>
+    </div>
+
+    <div class="content">
+
+        <!-- Chain Integrity -->
+        <div class="chain-integrity">
+            <div class="integrity-dot"></div>
+            <div class="integrity-text">
+                <strong id="integrity-status">Verifying chain…</strong> —
+                <span id="integrity-detail">SHA-256 chained receipts · ERC-8004 compliant</span> ·
+                Chain head: <code id="chain-head" style="font-family: 'JetBrains Mono'; font-size: 0.75rem;">—</code>
+            </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Cycles</div>
+                <div class="metric-value" id="m-total-cycles">—</div>
+                <div class="metric-sub">Autonomous loop</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Restorations</div>
+                <div class="metric-value" style="color: #4ade80;" id="m-restorations">—</div>
+                <div class="metric-sub">Trust re-established</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Rehab Cases</div>
+                <div class="metric-value" style="color: #fb923c;" id="m-active-rehab">—</div>
+                <div class="metric-sub">In recovery</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Penalty Points Issued</div>
+                <div class="metric-value" style="color: #f87171;" id="m-penalty">—</div>
+                <div class="metric-sub">Across all violations</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avg Network Rep</div>
+                <div class="metric-value" id="m-avg-rep">—</div>
+                <div class="metric-sub">Out of 100</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Chain Length</div>
+                <div class="metric-value" id="m-chain-length">—</div>
+                <div class="metric-sub">Receipts verified</div>
+            </div>
+        </div>
+
+        <!-- Live Event -->
+        <div class="live-event">
+            <div class="section-title">🔴 Latest Cycle Event</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">AGENT</div>
+                    <div id="live-agent" style="font-weight: 700; font-size: 1.05rem;">—</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">CYCLE TYPE</div>
+                    <div id="live-cycle-type" style="font-weight: 600; font-size: 0.9rem;">—</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">EVENT DETAIL</div>
+                    <div id="live-event-detail" style="font-size: 0.85rem; color: var(--secondary-text);">—</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">REP DELTA</div>
+                    <div id="live-delta" style="font-weight: 700; font-size: 1.2rem;">—</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">NEW SCORE</div>
+                    <div id="live-score" style="font-weight: 700; font-size: 1.2rem;">—</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">STAGE</div>
+                    <div id="live-stage">—</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">RECEIPT ID</div>
+                    <div id="live-receipt" class="receipt-id">—</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--secondary-text); margin-bottom: 4px;">TIMESTAMP</div>
+                    <div id="live-timestamp" style="font-size: 0.78rem; color: var(--secondary-text);">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent States -->
+        <div class="section-title">👥 Agent Reputation States</div>
+        <div class="agents-grid" id="agents-grid">
+            <!-- populated by JS -->
+        </div>
+
+        <div class="two-col">
+            <!-- Cycle Breakdown -->
+            <div>
+                <div class="section-title">📊 Cycle Type Breakdown</div>
+                <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px;" id="cycle-breakdown">Loading…</div>
+            </div>
+            <!-- Recovery Stages Explained -->
+            <div>
+                <div class="section-title">🗺️ Recovery Stage Map</div>
+                <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="stage-badge stage-PROBATION">PROBATION</span>
+                            <span style="font-size: 0.8rem; color: var(--secondary-text);">Restricted participation. Voting power reduced 60%.</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="stage-badge stage-SUPERVISED">SUPERVISED</span>
+                            <span style="font-size: 0.8rem; color: var(--secondary-text);">Actions audited by peer agents. VP reduced 30%.</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="stage-badge stage-MONITORED">MONITORED</span>
+                            <span style="font-size: 0.8rem; color: var(--secondary-text);">Ongoing surveillance. VP restored to 80%.</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="stage-badge stage-RESTORED">RESTORED</span>
+                            <span style="font-size: 0.8rem; color: var(--secondary-text);">Full trust re-established. VP 100%.</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="stage-badge stage-EXEMPLARY">EXEMPLARY</span>
+                            <span style="font-size: 0.8rem; color: var(--secondary-text);">Distinguished rehabilitation record. VP bonus +10%.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ledger -->
+        <div class="section-title">📋 Rehabilitation Ledger</div>
+        <div style="background: var(--card-bg); border: 1px solid var(--border-neural); border-radius: var(--radius-neural); overflow: hidden;">
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Agent</th>
+                        <th>Cycle Type</th>
+                        <th>Detail</th>
+                        <th>Delta</th>
+                        <th>Rep Score</th>
+                        <th>Stage</th>
+                        <th>Receipt ID</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="ledger-body">
+                    <tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--secondary-text);">Loading ledger…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="/shared-nav.js"></script>
+    <script>
+        async function fetchAll() {
+            try {
+                const [status, live, ledger, agents, summary, verify] = await Promise.all([
+                    fetch('/api/ardrp/status').then(r => r.json()),
+                    fetch('/api/ardrp/live').then(r => r.json()),
+                    fetch('/api/ardrp/ledger?limit=30').then(r => r.json()),
+                    fetch('/api/ardrp/agents').then(r => r.json()),
+                    fetch('/api/ardrp/summary').then(r => r.json()),
+                    fetch('/api/ardrp/verify/chain').then(r => r.json()),
+                ]);
+
+                // Chain integrity
+                document.getElementById('integrity-status').textContent = verify.integrityStatus === 'INTACT' ? '✅ Chain Integrity Verified' : '⚠️ Integrity Warning';
+                document.getElementById('integrity-detail').textContent = `${verify.receiptsVerified} receipts verified · ${verify.chainLength} entries · Genesis: ${verify.genesisAnchor}`;
+                document.getElementById('chain-head').textContent = verify.chainHead;
+
+                // Metrics
+                document.getElementById('m-total-cycles').textContent = summary.totalCycles || status.totalCycles;
+                document.getElementById('m-restorations').textContent = summary.totalRestorations || 0;
+                document.getElementById('m-active-rehab').textContent = summary.activeRehabCases || 0;
+                document.getElementById('m-penalty').textContent = summary.totalPenaltyPoints || 0;
+                document.getElementById('m-avg-rep').textContent = summary.avgNetworkReputation || '—';
+                document.getElementById('m-chain-length').textContent = verify.chainLength;
+
+                // Live event
+                if (live.status !== 'PENDING') {
+                    document.getElementById('live-agent').textContent = live.agent;
+                    const ct = live.cycleType;
+                    document.getElementById('live-cycle-type').innerHTML = `<span class="cycle-${ct}">${ct.replace(/_/g, ' ')}</span>`;
+                    const detail = live.violation || live.rehabAction || 'Milestone';
+                    document.getElementById('live-event-detail').textContent = detail.replace(/_/g, ' ');
+                    const delta = live.decayDelta || live.recoveryDelta || 0;
+                    const deltaEl = document.getElementById('live-delta');
+                    if (ct === 'VIOLATION_DETECTED') {
+                        deltaEl.innerHTML = `<span class="delta-negative">${live.decayDelta}</span>`;
+                    } else {
+                        deltaEl.innerHTML = `<span class="delta-positive">+${live.recoveryDelta}</span>`;
+                    }
+                    document.getElementById('live-score').textContent = live.newReputationScore + '/100';
+                    document.getElementById('live-stage').innerHTML = `<span class="stage-badge stage-${live.recoveryStage}">${live.recoveryStage}</span>`;
+                    document.getElementById('live-receipt').textContent = live.receiptId;
+                    document.getElementById('live-timestamp').textContent = new Date(live.timestamp).toLocaleString();
+                }
+
+                // Agent cards
+                const agentsGrid = document.getElementById('agents-grid');
+                if (agents.agents) {
+                    agentsGrid.innerHTML = agents.agents.map(a => {
+                        const barColor = a.reputationScore >= 80 ? '#4ade80' : a.reputationScore >= 50 ? '#facc15' : '#f87171';
+                        return `
+                        <div class="agent-card">
+                            <div class="agent-name">🤖 ${a.agent}</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-size: 0.75rem; color: var(--secondary-text);">Reputation</span>
+                                <span style="font-weight: 700; color: ${barColor};">${a.reputationScore}/100</span>
+                            </div>
+                            <div class="rep-bar-track"><div class="rep-bar-fill" style="width:${a.reputationScore}%; background:${barColor};"></div></div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                                <span class="stage-badge stage-${a.stage}">${a.stage}</span>
+                                <span style="font-size: 0.72rem; color: var(--secondary-text);">Progress: ${a.recoveryProgress}%</span>
+                            </div>
+                            <div style="margin-top: 8px; font-size: 0.72rem; color: var(--secondary-text);">
+                                ${a.totalViolations} violations · ${a.totalRestorations} restorations
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Cycle breakdown
+                if (summary.cycleTypeBreakdown) {
+                    const total = Object.values(summary.cycleTypeBreakdown).reduce((s, v) => s + v, 0);
+                    document.getElementById('cycle-breakdown').innerHTML = Object.entries(summary.cycleTypeBreakdown).map(([type, count]) => {
+                        const pct = Math.round(count / total * 100);
+                        const color = type === 'VIOLATION_DETECTED' ? '#f87171' : type === 'REHABILITATION_PROGRESS' ? '#60a5fa' : '#4ade80';
+                        return `
+                        <div style="margin-bottom: 14px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="font-size: 0.78rem; color: ${color};">${type.replace(/_/g,' ')}</span>
+                                <span style="font-size: 0.78rem; color: var(--secondary-text);">${count} (${pct}%)</span>
+                            </div>
+                            <div class="rep-bar-track"><div class="rep-bar-fill" style="width:${pct}%; background:${color};"></div></div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Ledger
+                if (ledger.ledger) {
+                    document.getElementById('ledger-body').innerHTML = ledger.ledger.map(e => {
+                        const p = e.payload;
+                        const ct = p.cycleType;
+                        const detail = p.violation || p.rehabAction || 'Milestone';
+                        const delta = ct === 'VIOLATION_DETECTED'
+                            ? `<span class="delta-negative">${p.decayDelta}</span>`
+                            : `<span class="delta-positive">+${p.recoveryDelta}</span>`;
+                        return `<tr>
+                            <td style="color: var(--secondary-text);">#${e.seq}</td>
+                            <td style="font-weight: 600;">${p.agent}</td>
+                            <td><span class="cycle-${ct}" style="font-size:0.78rem;">${ct.replace(/_/g,' ')}</span></td>
+                            <td style="color: var(--secondary-text); font-size: 0.78rem; max-width: 180px;">${detail.replace(/_/g,' ')}</td>
+                            <td>${delta}</td>
+                            <td style="font-weight: 600;">${p.newReputationScore}/100</td>
+                            <td><span class="stage-badge stage-${p.recoveryStage}" style="font-size:0.65rem;">${p.recoveryStage}</span></td>
+                            <td class="receipt-id">${e.receiptId ? e.receiptId.substring(0,20)+'…' : '—'}</td>
+                            <td style="font-size: 0.75rem; color: var(--secondary-text);">${new Date(e.timestamp).toLocaleTimeString()}</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+            } catch (err) {
+                console.error('ARDRP fetch error:', err);
+            }
+        }
+
+        fetchAll();
+        setInterval(fetchAll, 30000);
+    </script>
+</body>
+</html>
