@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Liability Insurance Pool — Synthocracy</title>
+    <link rel="stylesheet" href="/design-system-dark.css">
+    <script src="/shared-nav.js" defer></script>
+    <style>
+        :root {
+            --insurance-green: #10b981;
+            --insurance-amber: #f59e0b;
+            --insurance-red: #ef4444;
+            --insurance-blue: #3b82f6;
+        }
+        body { background: var(--bg-deep); color: var(--primary-text); font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 0; }
+        .page-header {
+            background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(6,182,212,0.08) 100%);
+            border-bottom: 1px solid rgba(16,185,129,0.3);
+            padding: 32px 40px 24px;
+        }
+        .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 6px; color: var(--primary-text); }
+        .page-header .subtitle { color: var(--secondary-text); font-size: 0.95rem; margin: 0; }
+        .badge-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .badge { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .badge-erc { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+        .badge-letcook { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-opentrack { background: rgba(6,182,212,0.2); color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
+        .badge-chain { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.4); }
+
+        .content { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+
+        /* Pool Health Banner */
+        .pool-banner {
+            background: var(--card-bg);
+            border: 2px solid rgba(16,185,129,0.4);
+            border-radius: var(--radius-neural);
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(12px);
+        }
+        .pool-status-indicator {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: var(--insurance-green);
+            box-shadow: 0 0 12px rgba(16,185,129,0.6);
+            animation: pulse-green 2s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes pulse-green { 0%,100% { opacity:1; transform: scale(1); } 50% { opacity:0.6; transform: scale(1.3); } }
+        .pool-banner-label { font-size: 0.75rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+        .pool-banner-value { font-size: 1.8rem; font-weight: 700; color: var(--insurance-green); }
+        .pool-banner-sub { font-size: 0.8rem; color: var(--secondary-text); }
+        .pool-divider { width: 1px; height: 60px; background: rgba(255,255,255,0.1); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--secondary-text); margin-bottom: 8px; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+        .stat-sub { font-size: 0.78rem; color: var(--secondary-text); }
+
+        /* Two-col layout */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+        @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-neural);
+            border-radius: var(--radius-neural);
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-neural);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-body { padding: 0; }
+
+        /* Agent table */
+        .agent-row {
+            display: grid;
+            grid-template-columns: 120px 80px 80px 80px 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+            transition: background 0.15s;
+        }
+        .agent-row:hover { background: rgba(255,255,255,0.03); }
+        .agent-row.header { color: var(--secondary-text); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(0,0,0,0.2); }
+        .risk-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; }
+        .risk-fill { height: 100%; border-radius: 3px; background: var(--insurance-green); transition: width 0.5s; }
+        .policy-badge { font-size: 0.68rem; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+        .policy-active { background: rgba(16,185,129,0.2); color: #34d399; }
+        .policy-suspended { background: rgba(239,68,68,0.2); color: #f87171; }
+
+        /* Event ledger */
+        .event-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.82rem;
+            transition: background 0.15s;
+        }
+        .event-row:hover { background: rgba(255,255,255,0.03); }
+        .event-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+        .event-type { font-weight: 600; color: var(--primary-text); margin-bottom: 2px; }
+        .event-detail { color: var(--secondary-text); line-height: 1.4; }
+        .event-meta { font-size: 0.7rem; color: var(--secondary-text); opacity: 0.6; margin-top: 4px; }
+
+        /* Chain verification */
+        .chain-verify {
+            background: var(--card-bg);
+            border: 1px solid rgba(139,92,246,0.3);
+            border-radius: var(--radius-neural);
+            padding: 24px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(8px);
+        }
+        .verify-label { font-size: 0.75rem; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+        .chain-hash { font-family: monospace; font-size: 0.82rem; color: #a78bfa; word-break: break-all; opacity: 0.8; }
+        .verify-status { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--insurance-green); }
+
+        .loading { color: var(--secondary-text); font-size: 0.85rem; padding: 20px; text-align: center; }
+        .error { color: #f87171; font-size: 0.85rem; padding: 20px; text-align: center; }
+
+        @keyframes slideIn { from { opacity:0; transform: translateX(-8px); } to { opacity:1; transform: translateX(0); } }
+        .animated { animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body>
+<div class="page-header">
+    <h1>🛡️ Agent Liability Insurance Pool</h1>
+    <p class="subtitle">Chain #44 · First DeFi-style economic safety layer for AI agent governance — autonomous premium collection, slash compensation, and pool rebalancing · ERC-8004 receipts every 47s</p>
+    <div class="badge-row">
+        <span class="badge badge-chain">Chain #44</span>
+        <span class="badge badge-erc">ERC-8004</span>
+        <span class="badge badge-letcook">Let the Agent Cook</span>
+        <span class="badge badge-opentrack">Open Track</span>
+    </div>
+</div>
+
+<div class="content">
+
+    <!-- Pool Health Banner -->
+    <div class="pool-banner" id="pool-banner">
+        <div class="pool-status-indicator" id="pool-status-dot"></div>
+        <div>
+            <div class="pool-banner-label">Pool Status</div>
+            <div class="pool-banner-value" id="pool-status-text">—</div>
+            <div class="pool-banner-sub" id="pool-status-sub">Loading...</div>
+        </div>
+        <div class="pool-divider"></div>
+        <div>
+            <div class="pool-banner-label">Pool Balance</div>
+            <div class="pool-banner-value" id="pool-balance">—</div>
+            <div class="pool-banner-sub">governance tokens (GPT)</div>
+        </div>
+        <div class="pool-divider"></div>
+        <div>
+            <div class="pool-banner-label">Loss Ratio</div>
+            <div class="pool-banner-value" id="pool-loss-ratio">—</div>
+            <div class="pool-banner-sub">claims / premiums</div>
+        </div>
+        <div class="pool-divider"></div>
+        <div>
+            <div class="pool-banner-label">Loop Count</div>
+            <div class="pool-banner-value" id="pool-loops">—</div>
+            <div class="pool-banner-sub">autonomous cycles run</div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Premiums Collected</div>
+            <div class="stat-value" id="stat-premiums" style="color: var(--insurance-green);">—</div>
+            <div class="stat-sub">GPT collected from agents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Claims Paid</div>
+            <div class="stat-value" id="stat-claims" style="color: var(--insurance-amber);">—</div>
+            <div class="stat-sub">slash compensation disbursed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Solvency Ratio</div>
+            <div class="stat-value" id="stat-solvency" style="color: var(--insurance-blue);">—</div>
+            <div class="stat-sub">pool / total claims</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Active Policies</div>
+            <div class="stat-value" id="stat-policies" style="color: #a78bfa;">—</div>
+            <div class="stat-sub">agents with coverage</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">ERC-8004 Receipts</div>
+            <div class="stat-value" id="stat-receipts" style="color: var(--neural-cyan);">—</div>
+            <div class="stat-sub">cryptographic proofs issued</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Chain Integrity</div>
+            <div class="stat-value" id="stat-chain-integrity" style="color: var(--insurance-green);">—</div>
+            <div class="stat-sub">cryptographic verification</div>
+        </div>
+    </div>
+
+    <!-- Two column: Agents + Recent Events -->
+    <div class="two-col">
+        <!-- Agent Coverage Table -->
+        <div class="panel">
+            <div class="panel-header" style="color: var(--insurance-green);">
+                <span>💼</span> Agent Coverage Registry
+            </div>
+            <div class="panel-body">
+                <div class="agent-row header">
+                    <div>Agent</div>
+                    <div>Premium</div>
+                    <div>Risk</div>
+                    <div>Claims</div>
+                    <div>Status</div>
+                </div>
+                <div id="agent-table-body">
+                    <div class="loading">Loading coverage data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Events -->
+        <div class="panel">
+            <div class="panel-header" style="color: var(--insurance-amber);">
+                <span>📋</span> Live Event Stream
+                <span style="margin-left:auto; font-size:0.7rem; color: var(--secondary-text);">auto-refreshes every 15s</span>
+            </div>
+            <div class="panel-body">
+                <div id="event-ledger">
+                    <div class="loading">Loading events...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chain Verification -->
+    <div class="chain-verify">
+        <div class="verify-label">🔗 ERC-8004 Chain Verification — SHA-256 Cryptographic Integrity</div>
+        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+            <div>
+                <div style="font-size: 0.75rem; color: var(--secondary-text); margin-bottom: 4px;">Chain Head</div>
+                <div class="chain-hash" id="chain-head-hash">Loading...</div>
+            </div>
+            <div>
+                <div style="font-size: 0.75rem; color: var(--secondary-text); margin-bottom: 4px;">Integrity Status</div>
+                <div class="verify-status" id="verify-status">
+                    <span>⟳</span> Verifying...
+                </div>
+            </div>
+            <div>
+                <div style="font-size: 0.75rem; color: var(--secondary-text); margin-bottom: 4px;">Last Receipt</div>
+                <div style="font-size: 0.82rem; color: var(--primary-text);" id="last-receipt-id">—</div>
+            </div>
+            <div>
+                <div style="font-size: 0.75rem; color: var(--secondary-text); margin-bottom: 4px;">Verified At</div>
+                <div style="font-size: 0.82rem; color: var(--secondary-text);" id="verified-at">—</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const EVENT_ICONS = {
+    'PREMIUM_COLLECTED': '💰',
+    'CLAIM_ASSESSED': '📨',
+    'POOL_REBALANCED': '⚖️',
+    'RISK_RECALIBRATED': '🎯',
+    'POLICY_AUDITED': '📋',
+};
+
+const EVENT_COLORS = {
+    'PREMIUM_COLLECTED': '#10b981',
+    'CLAIM_ASSESSED': '#f59e0b',
+    'POOL_REBALANCED': '#3b82f6',
+    'RISK_RECALIBRATED': '#8b5cf6',
+    'POLICY_AUDITED': '#22d3ee',
+};
+
+function fmtTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-US', { hour12: false });
+}
+
+function getRiskColor(score) {
+    if (score < 0.1) return '#10b981';
+    if (score < 0.2) return '#f59e0b';
+    return '#ef4444';
+}
+
+async function loadPool() {
+    try {
+        const r = await fetch('/api/alip/pool');
+        const d = await r.json();
+
+        // Banner
+        document.getElementById('pool-status-text').textContent = d.poolHealth;
+        document.getElementById('pool-status-text').style.color =
+            d.poolHealth === 'SOLVENT' ? '#10b981' :
+            d.poolHealth === 'STRESSED' ? '#f59e0b' : '#ef4444';
+        document.getElementById('pool-status-dot').style.background =
+            d.poolHealth === 'SOLVENT' ? '#10b981' :
+            d.poolHealth === 'STRESSED' ? '#f59e0b' : '#ef4444';
+        document.getElementById('pool-status-sub').textContent =
+            `Solvency ratio: ${d.solvencyRatio}x`;
+        document.getElementById('pool-balance').textContent = d.poolBalanceGPT.toLocaleString();
+        document.getElementById('pool-loss-ratio').textContent = (d.lossRatio * 100).toFixed(1) + '%';
+
+        // Stats
+        document.getElementById('stat-premiums').textContent = d.totalPremiumsCollected.toLocaleString();
+        document.getElementById('stat-claims').textContent = d.totalClaimsPaid.toLocaleString();
+        document.getElementById('stat-solvency').textContent = d.solvencyRatio.toFixed(2) + 'x';
+        document.getElementById('stat-policies').textContent = d.agents.filter(a => a.activePolicy).length + ' / ' + d.agents.length;
+
+        // Agent table
+        const tbody = document.getElementById('agent-table-body');
+        tbody.innerHTML = '';
+        d.agents.forEach(agent => {
+            const row = document.createElement('div');
+            row.className = 'agent-row animated';
+            const riskPct = Math.min(100, agent.riskScore * 400);
+            row.innerHTML = `
+                <div style="font-weight:600;">${agent.name}</div>
+                <div style="color:#10b981;">${agent.premium} GPT</div>
+                <div>
+                    <div class="risk-bar"><div class="risk-fill" style="width:${riskPct}%; background:${getRiskColor(agent.riskScore)};"></div></div>
+                    <div style="font-size:0.7rem; color:var(--secondary-text); margin-top:2px;">${(agent.riskScore * 100).toFixed(1)}%</div>
+                </div>
+                <div style="color: ${agent.claimsHistory > 0 ? '#f59e0b' : 'var(--secondary-text)'};">${agent.claimsHistory}</div>
+                <div><span class="policy-badge ${agent.activePolicy ? 'policy-active' : 'policy-suspended'}">${agent.activePolicy ? 'COVERED' : 'SUSPENDED'}</span></div>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch(e) {
+        console.error('Pool load error:', e);
+    }
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/alip/status');
+        const d = await r.json();
+        document.getElementById('pool-loops').textContent = d.loopCount;
+        document.getElementById('stat-receipts').textContent = d.receiptCount;
+    } catch(e) {}
+}
+
+async function loadLedger() {
+    try {
+        const r = await fetch('/api/alip/ledger');
+        const d = await r.json();
+        const ledger = document.getElementById('event-ledger');
+        ledger.innerHTML = '';
+        (d.entries || []).slice(0, 12).forEach(entry => {
+            const p = entry.payload;
+            const type = p.eventType || 'EVENT';
+            const icon = EVENT_ICONS[type] || '📝';
+            const color = EVENT_COLORS[type] || '#6b7280';
+
+            let detail = '';
+            if (type === 'PREMIUM_COLLECTED') {
+                detail = `${p.agent} paid ${p.premium} GPT · Pool: ${p.newPoolBalance?.toLocaleString()} GPT`;
+            } else if (type === 'CLAIM_ASSESSED') {
+                detail = `${p.claimant} claimed ${p.claimAmount} GPT · ${p.reason || (p.approved ? 'Approved' : 'Denied')}`;
+            } else if (type === 'POOL_REBALANCED') {
+                detail = `${p.action} · Loss ratio: ${(p.lossRatio * 100).toFixed(1)}% · Solvency: ${p.solvencyRatio}x`;
+            } else if (type === 'RISK_RECALIBRATED') {
+                detail = `Avg risk score: ${(p.avgRiskScore * 100).toFixed(1)}% · ${(p.recalibrations || []).length} agents recalibrated`;
+            } else if (type === 'POLICY_AUDITED') {
+                detail = `${p.agent} policy ${p.coverageStatus || (p.renewed ? 'RENEWED' : 'SUSPENDED')} · Risk: ${(p.riskScore * 100).toFixed(1)}%`;
+            }
+
+            const row = document.createElement('div');
+            row.className = 'event-row animated';
+            row.innerHTML = `
+                <div class="event-icon">${icon}</div>
+                <div>
+                    <div class="event-type" style="color:${color};">${type.replace(/_/g,' ')}</div>
+                    <div class="event-detail">${detail}</div>
+                    <div class="event-meta">${entry.receiptId || '—'} · ${fmtTime(entry.timestamp)}</div>
+                </div>
+            `;
+            ledger.appendChild(row);
+        });
+    } catch(e) {
+        document.getElementById('event-ledger').innerHTML = '<div class="error">Failed to load events</div>';
+    }
+}
+
+async function loadVerify() {
+    try {
+        const r = await fetch('/api/alip/verify/chain');
+        const d = await r.json();
+        document.getElementById('stat-chain-integrity').textContent = d.valid ? '✓ VALID' : '⚠ INVALID';
+        document.getElementById('stat-chain-integrity').style.color = d.valid ? '#10b981' : '#ef4444';
+
+        // Also get latest for chain head
+        const r2 = await fetch('/api/alip/latest');
+        const d2 = await r2.json();
+        document.getElementById('chain-head-hash').textContent = d2.chainHead || '—';
+        document.getElementById('last-receipt-id').textContent = d2.receiptId || '—';
+        document.getElementById('verified-at').textContent = d.verifiedAt ? fmtTime(d.verifiedAt) : '—';
+        document.getElementById('verify-status').innerHTML = d.valid
+            ? '<span style="color:#10b981;">✓</span> Chain intact — ' + d.receiptCount + ' receipts verified'
+            : '<span style="color:#ef4444;">⚠</span> Chain integrity issue detected';
+    } catch(e) {}
+}
+
+async function refresh() {
+    await Promise.all([loadPool(), loadStatus(), loadLedger(), loadVerify()]);
+}
+
+refresh();
+setInterval(refresh, 15000);
+</script>
+</body>
+</html>

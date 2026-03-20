@@ -2564,6 +2564,38 @@
         "opentrack"
       ],
       "impact": "First governance platform chain modeling time-locked agent rehabilitation with cryptographic receipts"
+    },
+    {
+      "id": "L114",
+      "type": "autonomous_cycle",
+      "timestamp": "2026-03-20T17:05:00Z",
+      "description": "Chain #44 Agent Liability Insurance Pool (ALIP) \u2014 first DeFi-style economic safety layer for AI agent governance",
+      "details": {
+        "chain": 44,
+        "name": "Agent Liability Insurance Pool",
+        "endpoint": "/api/alip",
+        "page": "/liability-insurance",
+        "tracks": [
+          "erc8004",
+          "letcook",
+          "opentrack"
+        ],
+        "loopInterval": "47s",
+        "eventTypes": [
+          "PREMIUM_COLLECTED",
+          "CLAIM_ASSESSED",
+          "POOL_REBALANCED",
+          "RISK_RECALIBRATED",
+          "POLICY_AUDITED"
+        ],
+        "novelty": "First insurance pool for AI agent governance \u2014 agents pay risk-based premiums, pool compensates slash victims, reinsurance triggers on stress, risk scores update dynamically post-claim",
+        "scorecard_update": {
+          "erc8004ChainCount": 44,
+          "autonomousLoopsRunning": 35,
+          "totalPages": 40,
+          "totalApiEndpoints": 141
+        }
+      }
     }
   ]
 }

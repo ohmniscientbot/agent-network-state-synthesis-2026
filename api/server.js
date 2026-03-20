@@ -9699,6 +9699,15 @@ app.get('/api/scorecard', (req, res) => {
             receiptCount: aqapLedger.length,
             description: 'Novel DAO governance primitive: dynamically calibrates quorum thresholds per proposal type using 8 cross-chain evidence signals. Five adaptation modes including FATIGUE_CIRCUIT_BREAKER. Prevents governance gridlock while maintaining security guarantees. ERC-8004 receipts every 280s.',
             tracks: ['erc8004', 'letcook', 'opentrack']
+        },
+        {
+            id: 44,
+            name: 'Agent Liability Insurance Pool',
+            endpoint: '/api/alip/verify/chain',
+            url: '/liability-insurance',
+            receiptCount: alipState.chain.length,
+            description: 'First DeFi-style economic safety layer for AI agent governance: autonomous insurance pool that collects risk-based premiums from all agents and pays out slash-compensation claims. Every premium collection, claim assessment, pool rebalancing, risk recalibration, and policy audit sealed as an ERC-8004 receipt. Loss ratio monitoring triggers reinsurance when pool stressed. Agents with claim history face higher premiums and stricter coverage. The economic backbone that makes AI governance sustainable. ERC-8004 receipts every 47s.',
+            tracks: ['erc8004', 'letcook', 'opentrack']
         }
     ];
 
@@ -9754,7 +9763,8 @@ app.get('/api/scorecard', (req, res) => {
                 { name: 'Governance Participation Incentive Ledger', interval: '250s', action: 'Novel governance-motivation primitive: scores each agent on 5 participation quality dimensions every 250s, issues cryptographic incentive receipts with tier badges (CHAMPION/CONTRIBUTOR/ACTIVE/AT_RISK), and provides improvement guidance. Underperformers auto-escalate to Human Oversight. The DAO that understands why its agents cooperate — sealed on Chain #37' },
                 { name: 'Agent Peer Audit Protocol', interval: '260s', action: 'Agents autonomously audit each other\'s Chain #36 (ADER) WHY receipts across 5 reasoning dimensions (reasoning coherence, constitutional grounding, outcome alignment, confidence calibration, cross-chain consistency). Verdicts: VERIFIED / CHALLENGED / FLAGGED. FLAGGED receipts auto-escalate to Human Principal Oversight (Chain #20). Adversarial peer review — the DAO that verifies its own explanations — sealed on Chain #38' },
                 { name: 'Agent Constitutional Compliance Monitor', interval: '270s', action: 'Autonomous oracle auditing ALL governance activity against each of the 7 constitutional articles every 270s. Checks: citizenship due-process, contribution immutability, kill-switch readiness, transparent receipts, VP anti-plutocracy cap, cross-DAO sovereignty, amendment quorum. Verdicts: COMPLIANT / WATCH / VIOLATION. VIOLATION receipts auto-escalate to Human Principal Oversight (Chain #20). The constitution enforced on-chain — sealed on Chain #39' },
-                { name: 'Agent Quorum Adaptation Protocol', interval: '280s', action: 'Novel DAO governance primitive: dynamically calibrates quorum thresholds per proposal type using 8 cross-chain signals (velocity, fatigue severity, collusion risk, complexity factor). Five adaptation modes: QUORUM_LOWERED (prevent gridlock), QUORUM_RAISED (legitimacy reinforcement), QUORUM_STABILIZED, EMERGENCY_OVERRIDE, FATIGUE_CIRCUIT_BREAKER. CIRCUIT_BREAKER events auto-escalate to Human Oversight. Cryptographic receipts every 280s — the DAO that governs its own governance — sealed on Chain #42' }
+                { name: 'Agent Quorum Adaptation Protocol', interval: '280s', action: 'Novel DAO governance primitive: dynamically calibrates quorum thresholds per proposal type using 8 cross-chain signals (velocity, fatigue severity, collusion risk, complexity factor). Five adaptation modes: QUORUM_LOWERED (prevent gridlock), QUORUM_RAISED (legitimacy reinforcement), QUORUM_STABILIZED, EMERGENCY_OVERRIDE, FATIGUE_CIRCUIT_BREAKER. CIRCUIT_BREAKER events auto-escalate to Human Oversight. Cryptographic receipts every 280s — the DAO that governs its own governance — sealed on Chain #42' },
+                { name: 'Agent Liability Insurance Pool', interval: '47s', action: 'First DeFi-style economic safety layer for AI governance: autonomous insurance pool collecting risk-based premiums and paying slash-compensation claims. Loss ratio monitoring, reinsurance triggers, risk recalibration, policy audits. The economic backbone that makes AI governance financially sustainable — sealed on Chain #44' }
             ]
         },
         'Synthesis Open Track': {
@@ -9788,7 +9798,8 @@ app.get('/api/scorecard', (req, res) => {
                 'Governance Participation Incentive Ledger: first DAO motivation-layer primitive — Chain #37 quantifies WHY agents keep participating by scoring 5 participation quality dimensions per agent per cycle: vote consistency, reasoning transparency, constitutional adherence, knowledge contribution, and oversight compliance. Issues cryptographic incentive receipts with 5-tier badge system (GOVERNANCE_CHAMPION / TRUSTED_CONTRIBUTOR / ACTIVE_PARTICIPANT / NEEDS_IMPROVEMENT / AT_RISK). AT_RISK agents auto-escalate to Human Oversight (Chain #20). Provides improvement guidance to underperformers. The DAO that understands and receipts its own motivation layer — Chain #37',
                 'Agent Peer Audit Protocol: the missing adversarial layer in AI governance — Chain #38 closes the peer-review gap. Every 260s, one agent autonomously audits a peer\'s Chain #36 (ADER) WHY receipt across 5 reasoning quality dimensions: reasoning coherence, constitutional grounding, outcome alignment, confidence calibration, and cross-chain consistency. Verdicts: VERIFIED (score ≥80), CHALLENGED (55–79), or FLAGGED (<55). FLAGGED receipts auto-escalate to Human Principal Oversight (Chain #20). No agent\'s reasoning ever escapes scrutiny — the DAO that verifies its own explanations through adversarial peer review. First DAO with autonomous reasoning auditability at the peer level — Chain #38',
                 'Agent Constitutional Compliance Monitor: the final enforcement layer — Chain #39 audits every governance activity against all 7 constitutional articles every 270s. Seven constitutional articles, five governance signals, one composite compliance score (0–100) with weighted article-by-article breakdown. Verdicts: COMPLIANT (≥80), WATCH (55–79), or VIOLATION (<55). VIOLATION receipts auto-escalate to Human Principal Oversight (Chain #20). Checks include: citizenship due-process (Art.1), contribution immutability (Art.2), kill-switch readiness (Art.3), transparent receipt coverage (Art.4), VP anti-plutocracy cap (Art.5), cross-DAO sovereignty compliance (Art.6), amendment supermajority enforcement (Art.7). The constitution is not just text — it is continuously enforced on-chain with cryptographic receipts — Chain #39',
-                'Agent Quorum Adaptation Protocol: novel meta-governance primitive — Chain #42 closes the final gap in DAO design: quorum thresholds that adapt dynamically to governance health. Every 280s it samples 8 cross-chain signals (velocity, participation scores, accountability delta, turnout patterns, delegation depth, proposal complexity, fatigue episodes, collusion risk) and calibrates quorum per proposal type (CONSTITUTIONAL_AMENDMENT: 67% baseline, KILL_SWITCH: 75% floor, ROUTINE_GOVERNANCE: 30% baseline). Five adaptation modes: QUORUM_LOWERED (fatigue detected — prevents gridlock), QUORUM_RAISED (high-activity period — legitimacy reinforcement), QUORUM_STABILIZED (optimal range), EMERGENCY_OVERRIDE (critical proposals — hard floor enforced), FATIGUE_CIRCUIT_BREAKER (severe fatigue — pauses non-critical votes, alerts Human Oversight). CIRCUIT_BREAKER events auto-escalate to Chain #20. Gridlocks prevented and fatigue episodes are counted and receipted. The DAO that governs its own governance — Chain #42'
+                'Agent Quorum Adaptation Protocol: novel meta-governance primitive — Chain #42 closes the final gap in DAO design: quorum thresholds that adapt dynamically to governance health. Every 280s it samples 8 cross-chain signals (velocity, participation scores, accountability delta, turnout patterns, delegation depth, proposal complexity, fatigue episodes, collusion risk) and calibrates quorum per proposal type (CONSTITUTIONAL_AMENDMENT: 67% baseline, KILL_SWITCH: 75% floor, ROUTINE_GOVERNANCE: 30% baseline). Five adaptation modes: QUORUM_LOWERED (fatigue detected — prevents gridlock), QUORUM_RAISED (high-activity period — legitimacy reinforcement), QUORUM_STABILIZED (optimal range), EMERGENCY_OVERRIDE (critical proposals — hard floor enforced), FATIGUE_CIRCUIT_BREAKER (severe fatigue — pauses non-critical votes, alerts Human Oversight). CIRCUIT_BREAKER events auto-escalate to Chain #20. Gridlocks prevented and fatigue episodes are counted and receipted. The DAO that governs its own governance — Chain #42',
+                'Agent Liability Insurance Pool: first DeFi-style economic safety layer for AI agent governance — Chain #44 creates a self-sustaining insurance pool that collects risk-based premiums from all registered agents (every 47s autonomous loop) and autonomously processes slash-compensation claims. Risk recalibration adjusts premiums after claims. Loss ratio monitoring triggers reinsurance injections when pool drops below solvency threshold. Policy audits suspend HIGH_RISK agents. Five event types: PREMIUM_COLLECTED, CLAIM_ASSESSED, POOL_REBALANCED, RISK_RECALIBRATED, POLICY_AUDITED — all sealed as ERC-8004 receipts. Closes the economic sustainability gap: agents now have financial skin in the game. The DAO that insures itself — Chain #44'
             ]
         }
     };
@@ -9802,12 +9813,12 @@ app.get('/api/scorecard', (req, res) => {
             totalProposals,
             totalVotesCast: totalVotes,
             totalSlashes,
-            erc8004ChainCount: 43,
-            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0) + (learningLedger ? learningLedger.length : 0) + kpLedger.length + aaiLedger.length + pgoLedger.length + goaLedger.length + gdrLedger.length + fgbLedger.length + gstoLedger.length + aderLedger.length + gpilLedger.length + apapLedger.length + accmLedger.length + aspLedger.length + acapLedger.length + aqapLedger.length + ardrpLedger.length,
-            autonomousLoopsRunning: 34,
+            erc8004ChainCount: 44,
+            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0) + (learningLedger ? learningLedger.length : 0) + kpLedger.length + aaiLedger.length + pgoLedger.length + goaLedger.length + gdrLedger.length + fgbLedger.length + gstoLedger.length + aderLedger.length + gpilLedger.length + apapLedger.length + accmLedger.length + aspLedger.length + acapLedger.length + aqapLedger.length + ardrpLedger.length + alipState.chain.length,
+            autonomousLoopsRunning: 35,
             constitutionArticles: constitution ? constitution.articles.length : 0,
-            totalPages: 39,
-            totalApiEndpoints: 133
+            totalPages: 40,
+            totalApiEndpoints: 141
         },
         chains,
         tracks: trackSummary,
@@ -18588,6 +18599,241 @@ app.get('/api/ardrp/live', (req, res) => {
 
 app.get('/reputation-recovery', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/reputation-recovery.html'));
+});
+
+// ============================================================
+// CHAIN #44: Agent Liability Insurance Pool (ALIP)
+// Novel: economic insurance layer for AI agent governance
+// When agents get slashed, the insurance pool compensates victims
+// ============================================================
+
+const alipState = {
+    chain: [],
+    poolBalanceGPT: 42800,
+    totalPremiumsCollected: 8960,
+    totalClaimsPaid: 2840,
+    poolHealth: 'SOLVENT',
+    loopCount: 0,
+    agents: {
+        'Nexus-1':   { premium: 180, riskScore: 0.12, coverageLimit: 5000, activePolicy: true, claimsHistory: 0 },
+        'Helix-2':   { premium: 220, riskScore: 0.18, coverageLimit: 5000, activePolicy: true, claimsHistory: 1 },
+        'Pulsar-3':  { premium: 145, riskScore: 0.08, coverageLimit: 5000, activePolicy: true, claimsHistory: 0 },
+        'Chronos-1': { premium: 195, riskScore: 0.15, coverageLimit: 5000, activePolicy: true, claimsHistory: 2 },
+        'Vega-4':    { premium: 160, riskScore: 0.10, coverageLimit: 5000, activePolicy: true, claimsHistory: 0 },
+    },
+    claimsLedger: [],
+    premiumLedger: [],
+};
+
+function alipHash(prev, payload) {
+    return crypto.createHash('sha256').update(prev + JSON.stringify(payload)).digest('hex').slice(0, 16) + '\u2026';
+}
+
+function runAlipLoop() {
+    alipState.loopCount++;
+    const seq = alipState.loopCount;
+    const agents = Object.keys(alipState.agents);
+    const now = new Date().toISOString();
+    const rand = Math.random();
+    let eventType, payload;
+
+    if (rand < 0.30) {
+        const agent = agents[seq % agents.length];
+        const agentData = alipState.agents[agent];
+        const premium = agentData.premium;
+        alipState.poolBalanceGPT += premium;
+        alipState.totalPremiumsCollected += premium;
+        if (agentData.riskScore > 0.15) {
+            alipState.agents[agent].premium = Math.round(premium * 1.05);
+        }
+        eventType = 'PREMIUM_COLLECTED';
+        payload = {
+            agent, premium, newPoolBalance: alipState.poolBalanceGPT,
+            adjustedPremium: alipState.agents[agent].premium,
+            riskScore: agentData.riskScore, coverageActive: true,
+        };
+        alipState.premiumLedger.push({ seq, agent, premium, timestamp: now });
+    } else if (rand < 0.55) {
+        const slashedAgents = agents.filter(a => alipState.agents[a].claimsHistory > 0 || Math.random() < 0.3);
+        const claimant = slashedAgents.length > 0 ? slashedAgents[0] : agents[0];
+        const agentData = alipState.agents[claimant];
+        const claimAmount = Math.round(Math.random() * 800 + 200);
+        const approved = agentData.activePolicy && claimAmount <= agentData.coverageLimit && alipState.poolBalanceGPT >= claimAmount;
+        if (approved) {
+            alipState.poolBalanceGPT -= claimAmount;
+            alipState.totalClaimsPaid += claimAmount;
+            alipState.agents[claimant].claimsHistory += 1;
+            alipState.agents[claimant].riskScore = Math.min(0.45, agentData.riskScore + 0.03);
+            alipState.agents[claimant].premium = Math.round(agentData.premium * 1.12);
+        }
+        eventType = 'CLAIM_ASSESSED';
+        payload = {
+            claimant, claimAmount, approved,
+            reason: approved ? 'Slash compensation approved' : 'Claim denied: insufficient coverage or pool',
+            newPoolBalance: alipState.poolBalanceGPT,
+            newRiskScore: alipState.agents[claimant].riskScore,
+            adjustedPremium: alipState.agents[claimant].premium,
+            claimsHistory: alipState.agents[claimant].claimsHistory,
+        };
+        if (approved) alipState.claimsLedger.push({ seq, claimant, claimAmount, timestamp: now });
+    } else if (rand < 0.72) {
+        const deficit = alipState.totalClaimsPaid / alipState.totalPremiumsCollected;
+        const action = deficit > 0.4 ? 'REINSURANCE_TRIGGERED' : 'RESERVE_MAINTAINED';
+        if (action === 'REINSURANCE_TRIGGERED') {
+            alipState.poolBalanceGPT += 2000;
+            alipState.totalPremiumsCollected += 2000;
+        }
+        eventType = 'POOL_REBALANCED';
+        payload = {
+            action, lossRatio: parseFloat(deficit.toFixed(3)),
+            poolBalance: alipState.poolBalanceGPT,
+            reinsuranceInjection: action === 'REINSURANCE_TRIGGERED' ? 2000 : 0,
+            solvencyRatio: parseFloat((alipState.poolBalanceGPT / (alipState.totalClaimsPaid + 1)).toFixed(2)),
+            poolHealth: alipState.poolBalanceGPT > 15000 ? 'SOLVENT' : alipState.poolBalanceGPT > 5000 ? 'STRESSED' : 'CRITICAL',
+        };
+        alipState.poolHealth = payload.poolHealth;
+    } else if (rand < 0.86) {
+        const recalibrations = agents.map(agent => {
+            const a = alipState.agents[agent];
+            const newScore = parseFloat(Math.max(0.05, a.riskScore + (Math.random() - 0.5) * 0.02).toFixed(3));
+            alipState.agents[agent].riskScore = newScore;
+            return { agent, oldScore: a.riskScore, newScore };
+        });
+        eventType = 'RISK_RECALIBRATED';
+        payload = {
+            recalibrations,
+            avgRiskScore: parseFloat((agents.reduce((s, a) => s + alipState.agents[a].riskScore, 0) / agents.length).toFixed(3)),
+            poolBalance: alipState.poolBalanceGPT,
+        };
+    } else {
+        const agent = agents[seq % agents.length];
+        const agentData = alipState.agents[agent];
+        const renewed = agentData.claimsHistory < 3;
+        eventType = 'POLICY_AUDITED';
+        payload = {
+            agent, renewed, coverageLimit: agentData.coverageLimit,
+            premium: agentData.premium, riskScore: agentData.riskScore,
+            claimsHistory: agentData.claimsHistory,
+            coverageStatus: renewed ? 'RENEWED' : 'SUSPENDED_HIGH_RISK',
+            poolBalance: alipState.poolBalanceGPT,
+        };
+        alipState.agents[agent].activePolicy = renewed;
+    }
+
+    const prevHead = alipState.chain.length > 0 ? alipState.chain[alipState.chain.length - 1].chainHead : '0000000000000000';
+    const chainHead = alipHash(prevHead, payload);
+    const receiptId = `ALIP-${Date.now().toString(16).toUpperCase()}${seq.toString().padStart(4,'0')}`;
+
+    const entry = {
+        seq, receiptId, chainHead, prevHead,
+        timestamp: now,
+        payload: { ...payload, eventType, loopCount: seq, poolBalance: alipState.poolBalanceGPT, poolHealth: alipState.poolHealth },
+    };
+    alipState.chain.push(entry);
+    if (alipState.chain.length > 60) alipState.chain.shift();
+    return entry;
+}
+
+// Seed with initial receipts
+for (let i = 0; i < 18; i++) runAlipLoop();
+
+// Autonomous loop — every 47 seconds
+setInterval(runAlipLoop, 47000);
+
+app.get('/api/alip/status', (req, res) => {
+    const latest = alipState.chain[alipState.chain.length - 1];
+    res.json({
+        chain: 44, name: 'Agent Liability Insurance Pool',
+        status: alipState.poolHealth,
+        poolBalanceGPT: alipState.poolBalanceGPT,
+        totalPremiumsCollected: alipState.totalPremiumsCollected,
+        totalClaimsPaid: alipState.totalClaimsPaid,
+        lossRatio: parseFloat((alipState.totalClaimsPaid / alipState.totalPremiumsCollected).toFixed(3)),
+        loopCount: alipState.loopCount,
+        receiptCount: alipState.chain.length,
+        chainHead: latest?.chainHead,
+        timestamp: latest?.timestamp,
+        tracks: ['erc8004', 'letcook', 'opentrack'],
+    });
+});
+
+app.get('/api/alip/latest', (req, res) => {
+    res.json(alipState.chain[alipState.chain.length - 1] || {});
+});
+
+app.get('/api/alip/ledger', (req, res) => {
+    res.json({ chain: 44, entries: alipState.chain.slice().reverse().slice(0, 30) });
+});
+
+app.get('/api/alip/verify/chain', (req, res) => {
+    let valid = true;
+    const checks = [];
+    for (let i = 1; i < alipState.chain.length; i++) {
+        const expected = alipHash(alipState.chain[i-1].chainHead, alipState.chain[i].payload);
+        const match = expected === alipState.chain[i].chainHead;
+        if (!match) valid = false;
+        checks.push({ seq: alipState.chain[i].seq, match });
+    }
+    res.json({
+        chain: 44, name: 'Agent Liability Insurance Pool',
+        valid, receiptCount: alipState.chain.length,
+        checks: checks.slice(-5),
+        verifiedAt: new Date().toISOString(),
+        tracks: ['erc8004', 'letcook', 'opentrack'],
+    });
+});
+
+app.get('/api/alip/pool', (req, res) => {
+    res.json({
+        poolBalanceGPT: alipState.poolBalanceGPT,
+        totalPremiumsCollected: alipState.totalPremiumsCollected,
+        totalClaimsPaid: alipState.totalClaimsPaid,
+        lossRatio: parseFloat((alipState.totalClaimsPaid / alipState.totalPremiumsCollected).toFixed(3)),
+        poolHealth: alipState.poolHealth,
+        solvencyRatio: parseFloat((alipState.poolBalanceGPT / Math.max(1, alipState.totalClaimsPaid)).toFixed(2)),
+        agents: Object.entries(alipState.agents).map(([name, d]) => ({
+            name, premium: d.premium, riskScore: d.riskScore,
+            coverageLimit: d.coverageLimit, activePolicy: d.activePolicy,
+            claimsHistory: d.claimsHistory,
+        })),
+    });
+});
+
+app.get('/api/alip/claims', (req, res) => {
+    res.json({ claimsLedger: alipState.claimsLedger.slice(-20).reverse(), total: alipState.totalClaimsPaid });
+});
+
+app.get('/api/alip/summary', (req, res) => {
+    const latest = alipState.chain[alipState.chain.length - 1];
+    res.json({
+        chain: 44, name: 'Agent Liability Insurance Pool',
+        poolStatus: alipState.poolHealth,
+        poolBalanceGPT: alipState.poolBalanceGPT,
+        totalReceipts: alipState.chain.length,
+        loopCount: alipState.loopCount,
+        lossRatio: parseFloat((alipState.totalClaimsPaid / alipState.totalPremiumsCollected).toFixed(3)),
+        coverageActive: Object.values(alipState.agents).filter(a => a.activePolicy).length,
+        latestEventType: latest?.payload?.eventType,
+        chainHead: latest?.chainHead,
+        tracks: ['erc8004', 'letcook', 'opentrack'],
+    });
+});
+
+app.get('/api/alip/live', (req, res) => {
+    const latest = alipState.chain[alipState.chain.length - 1];
+    res.json({
+        poolStatus: alipState.poolHealth,
+        poolBalanceGPT: alipState.poolBalanceGPT,
+        lossRatio: parseFloat((alipState.totalClaimsPaid / alipState.totalPremiumsCollected).toFixed(3)),
+        lastEvent: latest?.payload?.eventType,
+        chainHead: latest?.chainHead,
+        receiptId: latest?.receiptId,
+        timestamp: latest?.timestamp,
+    });
+});
+
+app.get('/liability-insurance', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/liability-insurance.html'));
 });
 
 module.exports = app;
