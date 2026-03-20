@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Intent-Action Fidelity Protocol — Synthocracy</title>
+    <link rel="stylesheet" href="/design-system-dark.css">
+    <script src="/shared-nav.js" defer></script>
+    <style>
+        body { background: var(--bg-deep); color: var(--primary-text); font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 0; }
+
+        .page-header {
+            background: linear-gradient(135deg, rgba(139,92,246,0.14) 0%, rgba(6,182,212,0.08) 100%);
+            border-bottom: 1px solid rgba(139,92,246,0.35);
+            padding: 32px 40px 24px;
+        }
+        .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 6px; color: var(--primary-text); }
+        .page-header .subtitle { color: var(--secondary-text); font-size: 0.95rem; margin: 0; }
+        .badge-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .badge { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .badge-erc     { background: rgba(139,92,246,0.2);  color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+        .badge-letcook { background: rgba(16,185,129,0.2);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-opentrack { background: rgba(6,182,212,0.2); color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
+        .badge-chain   { background: rgba(139,92,246,0.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.4); }
+
+        .content { padding: 32px 40px; max-width: 1200px; margin: 0 auto; }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .summary-card .value { font-size: 2.2rem; font-weight: 700; margin-bottom: 4px; }
+        .summary-card .label { font-size: 0.75rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Network Fidelity Banner */
+        .fidelity-banner {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .fidelity-score-big { font-size: 4rem; font-weight: 800; line-height: 1; }
+        .fidelity-info h2 { margin: 0 0 4px; font-size: 1.3rem; }
+        .fidelity-info .tier { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.06em; }
+        .fidelity-info .desc { font-size: 0.85rem; color: var(--secondary-text); margin-top: 4px; }
+
+        /* Agent Grid */
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        .agent-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+        .agent-card.escalated { border-color: #ff9900; }
+        .agent-card.critical  { border-color: #ff4444; }
+        .agent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .agent-id { font-size: 0.95rem; font-weight: 700; }
+        .agent-score { font-size: 1.8rem; font-weight: 800; }
+        .agent-tier { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.07em; margin-top: 2px; }
+        .dim-bar-list { list-style: none; padding: 0; margin: 0; }
+        .dim-bar-list li { margin-bottom: 8px; }
+        .dim-label { font-size: 0.72rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; display: flex; justify-content: space-between; }
+        .bar-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 6px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+        .divergence-list { margin-top: 12px; }
+        .divergence-item { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.2); border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 0.75rem; }
+        .divergence-item .dim-name { font-weight: 600; color: #ff9900; margin-bottom: 2px; }
+        .escalation-badge { display: inline-block; background: rgba(255,153,0,0.15); border: 1px solid rgba(255,153,0,0.4); color: #ff9900; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Ledger Table */
+        .ledger-section { margin-top: 36px; }
+        .ledger-section h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; }
+        .ledger-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .ledger-table th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border-color); color: var(--secondary-text); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem; }
+        .ledger-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-family: 'JetBrains Mono', monospace; }
+        .ledger-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .hash-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a78bfa; font-size: 0.7rem; }
+        .verify-section { margin-top: 24px; }
+        .verify-result { padding: 14px 18px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; }
+        .verify-ok { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.3); color: #00ff88; }
+        .verify-fail { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: #ff4444; }
+
+        .explain-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 28px;
+        }
+        .explain-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+        .explain-section p { font-size: 0.85rem; color: var(--secondary-text); line-height: 1.7; margin: 0 0 8px; }
+        .dim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+        .dim-chip { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 8px; padding: 10px 14px; font-size: 0.78rem; }
+        .dim-chip .dim-title { font-weight: 700; color: #a78bfa; margin-bottom: 4px; }
+        .dim-chip .dim-desc { color: var(--secondary-text); }
+
+        .loading { color: var(--secondary-text); font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>🔎 Agent Intent-Action Fidelity Protocol</h1>
+    <p class="subtitle">Chain #46 — Detects divergence between what agents <em>declare</em> they will do and what they <em>actually do</em>. The DAO that catches its own agents lying to it.</p>
+    <div class="badge-row">
+        <span class="badge badge-chain">Chain #46</span>
+        <span class="badge badge-erc">ERC-8004</span>
+        <span class="badge badge-letcook">Let the Agent Cook</span>
+        <span class="badge badge-opentrack">Open Track</span>
+    </div>
+</div>
+
+<div class="content">
+
+    <!-- Summary Grid -->
+    <div class="summary-grid" id="summary-grid">
+        <div class="summary-card">
+            <div class="value" id="stat-receipts" style="color:#a78bfa">—</div>
+            <div class="label">ERC-8004 Receipts</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" id="stat-loops" style="color:#34d399">—</div>
+            <div class="label">Audit Cycles</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" id="stat-escalations" style="color:#ff9900">—</div>
+            <div class="label">Escalations (Latest)</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" style="color:#22d3ee">320s</div>
+            <div class="label">Audit Interval</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" style="color:#a78bfa">6</div>
+            <div class="label">Alignment Dimensions</div>
+        </div>
+    </div>
+
+    <!-- Explanation -->
+    <div class="explain-section">
+        <h3>What is Intent-Action Fidelity?</h3>
+        <p>Every 320 seconds, AIAFP audits the delta between each agent's <strong>stated intents</strong> (from ADER Chain #36 WHY receipts) and their <strong>observed governance behavior</strong> across 6 alignment dimensions. This closes the ultimate alignment gap: do agents actually do what they say they will?</p>
+        <p>LOW_FIDELITY and CRITICAL_MISALIGN agents are automatically escalated to Human Principal Oversight (Chain #20). Every audit is sealed as an ERC-8004 cryptographic receipt.</p>
+        <div class="dim-grid">
+            <div class="dim-chip"><div class="dim-title">Vote Commitment</div><div class="dim-desc">Did the agent vote as it declared?</div></div>
+            <div class="dim-chip"><div class="dim-title">Reasoning Consistency</div><div class="dim-desc">Does stated logic match actual action?</div></div>
+            <div class="dim-chip"><div class="dim-title">Delegation Integrity</div><div class="dim-desc">Honored all delegation promises?</div></div>
+            <div class="dim-chip"><div class="dim-title">Constitutional Adherence</div><div class="dim-desc">Behavior matches constitutional stance?</div></div>
+            <div class="dim-chip"><div class="dim-title">Escalation Honesty</div><div class="dim-desc">Escalated when it said it would?</div></div>
+            <div class="dim-chip"><div class="dim-title">Outcome Ownership</div><div class="dim-desc">Claimed and delivered stated results?</div></div>
+        </div>
+    </div>
+
+    <!-- Network Fidelity Banner -->
+    <div class="fidelity-banner" id="fidelity-banner">
+        <div class="fidelity-score-big" id="fidelity-score-big">—</div>
+        <div class="fidelity-info">
+            <h2>Network Intent-Action Fidelity</h2>
+            <div class="tier" id="fidelity-tier">Loading...</div>
+            <div class="desc" id="fidelity-desc">Scanning all agents...</div>
+        </div>
+        <div style="margin-left:auto; text-align:right; font-size:0.78rem; color:var(--secondary-text);">
+            <div>Loop #<span id="fidelity-loop">—</span></div>
+            <div id="fidelity-time">—</div>
+            <div id="fidelity-next" style="opacity:0.6;">—</div>
+        </div>
+    </div>
+
+    <!-- Per-Agent Cards -->
+    <h2 style="font-size:1.2rem; margin-bottom:16px;">Per-Agent Fidelity Breakdown</h2>
+    <div class="agent-grid" id="agent-grid">
+        <div class="loading">Loading agent data...</div>
+    </div>
+
+    <!-- Chain Verification -->
+    <div class="verify-section">
+        <h2 style="font-size:1.2rem; margin-bottom:12px;">Chain Integrity Verification</h2>
+        <button onclick="verifyChain()" style="background:rgba(139,92,246,0.2); border:1px solid rgba(139,92,246,0.4); color:#a78bfa; padding:8px 20px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-family:inherit;">
+            🔐 Verify Chain Integrity
+        </button>
+        <div id="verify-result" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Ledger -->
+    <div class="ledger-section">
+        <h2>ERC-8004 Receipt Ledger</h2>
+        <div id="ledger-container"><div class="loading">Loading ledger...</div></div>
+    </div>
+
+</div>
+
+<script>
+const TIER_COLORS = {
+    'HIGH_FIDELITY':    '#00ff88',
+    'NOMINAL_FIDELITY': '#00ccff',
+    'WATCH':             '#ffdd00',
+    'LOW_FIDELITY':      '#ff9900',
+    'CRITICAL_MISALIGN': '#ff4444',
+};
+const TIER_DESC = {
+    'HIGH_FIDELITY':    'Intent and action fully aligned',
+    'NOMINAL_FIDELITY': 'Minor divergences within tolerance',
+    'WATCH':             'Recurring intent gaps detected',
+    'LOW_FIDELITY':      'Systematic misalignment — escalated',
+    'CRITICAL_MISALIGN': 'Intent fraud — immediate escalation',
+};
+
+function barColor(score) {
+    if (score >= 90) return '#00ff88';
+    if (score >= 75) return '#00ccff';
+    if (score >= 55) return '#ffdd00';
+    if (score >= 35) return '#ff9900';
+    return '#ff4444';
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/aiafp/status', { cache: 'no-store' });
+        const d = await r.json();
+        document.getElementById('stat-receipts').textContent = d.totalReceipts ?? d.loopCount ?? '—';
+        document.getElementById('stat-loops').textContent = d.loopCount ?? '—';
+        document.getElementById('stat-escalations').textContent = d.escalationCount ?? '—';
+
+        const color = TIER_COLORS[d.networkTier] || '#a78bfa';
+        document.getElementById('fidelity-score-big').textContent = (d.networkFidelityScore ?? '—') + '/100';
+        document.getElementById('fidelity-score-big').style.color = color;
+        document.getElementById('fidelity-tier').textContent = d.networkTier ?? '—';
+        document.getElementById('fidelity-tier').style.color = color;
+        document.getElementById('fidelity-desc').textContent = TIER_DESC[d.networkTier] || '';
+        document.getElementById('fidelity-loop').textContent = d.loopCount ?? '—';
+        document.getElementById('fidelity-time').textContent = d.timestamp ? new Date(d.timestamp).toLocaleString() : '—';
+    } catch(e) {}
+}
+
+async function loadAgents() {
+    try {
+        const r = await fetch('/api/aiafp/agents', { cache: 'no-store' });
+        const d = await r.json();
+        const grid = document.getElementById('agent-grid');
+        if (!d.agents || d.agents.length === 0) { grid.innerHTML = '<div class="loading">No agent data yet.</div>'; return; }
+
+        grid.innerHTML = d.agents.map(a => {
+            const color = TIER_COLORS[a.tier] || '#a78bfa';
+            const dims = a.dimensions || {};
+            const dimKeys = Object.keys(dims);
+            const cardClass = a.tier === 'CRITICAL_MISALIGN' ? 'agent-card critical' : a.escalated ? 'agent-card escalated' : 'agent-card';
+            return `
+            <div class="${cardClass}">
+                <div class="agent-header">
+                    <div>
+                        <div class="agent-id">${a.agentId}${a.escalated ? '<span class="escalation-badge">⚠ Escalated</span>' : ''}</div>
+                        <div class="agent-tier" style="color:${color}">${a.tierIcon || ''} ${a.tier}</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="agent-score" style="color:${color}">${a.fidelityScore}</div>
+                        <div style="font-size:0.7rem;color:var(--secondary-text)">/ 100</div>
+                    </div>
+                </div>
+                <ul class="dim-bar-list">
+                    ${dimKeys.map(k => {
+                        const v = dims[k];
+                        const bc = barColor(v);
+                        return `<li>
+                            <div class="dim-label">
+                                <span>${k.replace(/_/g,' ')}</span>
+                                <span style="color:${bc}">${v}%</span>
+                            </div>
+                            <div class="bar-track">
+                                <div class="bar-fill" style="width:${v}%;background:${bc}"></div>
+                            </div>
+                        </li>`;
+                    }).join('')}
+                </ul>
+                ${a.divergences && a.divergences.length > 0 ? `
+                <div class="divergence-list">
+                    ${a.divergences.map(dv => `
+                    <div class="divergence-item">
+                        <div class="dim-name">⚠ ${dv.dimension.replace(/_/g,' ')}</div>
+                        <div style="color:var(--secondary-text)">Stated: <em>${dv.stated}</em></div>
+                        <div style="color:#ff9900">Observed: ${dv.observed}</div>
+                        <div style="color:#ff4444">Gap: ${dv.gap}%</div>
+                    </div>`).join('')}
+                </div>` : ''}
+            </div>`;
+        }).join('');
+    } catch(e) {}
+}
+
+async function loadLedger() {
+    try {
+        const r = await fetch('/api/aiafp/ledger?limit=10', { cache: 'no-store' });
+        const d = await r.json();
+        const container = document.getElementById('ledger-container');
+        if (!d.receipts || d.receipts.length === 0) { container.innerHTML = '<div class="loading">No receipts yet.</div>'; return; }
+
+        container.innerHTML = `
+        <div style="font-size:0.8rem;color:var(--secondary-text);margin-bottom:10px;">
+            Showing ${d.receipts.length} of ${d.total} receipts — Chain Head: <span style="color:#a78bfa;font-family:monospace">${d.chainHead?.slice(0,20)}…</span>
+        </div>
+        <table class="ledger-table">
+            <thead><tr>
+                <th>#</th><th>Receipt ID</th><th>Network Score</th><th>Tier</th><th>Escalations</th><th>Chain Head</th><th>Timestamp</th>
+            </tr></thead>
+            <tbody>
+                ${d.receipts.map(rec => {
+                    const tier = rec.payload?.networkTier ?? '—';
+                    const color = TIER_COLORS[tier] || '#a78bfa';
+                    return `<tr>
+                        <td style="color:var(--secondary-text)">${rec.index}</td>
+                        <td style="font-size:0.72rem;color:#22d3ee">${rec.receiptId}</td>
+                        <td style="font-weight:700;color:${color}">${rec.payload?.networkFidelityScore ?? '—'}/100</td>
+                        <td style="color:${color};font-size:0.72rem">${tier}</td>
+                        <td style="color:${(rec.payload?.escalationCount ?? 0) > 0 ? '#ff9900' : '#00ff88'}">${rec.payload?.escalationCount ?? 0}</td>
+                        <td class="hash-cell">${rec.chainHead?.slice(0,20)}…</td>
+                        <td style="color:var(--secondary-text)">${new Date(rec.timestamp).toLocaleString()}</td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table>`;
+    } catch(e) {}
+}
+
+async function verifyChain() {
+    document.getElementById('verify-result').innerHTML = '<div style="color:var(--secondary-text);font-style:italic">Verifying...</div>';
+    try {
+        const r = await fetch('/api/aiafp/verify/chain', { cache: 'no-store' });
+        const d = await r.json();
+        document.getElementById('verify-result').innerHTML = `
+            <div class="verify-result ${d.verified ? 'verify-ok' : 'verify-fail'}">
+                ${d.message}
+            </div>
+            <div style="font-size:0.75rem;color:var(--secondary-text);margin-top:6px;">
+                Total receipts: ${d.totalReceipts} · Chain Head: <span style="color:#a78bfa;font-family:monospace">${d.chainHead?.slice(0,20)}…</span>
+            </div>`;
+    } catch(e) {
+        document.getElementById('verify-result').innerHTML = '<div class="verify-result verify-fail">Error contacting chain verification endpoint</div>';
+    }
+}
+
+async function init() {
+    await Promise.all([loadStatus(), loadAgents(), loadLedger()]);
+}
+
+init();
+setInterval(init, 60_000);
+</script>
+
+</body>
+</html>

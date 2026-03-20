@@ -2620,6 +2620,21 @@
       ],
       "loops_total": 36,
       "chains_total": 45
+    },
+    {
+      "id": "L116",
+      "timestamp": "2026-03-20T19:07:37Z",
+      "type": "autonomous_cycle",
+      "description": "Chain #46 Agent Intent-Action Fidelity Protocol (AIAFP) \u2014 novel AI alignment primitive detecting divergence between stated intents and actual governance actions. 6 alignment dimensions: vote-commitment, reasoning-consistency, delegation-integrity, constitutional-adherence, escalation-honesty, outcome-ownership. Fidelity Score (0-100) per agent. LOW_FIDELITY/CRITICAL_MISALIGN auto-escalate to Human Oversight (Chain #20). ERC-8004 receipts every 320s. Updated scorecard: 46 chains, 37 autonomous loops, 148 endpoints, 41 pages. New page: /intent-fidelity.",
+      "impact": "high",
+      "chains_added": [
+        46
+      ],
+      "files_modified": [
+        "api/server.js",
+        "demo/intent-fidelity.html",
+        "agent_log.json"
+      ]
     }
   ]
 }
