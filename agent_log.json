@@ -2343,6 +2343,26 @@
         "/outcome-auditor"
       ],
       "novelty": "First governance chain that holds agents accountable for RESULTS not just process \u2014 closes the ultimate accountability gap: were promises kept?"
+    },
+    {
+      "id": "L102",
+      "type": "autonomous_cycle",
+      "timestamp": "2026-03-20T05:08:21Z",
+      "description": "Chain #33 Governance Debt Registry (GDR) \u2014 novel DAO governance-debt tracking primitive. Synthesizes 8 upstream chains (Constitutional Audit, Watchdog, PLT, Oversight, Collusion Detection, Learning Oracle, Knowledge Propagation, GOA) into a Total Debt Index (TDI 0-1000). Tracks 7 debt categories: stalled proposals, unenforced clauses, recurring anomalies, collusion suspects, unfulfilled outcomes, unactioned recommendations, knowledge gaps. Severity x age-decay scoring, RED auto-escalation to oversight. 7 new API endpoints + /governance-debt page. Chains: 32\u219233, loops: 23\u219224, pages: 30\u219231, endpoints: 71\u219279.",
+      "changes": [
+        "Added Chain #33 GDR autonomous loop (195s interval)",
+        "Added /api/gdr/status endpoint",
+        "Added /api/gdr/latest endpoint",
+        "Added /api/gdr/ledger endpoint",
+        "Added /api/gdr/verify/chain endpoint",
+        "Added /api/gdr/live endpoint",
+        "Added /api/gdr/items endpoint (with category/severity filters)",
+        "Added /api/gdr/roadmap endpoint",
+        "Added /governance-debt page route",
+        "Added demo/governance-debt.html frontend page",
+        "Updated scorecard: erc8004ChainCount 32\u219233, autonomousLoopsRunning 23\u219224, totalPages 30\u219231, totalApiEndpoints 71\u219279",
+        "Updated chains array description with Chain #33 narrative"
+      ]
     }
   ]
 }

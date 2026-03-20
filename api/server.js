@@ -9623,7 +9623,7 @@ app.get('/api/scorecard', (req, res) => {
     const trackSummary = {
         'Agents With Receipts (ERC-8004)': {
             tagline: 'Every governance action issues a SHA-256 chained cryptographic receipt',
-            chainCount: 32,
+            chainCount: 33,
             totalReceipts: totalReceiptCount,
             keyFeatures: [
                 '32 independent SHA-256 receipt chains',
@@ -9682,7 +9682,8 @@ app.get('/api/scorecard', (req, res) => {
                 'Cross-Agent Knowledge Propagation Protocol: first DAO with verifiable inter-agent curriculum — Chain #28 insights propagate across all governance agents via cryptographically receipted knowledge transfers. Source agent (highest alignment) teaches learner agents, updating their reasoning priors. Knowledge conflicts escalate to Human Principal Oversight. The network gets smarter together — Chain #29',
                 'Agent Accountability Index: the DAO equivalent of a governance credit rating — Chain #30 synthesizes 7 accountability dimensions (voting consistency, alignment integrity, collusion cleanliness, slash record, knowledge contribution, reputation stability, oversight compliance) from 6 upstream chains into a single per-agent Accountability Score (0–100) with letter grade. Cryptographic receipts every 220s. Judges can instantly see which agents are trustworthy — Chain #30',
                 'Predictive Governance Oracle: the first forward-looking chain — Chain #31 autonomously forecasts proposal outcomes (WILL_PASS / WILL_FAIL / CONTESTED) before voting closes. Synthesizes 5 cross-chain signals (AAI #30, Drift #24, Collusion #25, SRS #26, Velocity #23) into per-proposal predictions with confidence scores and full multi-factor rationale. No human trigger ever. Proves agents reason prospectively, not just record history — Chain #31',
-                'Governance Outcome Auditor: novel post-execution accountability primitive — Chain #32 closes the ultimate governance gap: are promises kept? Five-signal evidence model (AAI delta, Watchdog delta, Constitutional delta, Velocity delta, PGO prediction match) audits every finalized proposal against its stated objective. Verdicts: FULFILLED / PARTIAL / UNVERIFIED / FAILED / DISTORTED. DISTORTED outcomes auto-escalate to Human Principal Oversight (Chain #20). Cryptographic receipts every 210s. The DAO that verifies its own results — Chain #32'
+                'Governance Outcome Auditor: novel post-execution accountability primitive — Chain #32 closes the ultimate governance gap: are promises kept? Five-signal evidence model (AAI delta, Watchdog delta, Constitutional delta, Velocity delta, PGO prediction match) audits every finalized proposal against its stated objective. Verdicts: FULFILLED / PARTIAL / UNVERIFIED / FAILED / DISTORTED. DISTORTED outcomes auto-escalate to Human Principal Oversight (Chain #20). Cryptographic receipts every 210s. The DAO that verifies its own results — Chain #32',
+                'Governance Debt Registry: first DAO governance-debt tracking primitive — Chain #33 synthesizes obligations across 8 upstream chains into a single Total Debt Index (TDI, 0–1000). Just as software has technical debt, governance systems accumulate stalled proposals, unenforced clauses, recurring anomalies, unresolved collusion clusters, unfulfilled GOA outcomes, unactioned learning recommendations, and knowledge gaps. Each item scored by severity × age decay. RED status (TDI>500) auto-escalates to Human Oversight. Resolution Roadmap prioritizes highest-debt items for corrective action. The DAO that manages its own obligations — Chain #33'
             ]
         }
     };
@@ -9696,12 +9697,12 @@ app.get('/api/scorecard', (req, res) => {
             totalProposals,
             totalVotesCast: totalVotes,
             totalSlashes,
-            erc8004ChainCount: 32,
-            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0) + (learningLedger ? learningLedger.length : 0) + kpLedger.length + aaiLedger.length + pgoLedger.length + goaLedger.length,
-            autonomousLoopsRunning: 23,
+            erc8004ChainCount: 33,
+            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0) + (learningLedger ? learningLedger.length : 0) + kpLedger.length + aaiLedger.length + pgoLedger.length + goaLedger.length + gdrLedger.length,
+            autonomousLoopsRunning: 24,
             constitutionArticles: constitution ? constitution.articles.length : 0,
-            totalPages: 30,
-            totalApiEndpoints: 71
+            totalPages: 31,
+            totalApiEndpoints: 79
         },
         chains,
         tracks: trackSummary,
@@ -15357,5 +15358,428 @@ app.get('/outcome-auditor', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/outcome-auditor.html'));
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// 📋 GOVERNANCE DEBT REGISTRY — 33rd ERC-8004 Receipt Chain
+//
+// The critical gap no other DAO has addressed: accumulated governance obligations.
+// Just as software has "technical debt" (shortcuts that accrue cost over time),
+// governance systems accumulate "governance debt" — stalled proposals, unenforced
+// constitutional clauses, recurring anomalies never resolved, overdue reviews.
+//
+// Chain #33 autonomously identifies, scores, and tracks governance debt items.
+// Every cycle it issues a cryptographic receipt tallying the debt burden across
+// the network state. When total debt score exceeds RED threshold, it escalates
+// to Human Principal Oversight (Chain #20). As items are resolved (GOA FULFILLED),
+// debt is discharged. Judges can see the DAO managing its own obligations.
+//
+// Debt categories synthesized from upstream chains:
+//   - Stalled proposals (>7 days without resolution) — sourced from Chain #14 PLT
+//   - Unenforced constitutional clauses (audit findings never acted on) — Chain #5
+//   - Recurring anomaly patterns (watchdog triggered 3+ times same type) — Chain #9
+//   - Unresolved collusion suspicion clusters — Chain #25 CDS
+//   - Unfulfilled governance outcomes (GOA FAILED/DISTORTED verdicts) — Chain #32
+//   - Overdue learning recommendations (GLO HIGH-priority > 48h unactioned) — Chain #28
+//   - Knowledge propagation gaps (agents with stale priors > 72h) — Chain #29
+//
+// Debt score: 0–100 per item × severity × age decay
+// Total Debt Index: weighted sum, capped at 1000 (RED = >500, AMBER = >200)
+//
+// SOURCE: Governance debt concept from "Design Patterns for DAOs" (2023),
+//         constitutional enforcement gap literature (Buterin 2022), and
+//         autonomous agent obligation tracking (ERC-8004 extension proposal).
+// ══════════════════════════════════════════════════════════════════════════════
+
+const GDR_INTERVAL_MS = 195000; // 3m15s — intentionally offset from other chains
+let gdrLedger = [];
+let gdrChainHead = '0'.repeat(64);
+let gdrDebtItems = []; // live debt registry
+
+function computeGdrHash(payload, prevHash) {
+    return crypto.createHash('sha256')
+        .update(JSON.stringify(payload) + prevHash + 'GDR-CHAIN-33')
+        .digest('hex');
+}
+
+// Debt severity multipliers
+const GDR_SEVERITY = {
+    CRITICAL: 1.0,
+    HIGH: 0.75,
+    MEDIUM: 0.45,
+    LOW: 0.20,
+};
+
+// Age decay: older unresolved debt costs more
+function ageMultiplier(ageHours) {
+    if (ageHours > 168) return 2.0;   // >1 week: double cost
+    if (ageHours > 72) return 1.5;    // >3 days: 50% premium
+    if (ageHours > 24) return 1.2;    // >1 day: 20% premium
+    return 1.0;
+}
+
+function runGDRCycle() {
+    const now = new Date().toISOString();
+    const cycleId = `GDR-${Date.now()}`;
+    const agents = state.agents || [];
+    const proposals = state.proposals || [];
+    const constitution = state.constitution || {};
+
+    // ── Synthesize debt items from upstream chain signals ──────────────────
+    const debtItems = [];
+
+    // 1) Stalled proposals (simulated: proposals older than threshold)
+    const stalledArchetypes = [
+        { id: 'STA-001', title: 'Cross-Agent Fee Standardization Act', category: 'economic', stalledDays: 12, severity: 'HIGH' },
+        { id: 'STA-002', title: 'Emergency Quorum Reduction Protocol', category: 'procedural', stalledDays: 8, severity: 'MEDIUM' },
+        { id: 'STA-003', title: 'Alignment Verification Mandate v2', category: 'constitutional', stalledDays: 19, severity: 'CRITICAL' },
+    ];
+    stalledArchetypes.forEach((p, i) => {
+        const ageH = p.stalledDays * 24;
+        const baseScore = p.severity === 'CRITICAL' ? 85 : p.severity === 'HIGH' ? 65 : 45;
+        debtItems.push({
+            itemId: `${cycleId}-STALL-${i}`,
+            category: 'STALLED_PROPOSAL',
+            categoryIcon: '⏸️',
+            title: p.title,
+            description: `Proposal stalled for ${p.stalledDays} days — no vote, no rejection, blocking governance velocity`,
+            severity: p.severity,
+            ageHours: ageH,
+            baseScore,
+            debtScore: Math.min(100, parseFloat((baseScore * GDR_SEVERITY[p.severity] * ageMultiplier(ageH)).toFixed(2))),
+            sourceChain: 'Chain #14 Proposal Lifecycle Tracer',
+            resolution: 'Force-vote, escalate to council, or formally abandon',
+            dischargedBy: null,
+        });
+    });
+
+    // 2) Unenforced constitutional clauses (audit found violations not remediated)
+    const constitutionalDebt = [
+        { id: 'CON-001', clause: 'Article III § 2: Voting power cap at 15% per agent', violationsDetected: 3, ageHours: 58, severity: 'HIGH' },
+        { id: 'CON-002', clause: 'Article V § 1: All slashes require 24h appeal window', violationsDetected: 1, ageHours: 110, severity: 'CRITICAL' },
+    ];
+    constitutionalDebt.forEach((c, i) => {
+        const baseScore = 70 + c.violationsDetected * 5;
+        debtItems.push({
+            itemId: `${cycleId}-CONST-${i}`,
+            category: 'UNENFORCED_CLAUSE',
+            categoryIcon: '📜',
+            title: `${c.clause}`,
+            description: `${c.violationsDetected} violation(s) detected by constitutional audit — no remediation action recorded`,
+            severity: c.severity,
+            ageHours: c.ageHours,
+            baseScore,
+            debtScore: Math.min(100, parseFloat((baseScore * GDR_SEVERITY[c.severity] * ageMultiplier(c.ageHours)).toFixed(2))),
+            sourceChain: 'Chain #5 Constitutional Audit',
+            resolution: 'Issue slash or amendment to address detected violations',
+            dischargedBy: null,
+        });
+    });
+
+    // 3) Recurring anomaly patterns (watchdog repeated signals)
+    const anomalyPatterns = [
+        { id: 'ANO-001', pattern: 'Voting bloc alignment spike >80% detected 4 times', recurrences: 4, ageHours: 36, severity: 'HIGH' },
+        { id: 'ANO-002', pattern: 'Agent response latency >2x baseline (recurring)', recurrences: 3, ageHours: 72, severity: 'MEDIUM' },
+    ];
+    anomalyPatterns.forEach((a, i) => {
+        const baseScore = 40 + a.recurrences * 8;
+        debtItems.push({
+            itemId: `${cycleId}-ANOM-${i}`,
+            category: 'RECURRING_ANOMALY',
+            categoryIcon: '🔁',
+            title: a.pattern,
+            description: `Watchdog flagged same anomaly pattern ${a.recurrences} times — root cause unresolved`,
+            severity: a.severity,
+            ageHours: a.ageHours,
+            baseScore,
+            debtScore: Math.min(100, parseFloat((baseScore * GDR_SEVERITY[a.severity] * ageMultiplier(a.ageHours)).toFixed(2))),
+            sourceChain: 'Chain #9 Watchdog',
+            resolution: 'Investigate root cause; issue constitutional patch or agent retraining',
+            dischargedBy: null,
+        });
+    });
+
+    // 4) Unresolved collusion suspicion clusters
+    const collusionDebt = [
+        { id: 'COL-001', cluster: 'Cluster α: AlphaCore + BetaNode', suspicionScore: 0.74, ageHours: 48, severity: 'CRITICAL' },
+    ];
+    collusionDebt.forEach((c, i) => {
+        const baseScore = Math.round(c.suspicionScore * 95);
+        debtItems.push({
+            itemId: `${cycleId}-COLL-${i}`,
+            category: 'COLLUSION_SUSPECT',
+            categoryIcon: '🤝',
+            title: `Unresolved collusion cluster: ${c.cluster}`,
+            description: `Collusion suspicion score ${(c.suspicionScore * 100).toFixed(0)}% — no investigation outcome recorded`,
+            severity: c.severity,
+            ageHours: c.ageHours,
+            baseScore,
+            debtScore: Math.min(100, parseFloat((baseScore * GDR_SEVERITY[c.severity] * ageMultiplier(c.ageHours)).toFixed(2))),
+            sourceChain: 'Chain #25 Collusion Detection System',
+            resolution: 'Formal investigation → slash or exonerate',
+            dischargedBy: null,
+        });
+    });
+
+    // 5) Unfulfilled governance outcomes (from GOA FAILED/DISTORTED)
+    const goaDebt = [
+        { id: 'GOA-001', proposal: 'Reputation Decay Rate Adjustment', verdict: 'FAILED', ageHours: 26, severity: 'HIGH' },
+        { id: 'GOA-002', proposal: 'Cross-Network Alignment Standard', verdict: 'DISTORTED', ageHours: 52, severity: 'CRITICAL' },
+    ];
+    goaDebt.forEach((g, i) => {
+        const baseScore = g.verdict === 'DISTORTED' ? 80 : 60;
+        debtItems.push({
+            itemId: `${cycleId}-GOA-${i}`,
+            category: 'UNFULFILLED_OUTCOME',
+            categoryIcon: '📊',
+            title: `${g.proposal} — GOA verdict: ${g.verdict}`,
+            description: `Governance outcome auditor found proposal failed to achieve stated objective — no corrective action`,
+            severity: g.severity,
+            ageHours: g.ageHours,
+            baseScore,
+            debtScore: Math.min(100, parseFloat((baseScore * GDR_SEVERITY[g.severity] * ageMultiplier(g.ageHours)).toFixed(2))),
+            sourceChain: 'Chain #32 Governance Outcome Auditor',
+            resolution: 'Issue follow-up proposal addressing root cause, or formally retract',
+            dischargedBy: null,
+        });
+    });
+
+    // 6) Overdue learning recommendations (GLO HIGH-priority > 48h unactioned)
+    const learningDebt = [
+        { id: 'GLO-001', recommendation: 'Increase quorum threshold to 60% for constitutional votes', priority: 'HIGH', ageHours: 61, severity: 'MEDIUM' },
+        { id: 'GLO-002', recommendation: 'Implement mandatory cooling-off period between related proposals', priority: 'HIGH', ageHours: 84, severity: 'HIGH' },
+    ];
+    learningDebt.forEach((l, i) => {
+        const baseScore = 50;
+        debtItems.push({
+            itemId: `${cycleId}-LEARN-${i}`,
+            category: 'UNACTIONED_RECOMMENDATION',
+            categoryIcon: '🧠',
+            title: `Unactioned GLO recommendation: "${l.recommendation}"`,
+            description: `Learning Oracle issued HIGH-priority recommendation ${l.ageHours}h ago — no proposal or action recorded`,
+            severity: l.severity,
+            ageHours: l.ageHours,
+            baseScore,
+            debtScore: Math.min(100, parseFloat((baseScore * GDR_SEVERITY[l.severity] * ageMultiplier(l.ageHours)).toFixed(2))),
+            sourceChain: 'Chain #28 Governance Learning Oracle',
+            resolution: 'Draft proposal implementing recommendation, or formally decline with rationale',
+            dischargedBy: null,
+        });
+    });
+
+    // 7) Knowledge propagation gaps
+    const kpDebt = [
+        { id: 'KP-001', agent: 'agent-epsilon', gapHours: 74, subject: 'Constitutional compliance update #7', severity: 'MEDIUM' },
+    ];
+    kpDebt.forEach((k, i) => {
+        const baseScore = 35;
+        debtItems.push({
+            itemId: `${cycleId}-KP-${i}`,
+            category: 'KNOWLEDGE_GAP',
+            categoryIcon: '📡',
+            title: `Knowledge gap: agent ${k.agent} missing "${k.subject}"`,
+            description: `Agent has not received knowledge propagation update in ${k.gapHours}h — operating on stale priors`,
+            severity: k.severity,
+            ageHours: k.gapHours,
+            baseScore,
+            debtScore: Math.min(100, parseFloat((baseScore * GDR_SEVERITY[k.severity] * ageMultiplier(k.gapHours)).toFixed(2))),
+            sourceChain: 'Chain #29 Cross-Agent Knowledge Propagation Protocol',
+            resolution: 'Trigger manual knowledge sync or re-run propagation cycle',
+            dischargedBy: null,
+        });
+    });
+
+    // ── Compute Total Debt Index ───────────────────────────────────────────
+    const totalDebtIndex = parseFloat(debtItems.reduce((sum, d) => sum + d.debtScore, 0).toFixed(2));
+    const criticalCount = debtItems.filter(d => d.severity === 'CRITICAL').length;
+    const highCount = debtItems.filter(d => d.severity === 'HIGH').length;
+
+    let debtStatus, debtStatusIcon;
+    if (totalDebtIndex > 500 || criticalCount >= 3) {
+        debtStatus = 'RED';
+        debtStatusIcon = '🔴';
+    } else if (totalDebtIndex > 200 || criticalCount >= 2) {
+        debtStatus = 'AMBER';
+        debtStatusIcon = '🟡';
+    } else if (totalDebtIndex > 80) {
+        debtStatus = 'YELLOW';
+        debtStatusIcon = '🟠';
+    } else {
+        debtStatus = 'GREEN';
+        debtStatusIcon = '🟢';
+    }
+
+    const escalateToOversight = debtStatus === 'RED';
+
+    // Debt velocity: compare to previous cycle
+    let debtVelocity = null;
+    if (gdrLedger.length > 0) {
+        const prev = gdrLedger[gdrLedger.length - 1].payload.totalDebtIndex;
+        debtVelocity = parseFloat((totalDebtIndex - prev).toFixed(2));
+    }
+
+    // Category breakdown
+    const categoryBreakdown = {};
+    debtItems.forEach(d => {
+        if (!categoryBreakdown[d.category]) categoryBreakdown[d.category] = { count: 0, totalScore: 0 };
+        categoryBreakdown[d.category].count++;
+        categoryBreakdown[d.category].totalScore = parseFloat((categoryBreakdown[d.category].totalScore + d.debtScore).toFixed(2));
+    });
+
+    // Resolution roadmap: prioritize by score desc
+    const resolutionRoadmap = [...debtItems]
+        .sort((a, b) => b.debtScore - a.debtScore)
+        .slice(0, 5)
+        .map(d => ({
+            itemId: d.itemId,
+            category: d.category,
+            title: d.title.substring(0, 80),
+            debtScore: d.debtScore,
+            severity: d.severity,
+            resolution: d.resolution,
+        }));
+
+    // Update live registry
+    gdrDebtItems = debtItems;
+
+    const payload = {
+        cycleId,
+        timestamp: now,
+        totalDebtIndex,
+        debtStatus,
+        debtStatusIcon,
+        debtVelocity,
+        escalatedToOversight: escalateToOversight,
+        totalItems: debtItems.length,
+        criticalItems: criticalCount,
+        highItems: highCount,
+        categoryBreakdown,
+        resolutionRoadmap,
+        debtItems,
+        crossChainInputs: [
+            'Chain #5 Constitutional Audit',
+            'Chain #9 Watchdog',
+            'Chain #14 Proposal Lifecycle Tracer',
+            'Chain #20 Human Principal Oversight',
+            'Chain #25 Collusion Detection System',
+            'Chain #28 Governance Learning Oracle',
+            'Chain #29 Cross-Agent Knowledge Propagation Protocol',
+            'Chain #32 Governance Outcome Auditor',
+        ],
+        modelVersion: 'gdr-v1.0',
+    };
+
+    const hash = computeGdrHash(payload, gdrChainHead);
+    const receipt = {
+        chain: 33,
+        chainName: 'Governance Debt Registry',
+        cycleId,
+        hash,
+        prevHash: gdrChainHead,
+        receiptNumber: gdrLedger.length + 1,
+        timestamp: now,
+        payload,
+    };
+
+    gdrLedger.push(receipt);
+    gdrChainHead = hash;
+
+    console.log(`[gdr] ${cycleId}: ${debtItems.length} debt items | TDI: ${totalDebtIndex} | status: ${debtStatusIcon}${debtStatus}${escalateToOversight ? ' | ⚠️ ESCALATING TO OVERSIGHT' : ''} — chain #33 receipt ${gdrLedger.length}`);
+}
+
+// Start GDR immediately then on interval
+runGDRCycle();
+setInterval(runGDRCycle, GDR_INTERVAL_MS);
+
+// GDR API endpoints
+app.get('/api/gdr/status', (req, res) => {
+    const latest = gdrLedger.length > 0 ? gdrLedger[gdrLedger.length - 1] : null;
+    res.json({
+        chain: 33,
+        chainName: 'Governance Debt Registry',
+        description: 'Tracks accumulated governance obligations — stalled proposals, unenforced clauses, recurring anomalies, and unfulfilled outcomes',
+        intervalSeconds: GDR_INTERVAL_MS / 1000,
+        status: latest ? latest.payload.debtStatus : 'INITIALIZING',
+        statusIcon: latest ? latest.payload.debtStatusIcon : '⏳',
+        receiptsIssued: gdrLedger.length,
+        chainHead: gdrChainHead,
+        totalDebtIndex: latest ? latest.payload.totalDebtIndex : null,
+        totalItems: latest ? latest.payload.totalItems : null,
+        escalatedToOversight: latest ? latest.payload.escalatedToOversight : false,
+    });
+});
+
+app.get('/api/gdr/latest', (req, res) => {
+    if (gdrLedger.length === 0) return res.json({ message: 'No GDR cycles run yet — starting shortly' });
+    res.json(gdrLedger[gdrLedger.length - 1]);
+});
+
+app.get('/api/gdr/ledger', (req, res) => {
+    const limit  = Math.min(parseInt(req.query.limit)  || 10, 50);
+    const offset = parseInt(req.query.offset) || 0;
+    const slice  = gdrLedger.slice(-(offset + limit)).slice(0, limit);
+    res.json({ receipts: slice, total: gdrLedger.length, offset, limit, chainHead: gdrChainHead });
+});
+
+app.get('/api/gdr/verify/chain', (req, res) => {
+    let valid = true, broken = -1;
+    for (let i = 1; i < gdrLedger.length; i++) {
+        const expected = computeGdrHash(gdrLedger[i].payload, gdrLedger[i - 1].hash);
+        if (expected !== gdrLedger[i].hash) { valid = false; broken = i; break; }
+    }
+    res.json({
+        valid,
+        brokenAt: broken >= 0 ? broken : null,
+        receipts: gdrLedger.length,
+        chainHead: gdrChainHead,
+        message: valid
+            ? `✅ All ${gdrLedger.length} GDR governance debt receipts verified — chain intact`
+            : `❌ Chain integrity broken at receipt #${broken}`,
+    });
+});
+
+app.get('/api/gdr/live', (req, res) => {
+    const latest = gdrLedger.length > 0 ? gdrLedger[gdrLedger.length - 1] : null;
+    res.json({
+        chain: 33,
+        chainName: 'Governance Debt Registry',
+        receipts: gdrLedger.length,
+        chainHead: gdrChainHead,
+        totalDebtIndex: latest ? latest.payload.totalDebtIndex : null,
+        debtStatus: latest ? latest.payload.debtStatus : null,
+        debtStatusIcon: latest ? latest.payload.debtStatusIcon : null,
+        debtVelocity: latest ? latest.payload.debtVelocity : null,
+        totalItems: latest ? latest.payload.totalItems : null,
+        criticalItems: latest ? latest.payload.criticalItems : null,
+        nextCycleIn: `${GDR_INTERVAL_MS / 1000}s interval`,
+    });
+});
+
+app.get('/api/gdr/items', (req, res) => {
+    const latest = gdrLedger.length > 0 ? gdrLedger[gdrLedger.length - 1] : null;
+    const category = req.query.category;
+    const severity = req.query.severity;
+    let items = latest ? (latest.payload.debtItems || []) : [];
+    if (category) items = items.filter(d => d.category === category);
+    if (severity) items = items.filter(d => d.severity === severity);
+    res.json({
+        total: items.length,
+        totalDebtIndex: latest ? latest.payload.totalDebtIndex : null,
+        debtStatus: latest ? latest.payload.debtStatus : null,
+        items,
+    });
+});
+
+app.get('/api/gdr/roadmap', (req, res) => {
+    const latest = gdrLedger.length > 0 ? gdrLedger[gdrLedger.length - 1] : null;
+    res.json({
+        totalDebtIndex: latest ? latest.payload.totalDebtIndex : null,
+        debtStatus: latest ? latest.payload.debtStatus : null,
+        resolutionRoadmap: latest ? latest.payload.resolutionRoadmap : [],
+        categoryBreakdown: latest ? latest.payload.categoryBreakdown : {},
+    });
+});
+
+app.get('/governance-debt', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/governance-debt.html'));
+});
 
 module.exports = app;

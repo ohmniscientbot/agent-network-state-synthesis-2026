@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Governance Debt Registry — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #fbbf24, #f87171); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 700px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4, .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .status-GREEN  { color: #4ade80; }
+  .status-YELLOW { color: #fbbf24; }
+  .status-AMBER  { color: #f97316; }
+  .status-RED    { color: #ef4444; }
+
+  .tdi-bar-wrap { background: #1e293b; border-radius: 999px; height: 10px; margin-top: 0.5rem; overflow: hidden; }
+  .tdi-bar { height: 10px; border-radius: 999px; transition: width 0.8s ease; }
+  .tdi-bar-GREEN  { background: linear-gradient(90deg, #4ade80, #22c55e); }
+  .tdi-bar-YELLOW { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  .tdi-bar-AMBER  { background: linear-gradient(90deg, #f97316, #ea580c); }
+  .tdi-bar-RED    { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+  .debt-item {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 0.85rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .debt-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+  }
+  .sev-CRITICAL::before { background: #ef4444; }
+  .sev-HIGH::before     { background: #f97316; }
+  .sev-MEDIUM::before   { background: #fbbf24; }
+  .sev-LOW::before      { background: #94a3b8; }
+
+  .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.6rem; }
+  .item-title { font-size: 0.97rem; font-weight: 700; color: #e2e8f0; }
+  .item-desc { font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.6rem; }
+  .item-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: #64748b; }
+  .meta-tag { background: #1e293b; padding: 0.2rem 0.6rem; border-radius: 999px; }
+  .resolution-tip { background: #1e293b; border-radius: 0.5rem; padding: 0.6rem 1rem; font-size: 0.82rem; color: #a3e635; margin-top: 0.6rem; }
+
+  .sev-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.25rem 0.65rem; border-radius: 999px; font-weight: 800; font-size: 0.78rem;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .sev-CRITICAL { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+  .sev-HIGH     { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+  .sev-MEDIUM   { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .sev-LOW      { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+
+  .score-pill { display: inline-block; background: #0f172a; border: 1px solid #334155; padding: 0.2rem 0.65rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; color: #fbbf24; }
+
+  .section-head { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #64748b; margin: 2rem 0 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-head::after { content: ''; flex: 1; height: 1px; background: #1e293b; }
+
+  .category-badge { display: inline-block; background: #1e293b; border: 1px solid #334155; border-radius: 0.4rem; padding: 0.2rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
+
+  .roadmap-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #111827; border: 1px solid #1e293b; border-radius: 0.75rem; margin-bottom: 0.5rem; gap: 1rem; }
+  .roadmap-rank { font-size: 1.1rem; font-weight: 800; color: #f59e0b; min-width: 1.5rem; }
+
+  .catbox { background: #111827; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem 1.25rem; }
+  .catbox-head { font-size: 0.78rem; font-weight: 700; color: #94a3b8; margin-bottom: 0.3rem; }
+  .catbox-score { font-size: 1.5rem; font-weight: 800; color: #e2e8f0; }
+  .catbox-count { font-size: 0.78rem; color: #64748b; }
+
+  .receipt-meta { font-size: 0.78rem; color: #475569; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.85rem 1.1rem; margin-top: 0.75rem; font-family: 'JetBrains Mono', 'Courier New', monospace; }
+  .receipt-meta span { color: #94a3b8; }
+
+  .escalation-alert { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 1rem; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: none; }
+  .escalation-alert.active { display: block; }
+
+  .loading { text-align: center; color: #475569; padding: 3rem; }
+  .refresh-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 0.4rem 1rem; border-radius: 0.5rem; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
+  .refresh-btn:hover { background: #334155; color: #e2e8f0; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 0.4rem; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(0.8)} }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page-wrap">
+  <div class="chain-badge">⚡ Chain #33 — ERC-8004</div>
+  <h1>📋 Governance Debt Registry</h1>
+  <p class="subtitle">
+    The first autonomous governance-debt tracking system for DAOs. Just as software accumulates <em>technical debt</em>,
+    governance systems accumulate <em>governance debt</em> — stalled proposals, unenforced constitutional clauses,
+    unresolved collusion clusters, and unfulfilled outcomes. Chain #33 synthesizes signals from 8 upstream chains into
+    a Total Debt Index (TDI) with cryptographic receipts every 195 seconds. When debt goes RED, the DAO knows exactly what to fix.
+  </p>
+
+  <div id="escalation-alert" class="escalation-alert">
+    <strong>⚠️ ESCALATED TO HUMAN OVERSIGHT:</strong> Total Debt Index exceeds RED threshold (TDI &gt; 500).
+    Automatic escalation to Chain #20 Human Principal Oversight initiated.
+  </div>
+
+  <div class="grid-4" id="summary-grid">
+    <div class="card"><div class="card-title">Total Debt Index</div><div class="card-value" id="tdi-val">—</div><div class="tdi-bar-wrap"><div class="tdi-bar" id="tdi-bar" style="width:0%"></div></div><div class="card-sub" id="tdi-max">Max: 1000</div></div>
+    <div class="card"><div class="card-title">Debt Status</div><div class="card-value" id="status-val">—</div><div class="card-sub" id="status-sub">—</div></div>
+    <div class="card"><div class="card-title">Open Debt Items</div><div class="card-value" id="items-val">—</div><div class="card-sub" id="critical-sub">—</div></div>
+    <div class="card"><div class="card-title">Receipts Issued</div><div class="card-value" id="receipts-val">—</div><div class="card-sub"><span class="live-dot"></span>Live — every 195s</div></div>
+  </div>
+
+  <div class="section-head">📊 Debt by Category</div>
+  <div class="grid-4" id="category-grid"><div class="loading">Loading categories…</div></div>
+
+  <div class="section-head">🚨 Resolution Roadmap — Top Priority Items</div>
+  <div id="roadmap-list"><div class="loading">Loading roadmap…</div></div>
+
+  <div class="section-head">📋 All Open Debt Items</div>
+  <div id="filter-row" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+    <button class="refresh-btn" onclick="filterItems('ALL')" id="btn-ALL">All</button>
+    <button class="refresh-btn" onclick="filterItems('CRITICAL')" id="btn-CRITICAL">🔴 Critical</button>
+    <button class="refresh-btn" onclick="filterItems('HIGH')" id="btn-HIGH">🟠 High</button>
+    <button class="refresh-btn" onclick="filterItems('MEDIUM')" id="btn-MEDIUM">🟡 Medium</button>
+    <button class="refresh-btn" onclick="filterItems('LOW')" id="btn-LOW">⚪ Low</button>
+    <button class="refresh-btn" onclick="loadData()" style="margin-left:auto">↺ Refresh</button>
+  </div>
+  <div id="items-list"><div class="loading">Loading debt items…</div></div>
+
+  <div class="section-head">🔗 Chain Receipt</div>
+  <div class="receipt-meta" id="receipt-meta">Loading chain receipt…</div>
+
+  <div class="section-head">🔗 Cross-Chain Inputs</div>
+  <div class="card" style="display:flex;flex-wrap:wrap;gap:0.5rem" id="chain-inputs">
+    <div class="loading">Loading…</div>
+  </div>
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+let allItems = [];
+let currentFilter = 'ALL';
+
+async function loadData() {
+  try {
+    const [latest, roadmap] = await Promise.all([
+      fetch('/api/gdr/latest').then(r => r.json()),
+      fetch('/api/gdr/roadmap').then(r => r.json()),
+    ]);
+
+    if (latest.message) {
+      document.getElementById('items-list').innerHTML = '<div class="loading">Initializing Chain #33 — first cycle running…</div>';
+      return;
+    }
+
+    const p = latest.payload;
+    const tdi = p.totalDebtIndex;
+    const status = p.debtStatus;
+
+    // Summary
+    document.getElementById('tdi-val').textContent = tdi.toFixed(0);
+    document.getElementById('tdi-val').className = `card-value status-${status}`;
+    document.getElementById('tdi-bar').style.width = Math.min(100, (tdi / 1000) * 100) + '%';
+    document.getElementById('tdi-bar').className = `tdi-bar tdi-bar-${status}`;
+    document.getElementById('status-val').innerHTML = `${p.debtStatusIcon} <span class="status-${status}">${status}</span>`;
+    const velocityStr = p.debtVelocity !== null ? (p.debtVelocity > 0 ? `+${p.debtVelocity.toFixed(1)} vs prev` : `${p.debtVelocity.toFixed(1)} vs prev`) : 'First cycle';
+    document.getElementById('status-sub').textContent = velocityStr;
+    document.getElementById('items-val').textContent = p.totalItems;
+    document.getElementById('critical-sub').textContent = `${p.criticalItems} critical · ${p.highItems} high`;
+    document.getElementById('receipts-val').textContent = latest.receiptNumber;
+
+    // Escalation
+    const alertEl = document.getElementById('escalation-alert');
+    if (p.escalatedToOversight) alertEl.classList.add('active');
+    else alertEl.classList.remove('active');
+
+    // Category breakdown
+    const catGrid = document.getElementById('category-grid');
+    const catMap = {
+      STALLED_PROPOSAL: '⏸️ Stalled Proposals',
+      UNENFORCED_CLAUSE: '📜 Unenforced Clauses',
+      RECURRING_ANOMALY: '🔁 Recurring Anomalies',
+      COLLUSION_SUSPECT: '🤝 Collusion Suspects',
+      UNFULFILLED_OUTCOME: '📊 Unfulfilled Outcomes',
+      UNACTIONED_RECOMMENDATION: '🧠 Unactioned Recs',
+      KNOWLEDGE_GAP: '📡 Knowledge Gaps',
+    };
+    const cats = p.categoryBreakdown || {};
+    catGrid.innerHTML = Object.entries(cats).map(([cat, info]) =>
+      `<div class="catbox"><div class="catbox-head">${catMap[cat] || cat}</div><div class="catbox-score">${info.totalScore.toFixed(0)}</div><div class="catbox-count">${info.count} item${info.count !== 1 ? 's' : ''}</div></div>`
+    ).join('');
+
+    // Roadmap
+    const rm = roadmap.resolutionRoadmap || [];
+    document.getElementById('roadmap-list').innerHTML = rm.map((item, i) =>
+      `<div class="roadmap-row">
+        <div class="roadmap-rank">#${i+1}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.9rem;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.title}</div>
+          <div style="font-size:0.78rem;color:#64748b;margin-top:0.2rem">${item.resolution}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem;flex-shrink:0">
+          <span class="score-pill">TDI ${item.debtScore.toFixed(0)}</span>
+          <span class="sev-badge sev-${item.severity}">${item.severity}</span>
+        </div>
+      </div>`
+    ).join('');
+
+    // Items
+    allItems = p.debtItems || [];
+    renderItems();
+
+    // Receipt
+    document.getElementById('receipt-meta').innerHTML =
+      `<span>chain</span> #${latest.chain} — ${latest.chainName}<br>` +
+      `<span>receipt</span> #${latest.receiptNumber}<br>` +
+      `<span>hash</span> ${latest.hash}<br>` +
+      `<span>prev</span> ${latest.prevHash}<br>` +
+      `<span>timestamp</span> ${latest.timestamp}`;
+
+    // Cross-chain inputs
+    document.getElementById('chain-inputs').innerHTML = (p.crossChainInputs || []).map(c =>
+      `<span class="category-badge">${c}</span>`
+    ).join('');
+
+  } catch(e) {
+    document.getElementById('items-list').innerHTML = `<div class="loading">Error loading data: ${e.message}</div>`;
+  }
+}
+
+function renderItems() {
+  const filtered = currentFilter === 'ALL' ? allItems : allItems.filter(d => d.severity === currentFilter);
+  document.getElementById('items-list').innerHTML = filtered.map(d => `
+    <div class="debt-item sev-${d.severity}">
+      <div class="item-header">
+        <div>
+          <div class="item-title">${d.categoryIcon} ${d.title}</div>
+          <div class="item-desc">${d.description}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.35rem;flex-shrink:0">
+          <span class="sev-badge sev-${d.severity}">${d.severity}</span>
+          <span class="score-pill">Score: ${d.debtScore.toFixed(1)}</span>
+        </div>
+      </div>
+      <div class="item-meta">
+        <span class="meta-tag">⏱ ${d.ageHours}h unresolved</span>
+        <span class="meta-tag">📡 ${d.sourceChain}</span>
+        <span class="meta-tag">Base: ${d.baseScore}</span>
+        <span class="meta-tag">Age ×${(d.debtScore / (d.baseScore * (d.severity === 'CRITICAL' ? 1 : d.severity === 'HIGH' ? 0.75 : d.severity === 'MEDIUM' ? 0.45 : 0.20))).toFixed(2)}</span>
+      </div>
+      <div class="resolution-tip">💡 <strong>Resolution:</strong> ${d.resolution}</div>
+    </div>
+  `).join('') || '<div class="loading">No items for this filter.</div>';
+}
+
+function filterItems(sev) {
+  currentFilter = sev;
+  document.querySelectorAll('[id^="btn-"]').forEach(b => b.style.borderColor = '');
+  document.getElementById('btn-' + sev).style.borderColor = '#f59e0b';
+  renderItems();
+}
+
+loadData();
+setInterval(loadData, 60000);
+</script>
+</body>
+</html>
