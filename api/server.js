@@ -144,6 +144,14 @@ app.get('/docs', (req, res) => {
 app.get('/chains', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/chains.html'));
 });
+app.get('/analytics/network-status', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/network-status.html'));
+});
+// Legacy redirects for judge-facing pages → agent-facing equivalents
+app.get('/analytics/judge-dashboard', (req, res) => res.redirect(301, '/analytics/network-status'));
+app.get('/judge-dashboard', (req, res) => res.redirect(301, '/analytics/network-status'));
+app.get('/analytics/scorecard', (req, res) => res.redirect(301, '/analytics/network-status'));
+app.get('/scorecard', (req, res) => res.redirect(301, '/analytics/network-status'));
 app.get('/interactive', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/interactive.html'));
 });

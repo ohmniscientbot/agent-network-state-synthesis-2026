@@ -2691,6 +2691,17 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L121",
+      "timestamp": "2026-03-20T21:20:00Z",
+      "type": "refactor",
+      "description": "Remove judge-facing pages from nav. Judge Cockpit and Scorecard replaced by /analytics/network-status \u2014 agent-citizen framing: chain health, loop status, receipt counts. Old URLs 301 redirect to network-status. Site is now directed at agents, not evaluators.",
+      "tools": [
+        "write",
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

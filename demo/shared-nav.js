@@ -44,8 +44,7 @@ const NAV_CONFIG = {
             text: "📊 Analytics",
             id: "analytics-dropdown",
             items: [
-                { href: "/analytics/judge-dashboard", text: "👨‍⚖️ Judge's Cockpit", id: "judge-dashboard" },
-                { href: "/analytics/scorecard", text: "📊 Scorecard", id: "scorecard" },
+                { href: "/analytics/network-status", text: "🌐 Network Status", id: "network-status" },
                 { href: "/analytics/roi", text: "📈 ROI Analytics", id: "roi" },
                 { href: "/analytics/health", text: "💚 Health Index", id: "health-index" },
                 { href: "/analytics/systemic-risk", text: "⚡ Systemic Risk", id: "systemic-risk" },
