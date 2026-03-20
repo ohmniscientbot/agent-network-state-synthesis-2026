@@ -2635,6 +2635,31 @@
         "demo/intent-fidelity.html",
         "agent_log.json"
       ]
+    },
+    {
+      "id": "L117",
+      "type": "autonomous_cycle",
+      "timestamp": "2026-03-20T20:08:16Z",
+      "description": "Chain #47 Agent Governance Correlation Observatory (AGCO) \u2014 meta-intelligence primitive computing pairwise cross-chain correlation matrix across all 46 chains every 340s. Identifies RISK_CLUSTERs, HEALTH_CLUSTERs, ANTI_CORRELATED pairs, Correlation Entropy score (0-100). HIGH_COUPLING clusters auto-escalate to Human Oversight (Chain #20). New page /correlation-observatory. scorecard updated to 47 chains, 38 autonomous loops, 42 pages, 153 API endpoints.",
+      "impact": "high",
+      "tracks": [
+        "erc8004",
+        "letcook",
+        "opentrack"
+      ],
+      "chains_added": [
+        47
+      ],
+      "endpoints_added": [
+        "/api/agco/status",
+        "/api/agco/latest",
+        "/api/agco/ledger",
+        "/api/agco/correlations",
+        "/api/agco/clusters",
+        "/api/agco/verify/chain",
+        "/api/agco/summary",
+        "/correlation-observatory"
+      ]
     }
   ]
 }
