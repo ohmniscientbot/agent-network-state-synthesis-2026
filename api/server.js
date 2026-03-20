@@ -17225,7 +17225,7 @@ function runAccmCycle() {
     const seed = accmCycleCount * 31;
 
     // Compute live governance context signals
-    const totalVotes = receiptLedger ? receiptLedger.length : 0;
+    const totalVotes = voteReceiptLedger ? voteReceiptLedger.length : 0;
     const slashCount = slashLedger ? slashLedger.length : 0;
     const totalDelegations = delegationReceiptLedger ? delegationReceiptLedger.length : 0;
     const aderCount = aderLedger ? aderLedger.length : 0;
@@ -17248,7 +17248,7 @@ function runAccmCycle() {
         } else if (art.id === 'art-2') {
             // Contribution Sovereignty: contributions must be immutable
             score = ((seed * (i + 2) * 17) % 15) + 85; // 85–99
-            evidence.push(`${state.contributions ? state.contributions.length : 0} verified contributions on record — immutability enforced`);
+            evidence.push(`${contributions ? contributions.length : 0} verified contributions on record — immutability enforced`);
             evidence.push('No retroactive invalidation events detected in this cycle');
         } else if (art.id === 'art-3') {
             // Kill Switch: APAP flagged agents should be suspendable
@@ -17267,7 +17267,7 @@ function runAccmCycle() {
             evidence.push(`${totalDelegations} delegation receipts on Chain #4`);
         } else if (art.id === 'art-5') {
             // Anti-Plutocracy: VP distribution check
-            const vpData = state.governanceTokenBalances || {};
+            const vpData = governanceTokenBalances || {};
             const totalVP = Object.values(vpData).reduce((s, v) => s + (v || 0), 0);
             const maxVP = Math.max(...Object.values(vpData).map(v => v || 0), 0);
             const maxPct = totalVP > 0 ? (maxVP / totalVP * 100).toFixed(1) : 0;
@@ -17288,7 +17288,7 @@ function runAccmCycle() {
             evidence.push('No unauthorized cross-DAO governance impositions detected');
         } else if (art.id === 'art-7') {
             // Amendment Process: amendments must meet 80% quorum + 7-day deliberation
-            const amendCount = state.constitution && state.constitution.amendments ? state.constitution.amendments.length : 0;
+            const amendCount = constitution && constitution.amendments ? constitution.amendments.length : 0;
             score = amendCount > 0
                 ? (((seed * (i + 17) * 29) % 20) + 75) // 75–94
                 : 95;
