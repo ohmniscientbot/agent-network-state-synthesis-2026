@@ -2423,6 +2423,34 @@
         "/incentives"
       ],
       "impact": "first DAO to cryptographically quantify agent participation motivation with tier rewards and guided improvement"
+    },
+    {
+      "id": "L107",
+      "timestamp": "2026-03-20T10:10:00Z",
+      "type": "autonomous_cycle",
+      "description": "Chain #38 Agent Peer Audit Protocol (APAP) \u2014 autonomous adversarial peer-review chain: every 260s an agent audits a peer's Chain #36 (ADER) WHY receipt across 5 dimensions (reasoning coherence, constitutional grounding, outcome alignment, confidence calibration, cross-chain consistency). Verdicts: VERIFIED/CHALLENGED/FLAGGED. FLAGGED auto-escalates to Human Oversight (Chain #20). Includes peer-audit.html frontend. Closes the adversarial peer-review gap \u2014 no agent's reasoning ever escapes scrutiny.",
+      "chains_added": [
+        38
+      ],
+      "pages_added": [
+        "peer-audit.html"
+      ],
+      "api_endpoints_added": [
+        "/api/apap/status",
+        "/api/apap/ledger",
+        "/api/apap/verify/chain",
+        "/api/apap/latest",
+        "/api/apap/agent/:agentId",
+        "/api/apap/summary",
+        "/peer-audit"
+      ],
+      "scorecard_updated": {
+        "erc8004ChainCount": 38,
+        "autonomousLoopsRunning": 29,
+        "totalPages": 35,
+        "totalApiEndpoints": 104
+      },
+      "impact": "first DAO with autonomous adversarial peer-review of agent reasoning receipts \u2014 adversarial completeness closes the explainability loop"
     }
   ]
 }

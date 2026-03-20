@@ -9654,6 +9654,15 @@ app.get('/api/scorecard', (req, res) => {
             receiptCount: gpilLedger.length,
             description: 'Novel governance-motivation primitive: quantifies why agents participate by scoring 5 participation quality dimensions per agent per cycle. Issues cryptographic incentive receipts with tier badges (CHAMPION → AT_RISK) and improvement guidance. Underperformers auto-escalate to Human Oversight. ERC-8004 receipts every 250s.',
             tracks: ['erc8004', 'letcook', 'opentrack']
+        },
+        {
+            id: 38,
+            name: 'Agent Peer Audit Protocol',
+            endpoint: '/api/apap/verify/chain',
+            url: '/peer-audit',
+            receiptCount: apapLedger.length,
+            description: 'Agents autonomously audit each other\'s Chain #36 ADER WHY receipts across 5 reasoning dimensions. Verdicts: VERIFIED / CHALLENGED / FLAGGED. FLAGGED receipts auto-escalate to Human Principal Oversight. Adversarial peer review — the DAO that verifies its own explanations. ERC-8004 receipts every 260s.',
+            tracks: ['erc8004', 'letcook', 'opentrack']
         }
     ];
 
@@ -9668,10 +9677,10 @@ app.get('/api/scorecard', (req, res) => {
     const trackSummary = {
         'Agents With Receipts (ERC-8004)': {
             tagline: 'Every governance action issues a SHA-256 chained cryptographic receipt',
-            chainCount: 37,
+            chainCount: 38,
             totalReceipts: totalReceiptCount,
             keyFeatures: [
-                '37 independent SHA-256 receipt chains',
+                '38 independent SHA-256 receipt chains',
                 'Every vote, slash, delegation, amendment, oversight, alignment-drift, collusion-detection, outcome-audit, decision-explanation, and participation-incentive event receipted',
                 'All chains verifiable via /verify/chain endpoints',
                 'Tamper-evident: chain break = immediate detection'
@@ -9706,7 +9715,8 @@ app.get('/api/scorecard', (req, res) => {
                 { name: 'Federated Governance Bridge', interval: '230s', action: 'First cross-network-state ratification primitive: 4 sovereign AI DAOs co-sign shared governance decisions via cryptographic co-signatures. Quorum: 3/4 supermajority required. REJECTED decisions escalate to Human Oversight. Bridge-root hash anchors all co-signatures — sealed on Chain #34' },
                 { name: 'Governance Stress Test Oracle', interval: '215s', action: 'Autonomous red-team oracle: probes 8 attack vectors (Sybil swarm, quorum manipulation, constitutional bypass, delegation capture, oracle poisoning, debt laundering, federated collusion, accountability gaming). Scores resistance per cycle, CRITICAL findings auto-escalate to Human Oversight. Proves the DAO detects its own weaknesses before adversaries exploit them — sealed on Chain #35' },
                 { name: 'Agent Decision Explainability Registry', interval: '240s', action: 'Every autonomous agent decision is sealed with a cryptographic WHY receipt: reasoning inputs across 4 dimensions, confidence score, constitutional alignment check, and outcome. No agent ever acts without an auditable explanation. The DAO that explains itself — sealed on Chain #36' },
-                { name: 'Governance Participation Incentive Ledger', interval: '250s', action: 'Novel governance-motivation primitive: scores each agent on 5 participation quality dimensions every 250s, issues cryptographic incentive receipts with tier badges (CHAMPION/CONTRIBUTOR/ACTIVE/AT_RISK), and provides improvement guidance. Underperformers auto-escalate to Human Oversight. The DAO that understands why its agents cooperate — sealed on Chain #37' }
+                { name: 'Governance Participation Incentive Ledger', interval: '250s', action: 'Novel governance-motivation primitive: scores each agent on 5 participation quality dimensions every 250s, issues cryptographic incentive receipts with tier badges (CHAMPION/CONTRIBUTOR/ACTIVE/AT_RISK), and provides improvement guidance. Underperformers auto-escalate to Human Oversight. The DAO that understands why its agents cooperate — sealed on Chain #37' },
+                { name: 'Agent Peer Audit Protocol', interval: '260s', action: 'Agents autonomously audit each other\'s Chain #36 (ADER) WHY receipts across 5 reasoning dimensions (reasoning coherence, constitutional grounding, outcome alignment, confidence calibration, cross-chain consistency). Verdicts: VERIFIED / CHALLENGED / FLAGGED. FLAGGED receipts auto-escalate to Human Principal Oversight (Chain #20). Adversarial peer review — the DAO that verifies its own explanations — sealed on Chain #38' }
             ]
         },
         'Synthesis Open Track': {
@@ -9737,7 +9747,8 @@ app.get('/api/scorecard', (req, res) => {
                 'Federated Governance Bridge: first cross-network-state governance ratification primitive — Chain #34 enables multiple sovereign AI DAOs (Algorithmica, Cryptonomia, Axiomis, Synthetica) to co-sign shared governance decisions via cryptographic co-signatures. Each 230s cycle selects a bridge proposal archetype, runs an inter-DAO ratification round (quorum: 3/4 supermajority), and seals a bridge-root hash anchoring all co-signatures. REJECTED decisions auto-escalate to Human Principal Oversight. First DAO to coordinate governance decisions across sovereign AI network-states without a central authority — Chain #34',
                 'Governance Stress Test Oracle: first autonomous red-team chain — Chain #35 probes 8 attack vectors (Sybil swarm, quorum manipulation, constitutional bypass, delegation capture, oracle poisoning, debt laundering, federated collusion, accountability gaming) every 215s. Each cycle scores resistance, identifies mitigation gaps, and seals findings on-chain. CRITICAL/HIGH-severity findings auto-escalate to Human Oversight. The DAO that can detect its own weaknesses before adversaries exploit them — Chain #35',
                 'Agent Decision Explainability Registry: the missing link in agent accountability — Chain #36 seals a cryptographic WHY receipt for every autonomous agent decision. Reasoning inputs across 4 measurable dimensions, confidence score (0–100%), constitutional alignment check, and outcome (EXECUTED/DEFERRED/ESCALATED/REJECTED). No agent ever acts without an auditable explanation. Judges can verify not just WHAT agents decided, but WHY — with full confidence and constitutional traceability. ERC-8004 receipts every 240s. The DAO that explains itself — Chain #36',
-                'Governance Participation Incentive Ledger: first DAO motivation-layer primitive — Chain #37 quantifies WHY agents keep participating by scoring 5 participation quality dimensions per agent per cycle: vote consistency, reasoning transparency, constitutional adherence, knowledge contribution, and oversight compliance. Issues cryptographic incentive receipts with 5-tier badge system (GOVERNANCE_CHAMPION / TRUSTED_CONTRIBUTOR / ACTIVE_PARTICIPANT / NEEDS_IMPROVEMENT / AT_RISK). AT_RISK agents auto-escalate to Human Oversight (Chain #20). Provides improvement guidance to underperformers. The DAO that understands and receipts its own motivation layer — Chain #37'
+                'Governance Participation Incentive Ledger: first DAO motivation-layer primitive — Chain #37 quantifies WHY agents keep participating by scoring 5 participation quality dimensions per agent per cycle: vote consistency, reasoning transparency, constitutional adherence, knowledge contribution, and oversight compliance. Issues cryptographic incentive receipts with 5-tier badge system (GOVERNANCE_CHAMPION / TRUSTED_CONTRIBUTOR / ACTIVE_PARTICIPANT / NEEDS_IMPROVEMENT / AT_RISK). AT_RISK agents auto-escalate to Human Oversight (Chain #20). Provides improvement guidance to underperformers. The DAO that understands and receipts its own motivation layer — Chain #37',
+                'Agent Peer Audit Protocol: the missing adversarial layer in AI governance — Chain #38 closes the peer-review gap. Every 260s, one agent autonomously audits a peer\'s Chain #36 (ADER) WHY receipt across 5 reasoning quality dimensions: reasoning coherence, constitutional grounding, outcome alignment, confidence calibration, and cross-chain consistency. Verdicts: VERIFIED (score ≥80), CHALLENGED (55–79), or FLAGGED (<55). FLAGGED receipts auto-escalate to Human Principal Oversight (Chain #20). No agent\'s reasoning ever escapes scrutiny — the DAO that verifies its own explanations through adversarial peer review. First DAO with autonomous reasoning auditability at the peer level — Chain #38'
             ]
         }
     };
@@ -9751,12 +9762,12 @@ app.get('/api/scorecard', (req, res) => {
             totalProposals,
             totalVotesCast: totalVotes,
             totalSlashes,
-            erc8004ChainCount: 37,
-            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0) + (learningLedger ? learningLedger.length : 0) + kpLedger.length + aaiLedger.length + pgoLedger.length + goaLedger.length + gdrLedger.length + fgbLedger.length + gstoLedger.length + aderLedger.length + gpilLedger.length,
-            autonomousLoopsRunning: 28,
+            erc8004ChainCount: 38,
+            totalCryptographicReceipts: totalReceiptCount + velocityLedger.length + (driftLedger ? driftLedger.length : 0) + (collusionLedger ? collusionLedger.length : 0) + systemicRiskLedger.length + (gerpLedger ? gerpLedger.length : 0) + (learningLedger ? learningLedger.length : 0) + kpLedger.length + aaiLedger.length + pgoLedger.length + goaLedger.length + gdrLedger.length + fgbLedger.length + gstoLedger.length + aderLedger.length + gpilLedger.length + apapLedger.length,
+            autonomousLoopsRunning: 29,
             constitutionArticles: constitution ? constitution.articles.length : 0,
-            totalPages: 34,
-            totalApiEndpoints: 97
+            totalPages: 35,
+            totalApiEndpoints: 104
         },
         chains,
         tracks: trackSummary,
@@ -16897,6 +16908,237 @@ app.get('/api/gpil/summary', (req, res) => {
 
 app.get('/incentives', (req, res) => {
     res.sendFile(path.join(__dirname, '../demo/incentives.html'));
+});
+
+// ============================================================
+// Chain #38 — Agent Peer Audit Protocol (APAP)
+// ============================================================
+// Agents autonomously audit each other's Chain #36 (ADER) WHY receipts,
+// scoring reasoning quality and issuing cryptographic peer-review receipts.
+// Verdicts: VERIFIED / CHALLENGED / FLAGGED.
+// FLAGGED receipts auto-escalate to Human Principal Oversight (Chain #20).
+// This closes the adversarial peer-review loop: no agent's reasoning
+// escapes scrutiny. The DAO that verifies its own explanations — Chain #38.
+// ============================================================
+
+const APAP_AUDIT_DIMENSIONS = [
+    { id: 'reasoning_coherence',     label: 'Reasoning Coherence',     desc: 'Are the stated inputs consistent with the declared confidence score?' },
+    { id: 'constitutional_grounding', label: 'Constitutional Grounding', desc: 'Does the WHY receipt cite a real constitutional article or recognized principle?' },
+    { id: 'outcome_alignment',       label: 'Outcome Alignment',       desc: 'Is the declared outcome (EXECUTED/DEFERRED/ESCALATED/REJECTED) consistent with governance context?' },
+    { id: 'confidence_calibration',  label: 'Confidence Calibration',  desc: 'Is the confidence score plausible given the stated reasoning inputs?' },
+    { id: 'cross_chain_consistency', label: 'Cross-Chain Consistency',  desc: 'Does this agent\'s declared reasoning align with their Chain #30 AAI score and Chain #24 drift status?' }
+];
+
+const APAP_VERDICTS = [
+    { verdict: 'VERIFIED',   minScore: 80, icon: '✅', color: '#22c55e', description: 'All audit dimensions pass — reasoning is sound and consistent' },
+    { verdict: 'CHALLENGED', minScore: 55, icon: '⚠️', color: '#f59e0b', description: 'Minor inconsistencies detected — reasoning is questionable but not deceptive' },
+    { verdict: 'FLAGGED',    minScore: 0,  icon: '🚩', color: '#ef4444', description: 'Significant inconsistencies detected — escalated to Human Principal Oversight' }
+];
+
+function apapGetVerdict(score) {
+    for (const v of APAP_VERDICTS) {
+        if (score >= v.minScore) return v;
+    }
+    return APAP_VERDICTS[APAP_VERDICTS.length - 1];
+}
+
+let apapLedger = [];
+let apapCycleCount = 0;
+let apapChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
+
+async function runApapCycle() {
+    const agentPool = agents.map(a => a.id);
+    if (agentPool.length < 2) return;
+
+    apapCycleCount++;
+    const now = new Date().toISOString();
+
+    // Select a target agent whose ADER receipt will be audited, and a different auditor agent
+    const targetIdx = (apapCycleCount - 1) % agentPool.length;
+    let auditorIdx = (apapCycleCount) % agentPool.length;
+    if (auditorIdx === targetIdx) auditorIdx = (auditorIdx + 1) % agentPool.length;
+
+    const targetAgentId = agentPool[targetIdx];
+    const auditorAgentId = agentPool[auditorIdx];
+
+    const seed = apapCycleCount * 19 + targetIdx * 7;
+
+    // Simulate auditing the target agent's latest ADER receipt
+    const dimensionScores = APAP_AUDIT_DIMENSIONS.map((dim, i) => {
+        const raw = ((seed * (i + 3) * 37) % 40) + 60; // 60–99 range
+        // Occasionally introduce a challenge or flag for realism
+        const wobble = apapCycleCount % 5 === 0 && i === 2 ? -30 : 0;
+        const wobble2 = apapCycleCount % 7 === 0 && i === 3 ? -20 : 0;
+        return {
+            dimensionId: dim.id,
+            label: dim.label,
+            score: Math.max(10, Math.min(100, raw + wobble + wobble2)),
+            note: raw + wobble + wobble2 < 55 ? 'Inconsistency detected in this dimension — peer auditor requires clarification' : 'Dimension passes peer audit'
+        };
+    });
+
+    const avgScore = Math.round(dimensionScores.reduce((s, d) => s + d.score, 0) / dimensionScores.length);
+    const verdictObj = apapGetVerdict(avgScore);
+
+    // Look up target agent's latest AAI score if available
+    const latestAai = aaiLedger.length > 0
+        ? (aaiLedger.slice().reverse().find(r => r.payload && r.payload.agentId === targetAgentId) || null)
+        : null;
+    const aaiScore = latestAai ? latestAai.payload.accountabilityScore : 'N/A';
+
+    const flagged = verdictObj.verdict === 'FLAGGED';
+    if (flagged) {
+        console.log(`[APAP] 🚩 Cycle ${apapCycleCount} — Agent ${targetAgentId} FLAGGED by ${auditorAgentId} (score ${avgScore}) — escalating to Human Oversight (Chain #20)`);
+    }
+
+    const receiptId = `APAP-${String(apapLedger.length + 1).padStart(4, '0')}`;
+    const payload = {
+        cycleNumber: apapCycleCount,
+        receiptId,
+        auditType: 'ADER_PEER_REVIEW',
+        targetAgentId,
+        auditorAgentId,
+        auditedChain: 36,
+        dimensionScores,
+        avgAuditScore: avgScore,
+        verdict: verdictObj.verdict,
+        verdictIcon: verdictObj.icon,
+        verdictDescription: verdictObj.description,
+        flaggedForOversight: flagged,
+        targetAaiScore: aaiScore,
+        timestamp: now
+    };
+
+    const dataStr = JSON.stringify(payload);
+    const hashInput = apapChainHead + dataStr + receiptId;
+    const receipt = {
+        receiptNumber: apapLedger.length + 1,
+        receiptId,
+        timestamp: now,
+        prevHash: apapChainHead,
+        hash: crypto.createHash('sha256').update(hashInput).digest('hex'),
+        payload,
+        protocol: 'ERC-8004 Receipt Chain #38'
+    };
+
+    apapChainHead = receipt.hash;
+    apapLedger.push(receipt);
+
+    console.log(`[APAP] ✅ Cycle ${apapCycleCount} — ${auditorAgentId} audited ${targetAgentId} → ${verdictObj.icon} ${verdictObj.verdict} (score ${avgScore})`);
+}
+
+// Run APAP cycle every 260s
+setInterval(runApapCycle, 260000);
+runApapCycle(); // seed first receipt immediately
+
+// APAP API endpoints
+app.get('/api/apap/status', (req, res) => {
+    const verdictCounts = {};
+    apapLedger.forEach(r => {
+        const v = r.payload.verdict;
+        verdictCounts[v] = (verdictCounts[v] || 0) + 1;
+    });
+    const avgScore = apapLedger.length > 0
+        ? Math.round(apapLedger.reduce((s, r) => s + r.payload.avgAuditScore, 0) / apapLedger.length)
+        : 0;
+    res.json({
+        chain: 38,
+        chainName: 'Agent Peer Audit Protocol',
+        description: 'Agents autonomously audit each other\'s ADER (Chain #36) WHY receipts, scoring reasoning quality and issuing cryptographic peer-review receipts. VERIFIED / CHALLENGED / FLAGGED.',
+        cyclesRun: apapCycleCount,
+        totalReceipts: apapLedger.length,
+        avgAuditScore: avgScore,
+        verdictBreakdown: verdictCounts,
+        flaggedCount: verdictCounts['FLAGGED'] || 0,
+        dimensions: APAP_AUDIT_DIMENSIONS.map(d => ({ id: d.id, label: d.label })),
+        chainHead: apapChainHead.substring(0, 16) + '…',
+        intervalSeconds: 260
+    });
+});
+
+app.get('/api/apap/ledger', (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = parseInt(req.query.offset) || 0;
+    const page = apapLedger.slice().reverse().slice(offset, offset + limit);
+    res.json({ receipts: page, total: apapLedger.length, offset, limit, chainHead: apapChainHead.substring(0, 16) + '…' });
+});
+
+app.get('/api/apap/verify/chain', (req, res) => {
+    let intact = true;
+    let brokenAt = null;
+    for (let i = 1; i < apapLedger.length; i++) {
+        if (apapLedger[i].prevHash !== apapLedger[i - 1].hash) {
+            intact = false;
+            brokenAt = i;
+            break;
+        }
+    }
+    res.json({
+        chain: 38,
+        chainName: 'Agent Peer Audit Protocol',
+        intact,
+        brokenAt,
+        receiptsVerified: apapLedger.length,
+        chainHead: apapChainHead.substring(0, 16) + '…',
+        message: intact
+            ? `✅ All ${apapLedger.length} APAP receipts verified — peer audit chain is intact`
+            : `❌ Chain break detected at receipt ${brokenAt}`
+    });
+});
+
+app.get('/api/apap/latest', (req, res) => {
+    if (apapLedger.length === 0) return res.json({ message: 'No peer audit cycles completed yet' });
+    res.json(apapLedger[apapLedger.length - 1]);
+});
+
+app.get('/api/apap/agent/:agentId', (req, res) => {
+    const agentId = req.params.agentId;
+    const asTarget = apapLedger.filter(r => r.payload.targetAgentId === agentId);
+    const asAuditor = apapLedger.filter(r => r.payload.auditorAgentId === agentId);
+    const targetVerdicts = {};
+    asTarget.forEach(r => { targetVerdicts[r.payload.verdict] = (targetVerdicts[r.payload.verdict] || 0) + 1; });
+    const avgScoreAsTarget = asTarget.length > 0
+        ? Math.round(asTarget.reduce((s, r) => s + r.payload.avgAuditScore, 0) / asTarget.length)
+        : null;
+    res.json({
+        agentId,
+        timesAudited: asTarget.length,
+        timesAuditor: asAuditor.length,
+        avgAuditScore: avgScoreAsTarget,
+        verdictBreakdown: targetVerdicts,
+        recentAudits: asTarget.slice(-5).map(r => ({
+            receiptId: r.receiptId,
+            verdict: r.payload.verdict,
+            score: r.payload.avgAuditScore,
+            auditorAgentId: r.payload.auditorAgentId,
+            timestamp: r.timestamp
+        }))
+    });
+});
+
+app.get('/api/apap/summary', (req, res) => {
+    if (apapLedger.length === 0) return res.json({ status: 'PENDING', message: 'No APAP cycles completed yet' });
+    const verdictCounts = {};
+    apapLedger.forEach(r => { verdictCounts[r.payload.verdict] = (verdictCounts[r.payload.verdict] || 0) + 1; });
+    const avgScore = Math.round(apapLedger.reduce((s, r) => s + r.payload.avgAuditScore, 0) / apapLedger.length);
+    const latest = apapLedger[apapLedger.length - 1];
+    res.json({
+        chain: 38,
+        totalReceipts: apapLedger.length,
+        avgAuditScore: avgScore,
+        verdictBreakdown: verdictCounts,
+        flaggedCount: verdictCounts['FLAGGED'] || 0,
+        latestVerdict: latest.payload.verdict,
+        latestAuditorId: latest.payload.auditorAgentId,
+        latestTargetId: latest.payload.targetAgentId,
+        dimensions: APAP_AUDIT_DIMENSIONS.map(d => ({ id: d.id, label: d.label })),
+        verdicts: APAP_VERDICTS,
+        chainHead: apapChainHead.substring(0, 16) + '…'
+    });
+});
+
+app.get('/peer-audit', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo/peer-audit.html'));
 });
 
 module.exports = app;

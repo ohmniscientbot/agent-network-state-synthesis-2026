@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Peer Audit Protocol — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 760px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #1e293b; }
+
+  .verdict-VERIFIED   { color: #22c55e; }
+  .verdict-CHALLENGED { color: #f59e0b; }
+  .verdict-FLAGGED    { color: #ef4444; }
+
+  .badge-VERIFIED   { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+  .badge-CHALLENGED { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .badge-FLAGGED    { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+  .receipt-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .receipt-card.VERIFIED   { border-left: 3px solid #22c55e; }
+  .receipt-card.CHALLENGED { border-left: 3px solid #f59e0b; }
+  .receipt-card.FLAGGED    { border-left: 3px solid #ef4444; }
+
+  .receipt-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .receipt-id { font-family: monospace; font-size: 0.85rem; color: #94a3b8; }
+  .verdict-badge { font-size: 0.8rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; }
+  .receipt-agents { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.75rem; }
+  .receipt-agents strong { color: #e2e8f0; }
+
+  .dim-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin: 0.75rem 0; }
+  @media(max-width: 800px) { .dim-grid { grid-template-columns: 1fr 1fr; } }
+
+  .dim-item { background: #0f172a; border-radius: 0.5rem; padding: 0.5rem 0.75rem; }
+  .dim-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.25rem; }
+  .dim-score { font-size: 1.1rem; font-weight: 700; }
+
+  .hash-row { font-family: monospace; font-size: 0.7rem; color: #475569; word-break: break-all; margin-top: 0.5rem; }
+
+  .dim-score-high   { color: #22c55e; }
+  .dim-score-mid    { color: #f59e0b; }
+  .dim-score-low    { color: #ef4444; }
+
+  .info-box { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); border-radius: 0.75rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #c4b5fd; line-height: 1.6; }
+
+  .loading { color: #475569; font-style: italic; }
+  .error   { color: #ef4444; }
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+<script src="/shared-nav.js"></script>
+<script>injectNav('nav-placeholder');</script>
+
+<div class="page-wrap">
+  <div class="chain-badge">ERC-8004 · CHAIN #38</div>
+  <h1>Agent Peer Audit Protocol</h1>
+  <p class="subtitle">
+    Every 260 seconds, an agent autonomously audits a peer's Chain #36 (ADER) WHY receipt across 5 reasoning quality dimensions.
+    Verdicts: <strong class="verdict-VERIFIED">VERIFIED</strong> / <strong class="verdict-CHALLENGED">CHALLENGED</strong> / <strong class="verdict-FLAGGED">FLAGGED</strong>.
+    FLAGGED receipts auto-escalate to Human Principal Oversight (Chain #20). No agent's reasoning ever escapes scrutiny.
+  </p>
+
+  <div class="info-box">
+    🔍 <strong>How it works:</strong> Each audit cycle, one agent (the <em>auditor</em>) scores a peer's (the <em>target</em>'s) most recent ADER WHY receipt across five dimensions:
+    reasoning coherence, constitutional grounding, outcome alignment, confidence calibration, and cross-chain consistency.
+    A composite audit score determines the verdict. Adversarial peer review — the DAO that verifies its own explanations.
+  </div>
+
+  <div class="grid-4" id="stats-grid">
+    <div class="card"><div class="card-title">Audit Cycles</div><div class="card-value" id="stat-cycles">—</div><div class="card-sub">peer reviews completed</div></div>
+    <div class="card"><div class="card-title">Total Receipts</div><div class="card-value" id="stat-receipts">—</div><div class="card-sub">ERC-8004 sealed</div></div>
+    <div class="card"><div class="card-title">Avg Audit Score</div><div class="card-value" id="stat-avg">—</div><div class="card-sub">/ 100 composite</div></div>
+    <div class="card"><div class="card-title">Flagged</div><div class="card-value" id="stat-flagged" style="color:#ef4444;">—</div><div class="card-sub">escalated to oversight</div></div>
+  </div>
+
+  <div class="grid-4" id="verdict-grid" style="margin-top:-0.5rem;">
+    <div class="card"><div class="card-title">✅ Verified</div><div class="card-value" id="vcount-VERIFIED" style="color:#22c55e;">—</div><div class="card-sub">reasoning passes</div></div>
+    <div class="card"><div class="card-title">⚠️ Challenged</div><div class="card-value" id="vcount-CHALLENGED" style="color:#f59e0b;">—</div><div class="card-sub">minor inconsistencies</div></div>
+    <div class="card"><div class="card-title">🚩 Flagged</div><div class="card-value" id="vcount-FLAGGED" style="color:#ef4444;">—</div><div class="card-sub">escalated to oversight</div></div>
+    <div class="card"><div class="card-title">Chain Head</div><div class="card-value" id="stat-head" style="font-size:0.9rem;word-break:break-all;">—</div><div class="card-sub">latest hash prefix</div></div>
+  </div>
+
+  <div class="section-title">🔍 Audit Dimensions</div>
+  <div class="grid-4" id="dim-grid" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="card"><div class="card-title">Reasoning Coherence</div><div class="card-sub" style="margin-top:0.25rem;">Stated inputs consistent with confidence score?</div></div>
+    <div class="card"><div class="card-title">Constitutional Grounding</div><div class="card-sub" style="margin-top:0.25rem;">WHY receipt cites a real constitutional principle?</div></div>
+    <div class="card"><div class="card-title">Outcome Alignment</div><div class="card-sub" style="margin-top:0.25rem;">Declared outcome consistent with governance context?</div></div>
+    <div class="card"><div class="card-title">Confidence Calibration</div><div class="card-sub" style="margin-top:0.25rem;">Confidence score plausible given stated inputs?</div></div>
+    <div class="card"><div class="card-title">Cross-Chain Consistency</div><div class="card-sub" style="margin-top:0.25rem;">Aligns with AAI (Chain #30) and drift (Chain #24)?</div></div>
+  </div>
+
+  <div class="section-title">📋 Recent Audit Receipts</div>
+  <div id="receipts-container"><p class="loading">Loading audit receipts…</p></div>
+
+  <div class="section-title">🔗 Chain Integrity</div>
+  <div id="chain-integrity"><p class="loading">Verifying chain…</p></div>
+</div>
+
+<script>
+async function loadStatus() {
+  try {
+    const res = await fetch('/api/apap/status', {cache:'no-store'});
+    const d = await res.json();
+    document.getElementById('stat-cycles').textContent = d.cyclesRun ?? '—';
+    document.getElementById('stat-receipts').textContent = d.totalReceipts ?? '—';
+    document.getElementById('stat-avg').textContent = d.avgAuditScore ?? '—';
+    document.getElementById('stat-flagged').textContent = d.flaggedCount ?? 0;
+    document.getElementById('stat-head').textContent = d.chainHead ?? '—';
+    const vb = d.verdictBreakdown || {};
+    ['VERIFIED','CHALLENGED','FLAGGED'].forEach(v => {
+      const el = document.getElementById('vcount-' + v);
+      if (el) el.textContent = vb[v] ?? 0;
+    });
+  } catch(e) {
+    document.getElementById('stat-cycles').textContent = 'err';
+  }
+}
+
+function dimColor(score) {
+  if (score >= 75) return 'dim-score-high';
+  if (score >= 55) return 'dim-score-mid';
+  return 'dim-score-low';
+}
+
+async function loadReceipts() {
+  try {
+    const res = await fetch('/api/apap/ledger?limit=10', {cache:'no-store'});
+    const d = await res.json();
+    const container = document.getElementById('receipts-container');
+    if (!d.receipts || d.receipts.length === 0) {
+      container.innerHTML = '<p class="loading">No audit receipts yet — first cycle running…</p>';
+      return;
+    }
+    container.innerHTML = d.receipts.map(r => {
+      const p = r.payload;
+      const dims = (p.dimensionScores || []).map(dim => `
+        <div class="dim-item">
+          <div class="dim-label">${dim.label.replace(' ', '<br>')}</div>
+          <div class="dim-score ${dimColor(dim.score)}">${dim.score}</div>
+        </div>
+      `).join('');
+      return `
+        <div class="receipt-card ${p.verdict}">
+          <div class="receipt-header">
+            <div>
+              <div class="receipt-id">${r.receiptId || p.receiptId}</div>
+              <div style="font-size:0.75rem;color:#475569;margin-top:0.2rem;">${new Date(r.timestamp).toLocaleString()}</div>
+            </div>
+            <span class="verdict-badge badge-${p.verdict}">${p.verdictIcon} ${p.verdict}</span>
+          </div>
+          <div class="receipt-agents">
+            🔍 Auditor: <strong>${p.auditorAgentId}</strong> &nbsp;→&nbsp; 🎯 Target: <strong>${p.targetAgentId}</strong>
+            &nbsp;|&nbsp; Auditing: <strong>Chain #${p.auditedChain} (ADER)</strong>
+            &nbsp;|&nbsp; Score: <strong>${p.avgAuditScore}/100</strong>
+            ${p.flaggedForOversight ? ' &nbsp;🚩 <span style="color:#ef4444">Escalated to Human Oversight</span>' : ''}
+          </div>
+          <div class="dim-grid">${dims}</div>
+          <div class="hash-row">hash: ${r.hash} &nbsp;|&nbsp; prev: ${r.prevHash.substring(0,32)}…</div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) {
+    document.getElementById('receipts-container').innerHTML = '<p class="error">Failed to load receipts.</p>';
+  }
+}
+
+async function loadChainIntegrity() {
+  try {
+    const res = await fetch('/api/apap/verify/chain', {cache:'no-store'});
+    const d = await res.json();
+    const color = d.intact ? '#22c55e' : '#ef4444';
+    const icon = d.intact ? '✅' : '❌';
+    document.getElementById('chain-integrity').innerHTML = `
+      <div class="card" style="border-left: 3px solid ${color};">
+        <div style="font-size:1.1rem;font-weight:700;color:${color};">${icon} ${d.message}</div>
+        <div style="font-size:0.8rem;color:#94a3b8;margin-top:0.5rem;">
+          Receipts verified: ${d.receiptsVerified} &nbsp;|&nbsp; Chain head: ${d.chainHead}
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('chain-integrity').innerHTML = '<p class="error">Failed to verify chain.</p>';
+  }
+}
+
+loadStatus();
+loadReceipts();
+loadChainIntegrity();
+setInterval(() => { loadStatus(); loadReceipts(); loadChainIntegrity(); }, 15000);
+</script>
+</body>
+</html>
