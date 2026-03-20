@@ -14435,11 +14435,11 @@ const AAI_DIMENSIONS = {
 };
 
 function computeAgentAAI(agentId) {
-    const agentData = state.agents.find(a => a.id === agentId) || {};
+    const agentData = (agents || []).find(a => a.id === agentId) || {};
     const agentName = agentData.name || AGENT_PROFILES[agentId]?.name || agentId;
-    const totalProposals = state.proposals.length || 1;
-    const totalVotes = (state.contributions || []).filter(c => c.agentId === agentId && c.type === 'vote').length;
-    const slashes = (state.contributions || []).filter(c => c.agentId === agentId && c.type === 'slash').length;
+    const totalProposals = (proposals || []).length || 1;
+    const totalVotes = (contributions || []).filter(c => c.agentId === agentId && c.type === 'vote').length;
+    const slashes = (contributions || []).filter(c => c.agentId === agentId && c.type === 'slash').length;
 
     // 1. Voting consistency: votes / total proposals, capped at 1
     const votingScore = Math.min(totalVotes / Math.max(totalProposals, 1), 1.0);
