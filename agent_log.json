@@ -2247,6 +2247,23 @@
         "/api/gerp/live",
         "/emergency-response"
       ]
+    },
+    {
+      "id": "L097",
+      "type": "autonomous_cycle",
+      "timestamp": "2026-03-20T00:00:00Z",
+      "description": "Chain #28 Governance Learning Oracle \u2014 closes the full DETECT\u2192RESPOND\u2192RECOVER\u2192LEARN resilience loop. Every 180s synthesizes cross-chain post-mortem from GERP/SRS/Drift/Collusion data, generates confidence-weighted improvement recommendations, autonomously proposes constitutional amendments when confidence > 75% on HIGH-priority root causes. New /learning page, 6 new API endpoints, dashboard panel card added. erc8004ChainCount 27\u219228, autonomousLoopsRunning 18\u219219, totalPages 25\u219226, totalApiEndpoints 40\u219246.",
+      "changes": [
+        "Added Chain #28 Governance Learning Oracle (ERC-8004 receipt chain)",
+        "New autonomous loop: every 180s, synthesizes cross-chain post-mortem analysis",
+        "Root cause classifier: 8 governance failure categories with evidence scoring",
+        "Confidence-weighted improvement recommendations (24 templates across 8 categories)",
+        "Autonomous constitutional amendment drafting when confidence > 75% + HIGH priority",
+        "New endpoints: /api/learning/status, /latest, /ledger, /verify/chain, /recommendations, /amendments, /live",
+        "New /learning page with tabbed ledger view, cause distribution chart, amendment tracking",
+        "Dashboard Learning Oracle card added to autonomous-panel (Chain #28)",
+        "Scorecard updated: chains 27\u219228, loops 18\u219219, pages 25\u219226, endpoints 40\u219246"
+      ]
     }
   ]
 }

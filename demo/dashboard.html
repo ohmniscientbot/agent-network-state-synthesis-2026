@@ -272,7 +272,7 @@
                     <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--neural-purple); margin-right: 8px; animation: pulse 3s infinite;"></span>
                     🤖 Autonomous Intelligence
                 </h2>
-                <span style="font-size: 0.8rem; color: var(--secondary-text);">17 loops running · no human triggers</span>
+                <span style="font-size: 0.8rem; color: var(--secondary-text);">19 loops running · no human triggers</span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
                 <!-- Watchdog -->
@@ -317,6 +317,14 @@
                     <div id="auto-srs-threat" style="font-size: 0.85rem; font-weight: 600; color: var(--primary-text); margin-bottom: 4px;">Loading...</div>
                     <div id="auto-srs-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Synthesizing 8 governance dimensions...</div>
                     <div id="auto-srs-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/systemic-risk" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Learning Oracle -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(168,85,247,0.4); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #a855f7; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🧠 Learning Oracle · Chain #28</div>
+                    <div id="auto-learning-rec" style="font-size: 0.85rem; font-weight: 600; color: var(--primary-text); margin-bottom: 6px; line-height: 1.4;">—</div>
+                    <div id="auto-learning-cause" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-learning-amendment" style="font-size: 0.75rem; color: #a855f7; margin-top: 6px; display: none;">📝 Amendment proposed</div>
+                    <div id="auto-learning-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/learning" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
                 </div>
             </div>
         </div>
@@ -516,13 +524,14 @@
         // ========================================
         async function loadAutonomousPanel() {
             try {
-                const [watchdogRes, gazetteRes, velocityRes, consensusRes, driftRes, srsRes] = await Promise.all([
+                const [watchdogRes, gazetteRes, velocityRes, consensusRes, driftRes, srsRes, learningRes] = await Promise.all([
                     fetch('/api/watchdog/latest', {cache:'no-store'}).catch(() => null),
                     fetch('/api/gazette/latest', {cache:'no-store'}).catch(() => null),
                     fetch('/api/velocity/latest', {cache:'no-store'}).catch(() => null),
                     fetch('/api/consensus/latest', {cache:'no-store'}).catch(() => null),
                     fetch('/api/drift/latest', {cache:'no-store'}).catch(() => null),
-                    fetch('/api/systemic-risk/latest', {cache:'no-store'}).catch(() => null)
+                    fetch('/api/systemic-risk/latest', {cache:'no-store'}).catch(() => null),
+                    fetch('/api/learning/latest', {cache:'no-store'}).catch(() => null)
                 ]);
 
                 // Watchdog
@@ -618,6 +627,32 @@
                     document.getElementById('auto-srs-time').innerHTML = s.timestamp
                         ? `Scan ${p.cycleId} · ${new Date(s.timestamp).toLocaleTimeString()} · <a href="/systemic-risk" style="color:inherit;opacity:0.7;">View ledger →</a>`
                         : '<a href="/systemic-risk" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                }
+
+                // Learning Oracle
+                if (learningRes?.ok) {
+                    const lr = await learningRes.json();
+                    const lp = lr.payload || {};
+                    const rca = lp.rootCauseAnalysis || {};
+                    const rec = lp.recommendation || {};
+                    const amendment = lp.proposedAmendment || {};
+                    const causeLabel = (rca.primaryCause || '').replace(/_/g, ' ');
+                    const conf = rca.confidence ? `${(rca.confidence * 100).toFixed(0)}%` : '—';
+                    const priorityColors = { HIGH: '#ef4444', MEDIUM: '#f97316', LOW: '#6b7280' };
+                    const pColor = priorityColors[rec.priority] || '#a855f7';
+                    document.getElementById('auto-learning-rec').textContent = rec.text || 'Synthesizing recommendations...';
+                    document.getElementById('auto-learning-cause').innerHTML =
+                        `Root cause: <strong style="color:#a855f7;">${causeLabel}</strong> · Confidence: <strong style="color:${pColor};">${conf}</strong> · Priority: <strong style="color:${pColor};">${rec.priority || '—'}</strong>`;
+                    const amendEl = document.getElementById('auto-learning-amendment');
+                    if (amendment.proposed) {
+                        amendEl.style.display = 'block';
+                        amendEl.textContent = `📝 Amendment proposed → ${amendment.targetArticle}`;
+                    } else {
+                        amendEl.style.display = 'none';
+                    }
+                    document.getElementById('auto-learning-time').innerHTML = lp.timestamp
+                        ? `Insight ${lp.cycleId} · ${new Date(lp.timestamp).toLocaleTimeString()} · <a href="/learning" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                        : '<a href="/learning" style="color:inherit;opacity:0.7;">View full ledger →</a>';
                 }
             } catch(e) {
                 console.warn('Autonomous panel load failed:', e.message);

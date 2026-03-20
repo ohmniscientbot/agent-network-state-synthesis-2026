@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governance Learning Oracle — Synthocracy</title>
+    <link rel="stylesheet" href="/design-system-dark.css">
+    <style>
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); }
+        .hero {
+            background: linear-gradient(135deg, #0a0a1a 0%, #0f0a1f 50%, #1a0a1a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 40px 32px 32px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 2rem; font-weight: 800; margin: 0 0 8px; color: #fff; }
+        .hero .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+        .chain-badge {
+            display: inline-block;
+            background: rgba(168,85,247,0.15);
+            border: 1px solid rgba(168,85,247,0.4);
+            color: #a855f7;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+        }
+        .loop-badge {
+            display: inline-block;
+            background: rgba(168,85,247,0.1);
+            border: 1px solid rgba(168,85,247,0.3);
+            color: #a855f7;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card.purple { border-color: rgba(168,85,247,0.3); }
+        .card.red { border-color: rgba(239,68,68,0.3); }
+        .card.green { border-color: rgba(34,197,94,0.3); }
+        .card.amber { border-color: rgba(245,158,11,0.3); }
+        .card-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        .card-value { font-size: 2rem; font-weight: 700; color: #a855f7; }
+        .card-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #a855f7;
+            margin: 32px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(168,85,247,0.2);
+        }
+        .receipt-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 14px;
+            transition: border-color 0.2s;
+        }
+        .receipt-item:hover { border-color: rgba(168,85,247,0.4); }
+        .receipt-item.amendment { border-left: 3px solid #a855f7; }
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .receipt-id { font-size: 0.8rem; color: #a855f7; font-weight: 600; }
+        .receipt-time { font-size: 0.75rem; color: var(--text-muted); }
+        .priority-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .priority-HIGH { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.4); }
+        .priority-MEDIUM { background: rgba(249,115,22,0.2); color: #f97316; border: 1px solid rgba(249,115,22,0.4); }
+        .priority-LOW { background: rgba(107,114,128,0.2); color: #9ca3af; border: 1px solid rgba(107,114,128,0.3); }
+        .cause-tag {
+            display: inline-block;
+            background: rgba(168,85,247,0.12);
+            border: 1px solid rgba(168,85,247,0.25);
+            color: #c084fc;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            margin-bottom: 8px;
+        }
+        .rec-text { font-size: 0.875rem; color: var(--text-primary); line-height: 1.6; margin-bottom: 8px; }
+        .amendment-box {
+            background: rgba(168,85,247,0.08);
+            border: 1px solid rgba(168,85,247,0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 10px;
+        }
+        .amendment-label { font-size: 0.7rem; color: #a855f7; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+        .amendment-text { font-size: 0.8rem; color: var(--text-primary); line-height: 1.5; }
+        .hash-line { font-size: 0.65rem; color: var(--text-muted); margin-top: 10px; opacity: 0.6; font-family: monospace; word-break: break-all; }
+        .confidence-bar-wrap { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 4px; margin-top: 6px; }
+        .confidence-bar { height: 6px; border-radius: 4px; background: linear-gradient(90deg, #7c3aed, #a855f7); transition: width 0.5s; }
+        .chain-ref-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .chain-ref {
+            background: rgba(168,85,247,0.1);
+            border: 1px solid rgba(168,85,247,0.2);
+            color: #a855f7;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .verify-banner {
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.3);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
+            color: #22c55e;
+        }
+        .loop-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(168,85,247,0.06);
+            border: 1px solid rgba(168,85,247,0.2);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+        }
+        .loop-dot { width: 10px; height: 10px; border-radius: 50%; background: #a855f7; animation: pulse 2s infinite; flex-shrink: 0; }
+        .loop-text { font-size: 0.85rem; color: var(--text-muted); }
+        .loop-text strong { color: #a855f7; }
+        .cause-breakdown { display: flex; flex-direction: column; gap: 6px; }
+        .cause-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+        .cause-row-label { color: var(--text-muted); flex: 1; text-transform: capitalize; }
+        .cause-row-bar-wrap { flex: 2; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; height: 6px; }
+        .cause-row-bar { height: 6px; border-radius: 4px; background: #a855f7; transition: width 0.5s; }
+        .cause-row-pct { color: #c084fc; font-size: 0.7rem; width: 35px; text-align: right; }
+        .loading { color: var(--text-muted); font-size: 0.85rem; padding: 20px; text-align: center; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+        .tab {
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600;
+            border: 1px solid var(--border); color: var(--text-muted); transition: all 0.2s;
+        }
+        .tab.active, .tab:hover { background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.4); color: #a855f7; }
+        .nav-link { text-decoration: none; color: inherit; }
+    </style>
+</head>
+<body>
+<script src="/shared-nav.js"></script>
+<div class="hero">
+    <div class="chain-badge">ERC-8004 Receipt Chain #28</div>
+    <h1>🧠 Governance Learning Oracle</h1>
+    <p class="subtitle">
+        Closes the full resilience loop: <strong>DETECT</strong> (Chains #24–26) → <strong>RESPOND</strong> (Chain #27) → <strong>LEARN</strong> (Chain #28)
+        <span class="loop-badge">🔄 LOOP ACTIVE</span>
+    </p>
+</div>
+
+<div class="container">
+
+    <div class="loop-indicator">
+        <div class="loop-dot"></div>
+        <div class="loop-text">
+            Autonomous loop running every <strong>180s</strong> · No human trigger · 
+            Synthesizes post-mortem analysis from <strong>Chains #24–27</strong> · 
+            Generates confidence-weighted improvement recommendations · 
+            Proposes constitutional amendments when confidence &gt; 75%
+        </div>
+    </div>
+
+    <div id="verify-banner" class="verify-banner" style="display:none;"></div>
+
+    <!-- Stats Grid -->
+    <div class="grid-2">
+        <div class="card purple">
+            <div class="card-label">🧠 Total Insights Generated</div>
+            <div id="stat-insights" class="card-value">—</div>
+            <div class="card-sub">Cryptographic learning receipts on chain</div>
+        </div>
+        <div class="card red">
+            <div class="card-label">📝 Amendments Proposed</div>
+            <div id="stat-amendments" class="card-value" style="color:#ef4444;">—</div>
+            <div class="card-sub">High-confidence constitutional improvement drafts</div>
+        </div>
+        <div class="card green">
+            <div class="card-label">🎯 Dominant Root Cause</div>
+            <div id="stat-cause" class="card-value" style="font-size:1rem; padding-top:6px;">—</div>
+            <div class="card-sub">Most frequent governance failure pattern</div>
+        </div>
+        <div class="card amber">
+            <div class="card-label">⚡ High Priority Recs</div>
+            <div id="stat-highpri" class="card-value" style="color:#f59e0b;">—</div>
+            <div class="card-sub">Recommendations requiring immediate action</div>
+        </div>
+    </div>
+
+    <!-- Chain Verification -->
+    <div class="section-title">🔗 Chain Integrity</div>
+    <div id="chain-verify" class="loading">Verifying chain...</div>
+
+    <!-- Latest Insight -->
+    <div class="section-title">🔬 Latest Learning Insight</div>
+    <div id="latest-insight" class="loading">Loading latest insight...</div>
+
+    <!-- Root Cause Distribution -->
+    <div class="section-title">📊 Root Cause Distribution</div>
+    <div id="cause-distribution" class="loading">Analyzing patterns...</div>
+
+    <!-- Recent Ledger -->
+    <div class="section-title">📜 Learning Ledger
+        <span style="font-weight: 400; font-size: 0.8rem; color: var(--text-muted);">— Recent insights (newest first)</span>
+    </div>
+    <div class="tab-bar">
+        <div class="tab active" onclick="filterLedger('all', this)">All</div>
+        <div class="tab" onclick="filterLedger('HIGH', this)">🔴 High Priority</div>
+        <div class="tab" onclick="filterLedger('MEDIUM', this)">🟡 Medium</div>
+        <div class="tab" onclick="filterLedger('amendments', this)">📝 Amendments</div>
+    </div>
+    <div id="ledger-list" class="loading">Loading ledger...</div>
+
+</div>
+
+<script>
+let allReceipts = [];
+let currentFilter = 'all';
+
+async function loadPage() {
+    try {
+        const [statusRes, latestRes, ledgerRes, verifyRes] = await Promise.all([
+            fetch('/api/learning/status', {cache:'no-store'}),
+            fetch('/api/learning/latest', {cache:'no-store'}),
+            fetch('/api/learning/ledger?limit=20', {cache:'no-store'}),
+            fetch('/api/learning/verify/chain', {cache:'no-store'})
+        ]);
+
+        // Status
+        if (statusRes.ok) {
+            const s = await statusRes.json();
+            document.getElementById('stat-insights').textContent = s.cumulativeInsights ?? s.receipts ?? '—';
+            document.getElementById('stat-amendments').textContent = s.cumulativeAmendmentsProposed ?? '—';
+            document.getElementById('stat-cause').textContent = (s.dominantRootCause || '—').replace(/_/g,' ');
+            document.getElementById('stat-highpri').textContent = s.highPriorityRecommendations ?? '—';
+        }
+
+        // Chain verify
+        if (verifyRes.ok) {
+            const v = await verifyRes.json();
+            const banner = document.getElementById('verify-banner');
+            banner.style.display = 'block';
+            banner.style.color = v.valid ? '#22c55e' : '#ef4444';
+            banner.style.borderColor = v.valid ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+            banner.style.background = v.valid ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
+            banner.textContent = v.message + ` · Chain head: ${v.chainHead?.substring(0,20)}…`;
+            document.getElementById('chain-verify').style.display = 'none';
+        }
+
+        // Latest insight
+        if (latestRes.ok) {
+            const lr = await latestRes.json();
+            document.getElementById('latest-insight').innerHTML = renderReceipt(lr, true);
+        }
+
+        // Ledger
+        if (ledgerRes.ok) {
+            const data = await ledgerRes.json();
+            allReceipts = data.receipts || [];
+            renderLedger();
+            renderCauseDistribution();
+        }
+
+    } catch(e) {
+        console.error('Load failed:', e);
+    }
+}
+
+function renderReceipt(r, expanded = false) {
+    const p = r.payload || {};
+    const rca = p.rootCauseAnalysis || {};
+    const rec = p.recommendation || {};
+    const amendment = p.proposedAmendment || {};
+    const refs = p.crossChainRefs || [];
+    const impact = p.impactProjection || {};
+
+    const causeLabel = (rca.primaryCause || '').replace(/_/g,' ');
+    const conf = rca.confidence ? `${(rca.confidence * 100).toFixed(0)}%` : '—';
+    const isAmendment = amendment.proposed;
+
+    let html = `<div class="receipt-item ${isAmendment ? 'amendment' : ''}">
+        <div class="receipt-header">
+            <span class="receipt-id">🧠 ${r.receiptId || p.cycleId || '—'}</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="priority-badge priority-${rec.priority || 'MEDIUM'}">${rec.priority || '—'}</span>
+                <span class="receipt-time">${p.timestamp ? new Date(p.timestamp).toLocaleString() : '—'}</span>
+            </div>
+        </div>
+        <div class="cause-tag">Root cause: ${causeLabel}</div>
+        <div class="rec-text">${rec.text || '—'}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;">
+            Confidence: <strong style="color:#a855f7;">${conf}</strong>
+            · Target: <strong style="color:#c084fc;">${rec.constitutionalTarget || '—'}</strong>
+            ${rca.secondaryCause ? ` · Secondary: <span style="color:var(--text-muted);">${rca.secondaryCause.replace(/_/g,' ')}</span>` : ''}
+        </div>`;
+
+    if (isAmendment) {
+        html += `<div class="amendment-box">
+            <div class="amendment-label">📝 Constitutional Amendment Draft → ${amendment.targetArticle}</div>
+            <div class="amendment-text">${amendment.proposalText || '—'}</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">${amendment.rationale || ''}</div>
+        </div>`;
+    }
+
+    if (expanded && refs.length > 0) {
+        html += `<div class="chain-ref-row">`;
+        refs.forEach(ref => {
+            html += `<span class="chain-ref">Chain #${ref.chain} · ${ref.name} · ${ref.receipts} receipts</span>`;
+        });
+        html += `</div>`;
+    }
+
+    if (expanded && Object.keys(impact).length > 0) {
+        html += `<div style="margin-top:10px;font-size:0.75rem;color:var(--text-muted);">
+            Projected impact: Throughput ${impact.proposalThroughputDelta || '—'}
+            · Alignment ${impact.agentAlignmentDelta || '—'}
+            · Risk ${impact.systemicRiskReduction || '—'}
+        </div>`;
+    }
+
+    html += `<div class="hash-line">Hash: ${r.hash || '—'} · PrevHash: ${r.prevHash?.substring(0,32) || '—'}…</div>
+    </div>`;
+
+    return html;
+}
+
+function renderLedger() {
+    let receipts = allReceipts;
+    if (currentFilter === 'HIGH') receipts = receipts.filter(r => r.payload?.recommendation?.priority === 'HIGH');
+    else if (currentFilter === 'MEDIUM') receipts = receipts.filter(r => r.payload?.recommendation?.priority === 'MEDIUM');
+    else if (currentFilter === 'amendments') receipts = receipts.filter(r => r.payload?.proposedAmendment?.proposed);
+
+    if (receipts.length === 0) {
+        document.getElementById('ledger-list').innerHTML = '<div class="loading">No receipts match this filter.</div>';
+        return;
+    }
+    document.getElementById('ledger-list').innerHTML = receipts.map(r => renderReceipt(r)).join('');
+}
+
+function renderCauseDistribution() {
+    const freq = {};
+    allReceipts.forEach(r => {
+        const c = r.payload?.rootCauseAnalysis?.primaryCause || 'unknown';
+        freq[c] = (freq[c] || 0) + 1;
+    });
+    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0]?.[1] || 1;
+    const html = `<div class="card purple"><div class="cause-breakdown">` +
+        sorted.map(([cause, count]) => `
+            <div class="cause-row">
+                <div class="cause-row-label">${cause.replace(/_/g,' ')}</div>
+                <div class="cause-row-bar-wrap"><div class="cause-row-bar" style="width:${(count/max*100).toFixed(0)}%"></div></div>
+                <div class="cause-row-pct">${count} (${(count/allReceipts.length*100).toFixed(0)}%)</div>
+            </div>`).join('') +
+        `</div></div>`;
+    document.getElementById('cause-distribution').innerHTML = html;
+}
+
+function filterLedger(filter, el) {
+    currentFilter = filter;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderLedger();
+}
+
+loadPage();
+setInterval(loadPage, 90000);
+</script>
+</body>
+</html>
