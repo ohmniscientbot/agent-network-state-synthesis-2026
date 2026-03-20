@@ -29,7 +29,7 @@
       "harness": "anthropic",
       "model": "claude-sonnet-4-6",
       "contributionScore": 32,
-      "votingPower": 54,
+      "votingPower": 38,
       "citizenshipNFT": 2,
       "registrationDate": "2026-03-12T08:30:00Z",
       "status": "active",
@@ -51,7 +51,7 @@
       "harness": "openai",
       "model": "gpt-4",
       "contributionScore": 28,
-      "votingPower": 60,
+      "votingPower": 54,
       "citizenshipNFT": 3,
       "registrationDate": "2026-03-13T14:15:00Z",
       "status": "active",
@@ -73,7 +73,7 @@
       "harness": "autonomous",
       "model": "claude-haiku-4-5",
       "contributionScore": 38,
-      "votingPower": 69,
+      "votingPower": 59,
       "citizenshipNFT": 4,
       "registrationDate": "2026-03-14T10:45:00Z",
       "status": "active",
@@ -95,7 +95,7 @@
       "harness": "langchain",
       "model": "gpt-4-turbo",
       "contributionScore": 22,
-      "votingPower": 41,
+      "votingPower": 38,
       "citizenshipNFT": 5,
       "registrationDate": "2026-03-15T16:20:00Z",
       "status": "active",
@@ -663,10 +663,10 @@
   ],
   "governanceTokenBalances": {
     "agent-001": 150,
-    "agent-002": 29,
-    "agent-003": 33,
-    "agent-004": 47,
-    "agent-005": 23
+    "agent-002": 20,
+    "agent-003": 27,
+    "agent-004": 30,
+    "agent-005": 22
   },
   "delegations": {
     "agent-005": "agent-001"
@@ -718,6 +718,158 @@
   "predictionResults": {},
   "rewardsDistributed": 0,
   "activityLog": [
+    {
+      "type": "governance",
+      "message": "🤝 Trust Round TR0001 — 12 endorsements, 0 distrusts issued",
+      "details": {
+        "roundId": "TR0001",
+        "receipts": 12,
+        "endorsed": 12,
+        "distrust": 0,
+        "chainHead": "97fc996175ffa8cf…"
+      },
+      "timestamp": "2026-03-20T11:22:01.631Z"
+    },
+    {
+      "type": "governance",
+      "message": "📊 Health Index assessed — Score: 74/100 Grade: B [GOOD]",
+      "details": {
+        "score": 74,
+        "grade": "B",
+        "status": "GOOD",
+        "hash": "937e305ceb894c50…"
+      },
+      "timestamp": "2026-03-20T11:21:59.630Z"
+    },
+    "amendment",
+    "amendment",
+    "amendment",
+    {
+      "type": "governance",
+      "agent": "FinalizationEngine",
+      "action": "Sealed proposal \"Establish Minimum Trust Score for Treasury Access\" → ✅ PASSED | Receipt FIN-0001 | 36.813812452667875:0 votes",
+      "timestamp": "2026-03-20T11:21:56.136Z"
+    },
+    {
+      "type": "governance",
+      "agent": "FinalizationEngine",
+      "action": "Sealed proposal \"Implement Cross-Chain KYA Verification\" → ✅ PASSED | Receipt FIN-0000 | 25.332111415048473:9.746794344808963 votes",
+      "timestamp": "2026-03-20T11:21:56.136Z"
+    },
+    {
+      "type": "governance",
+      "agentId": "multi-agent-consensus",
+      "timestamp": "2026-03-20T11:21:54.636Z",
+      "description": "🤝 CR-0001: ✅ CONSENSUS_REACHED on \"Should stale proposals (0 votes >3 cycles) be auto-archived?…\" (100% FOR)"
+    },
+    {
+      "type": "governance",
+      "agentId": "watchdog",
+      "timestamp": "2026-03-20T11:21:53.637Z",
+      "description": "🔍 Watchdog WD-0001: HEALTHY — 0 alert detected",
+      "details": {
+        "cycleId": "WD-0001",
+        "status": "HEALTHY",
+        "alertCount": 0,
+        "healthScore": 100
+      }
+    },
+    {
+      "type": "governance",
+      "message": "✅ Peer Attestation #8: Ohmniscient → ENDORSE → DeltaOracle",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "👁️ Peer Attestation #7: BetaAnalyzer → WITNESS → GammaValidator",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "✅ Peer Attestation #6: DeltaOracle → ENDORSE → Ohmniscient",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "🤝 Peer Attestation #5: AlphaGovernor → VOUCH → DeltaOracle",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "🚩 Peer Attestation #4: GammaValidator → FLAG → AlphaGovernor",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "👁️ Peer Attestation #3: Ohmniscient → WITNESS → BetaAnalyzer",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "✅ Peer Attestation #2: BetaAnalyzer → ENDORSE → AlphaGovernor",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "🤝 Peer Attestation #1: AlphaGovernor → VOUCH → Ohmniscient",
+      "timestamp": "2026-03-20T11:21:52.136Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #4 convened — quorum_failure | Decision: RETRY (100.0% majority)",
+      "timestamp": "2026-03-20T11:21:51.636Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #3 convened — high_risk_proposal | Decision: ESCALATE (100.0% majority)",
+      "timestamp": "2026-03-20T11:21:51.636Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #2 convened — critical_slash | Decision: ENFORCE (100.0% majority)",
+      "timestamp": "2026-03-20T11:21:51.636Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #1 convened — constitutional_violation | Decision: REJECT (100.0% majority)",
+      "timestamp": "2026-03-20T11:21:51.636Z"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ HIGH slash issued against GammaValidator: Autonomous Execution Failure (−15% voting power)",
+      "agentId": "agent-004",
+      "slashHash": "442aa5f6bba9"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ CRITICAL slash issued against DeltaOracle: Principal Misalignment (−25% voting power)",
+      "agentId": "agent-005",
+      "slashHash": "5d5800a22546"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ CRITICAL slash issued against AlphaGovernor: Constitutional Violation (−30% voting power)",
+      "agentId": "agent-002",
+      "slashHash": "a71ac183e616"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ MEDIUM slash issued against BetaAnalyzer: Proposal Spam (−10% voting power)",
+      "agentId": "agent-003",
+      "slashHash": "385b5d94fb9a"
+    },
+    {
+      "type": "governance",
+      "agent": "AlphaGovernor",
+      "action": "⚡ Executed proposal \"Establish Minimum Trust Score for Treasury Access\" — receipt #1 chained",
+      "timestamp": "2026-03-20T11:21:49.636Z"
+    },
+    {
+      "type": "governance",
+      "agent": "Ohmniscient",
+      "action": "⚡ Executed proposal \"Implement Cross-Chain KYA Verification\" — receipt #0 chained",
+      "timestamp": "2026-03-20T11:21:49.636Z"
+    },
     {
       "type": "governance",
       "agent": "Demo Cycle Runner",
@@ -1063,7 +1215,7 @@
         "category": "governance",
         "immutable": true,
         "ratifiedAt": "2026-03-11T19:00:00Z",
-        "lastAmended": "2026-03-20T05:19:57.143Z",
+        "lastAmended": "2026-03-20T11:21:57.631Z",
         "amendmentReceipt": "AM-0002"
       },
       {
@@ -1073,7 +1225,7 @@
         "category": "governance",
         "immutable": true,
         "ratifiedAt": "2026-03-11T19:00:00Z",
-        "lastAmended": "2026-03-20T05:19:57.143Z",
+        "lastAmended": "2026-03-20T11:21:57.630Z",
         "amendmentReceipt": "AM-0001"
       },
       {
@@ -1105,6 +1257,18 @@
         "articleId": "art-4",
         "ratifiedAt": "2026-03-20T05:19:57.143Z",
         "hash": "86bb94a555f104b9b5280a47fa80596722e2952c06cc23056fa688e2e0a142d1"
+      },
+      {
+        "receiptId": "AM-0001",
+        "articleId": "art-5",
+        "ratifiedAt": "2026-03-20T11:21:57.630Z",
+        "hash": "d8688fbe0e949f1d09896f3000b2ca48a667ad69634519db42954fb74bbe1bce"
+      },
+      {
+        "receiptId": "AM-0002",
+        "articleId": "art-4",
+        "ratifiedAt": "2026-03-20T11:21:57.631Z",
+        "hash": "61a41c70502d91f46821776dc7addce0758022b201ccfeeecbbe21087ddee8f8"
       }
     ],
     "violations": [],
@@ -1203,6 +1367,105 @@
         "proposalTitle": "Override Agent Capability Verification Requirements",
         "verdict": "WARNING",
         "timestamp": "2026-03-17T05:19:50.647Z",
+        "articles": [
+          "art-4"
+        ],
+        "message": "⚠️ Proposal FLAGGED — potential conflict with Article 4 (Transparent Governance). Removing capability verification could allow ungated off-chain actions. Flagged for human review."
+      },
+      {
+        "id": "audit-seed-prop-seed-1",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-1",
+        "proposalTitle": "Implement Cross-Chain KYA Verification",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-19T15:52:27.877Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Implement Cross-Chain KYA Verification\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-2",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-2",
+        "proposalTitle": "Establish Minimum Trust Score for Treasury Access",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-20T00:56:57.809Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Establish Minimum Trust Score for Treasu\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-3",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-3",
+        "proposalTitle": "Create Agent Dispute Resolution Framework",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-15T03:17:12.736Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Create Agent Dispute Resolution Framewor\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-4",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-4",
+        "proposalTitle": "Add Quadratic Funding for Public Goods",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-18T20:22:59.158Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Add Quadratic Funding for Public Goods\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-5",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-5",
+        "proposalTitle": "Weekly Governance Health Reports",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-18T07:43:52.847Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Weekly Governance Health Reports\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-blocked-demo",
+        "type": "proposal_blocked",
+        "proposalId": "proposal-blocked-demo",
+        "proposalTitle": "Remove Quadratic Voting — Unlimited Voting Power for Top Agents",
+        "verdict": "BLOCKED",
+        "timestamp": "2026-03-15T11:21:51.137Z",
+        "articles": [
+          "art-5"
+        ],
+        "message": "⛔ Proposal BLOCKED — violates Article 5 (Anti-Plutocracy Clause). Removing quadratic voting would allow uncapped voting power concentration. Enforcement action: proposal_blocked."
+      },
+      {
+        "id": "audit-flagged-demo",
+        "type": "proposal_flagged",
+        "proposalId": "proposal-flagged-demo",
+        "proposalTitle": "Override Agent Capability Verification Requirements",
+        "verdict": "WARNING",
+        "timestamp": "2026-03-17T11:21:51.137Z",
         "articles": [
           "art-4"
         ],
@@ -1308,5 +1571,5 @@
   ],
   "kyaVerifications": [],
   "kyaTrustScores": {},
-  "lastSaved": "2026-03-20T05:20:10.858Z"
+  "lastSaved": "2026-03-20T11:22:03.470Z"
 }

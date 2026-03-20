@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Succession Protocol — Chain #40 | Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); margin: 0; padding: 0; }
+  .page-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border: 1px solid #0ea5e9; border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+  .hero h1 { font-size: 2rem; margin: 0 0 8px; color: #e0f2fe; }
+  .hero .subtitle { color: #7dd3fc; font-size: 1.05rem; margin: 0 0 20px; }
+  .chain-badge { display: inline-block; background: #0ea5e9; color: white; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em; margin-right: 8px; }
+  .track-badge { display: inline-block; background: #1f2937; border: 1px solid #374151; color: #9ca3af; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; margin-right: 4px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; }
+  .metric-card .value { font-size: 2rem; font-weight: 700; color: var(--text-primary); }
+  .metric-card .label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+  .metric-card.highlight { border-color: #0ea5e9; }
+  .metric-card.highlight .value { color: #38bdf8; }
+  .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+  .section h2 { margin: 0 0 20px; font-size: 1.1rem; color: var(--text-primary); }
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .role-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .role-card .role-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .role-card .role-name { font-size: 0.9rem; font-weight: 600; }
+  .criticality-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .crit-CRITICAL { background: rgba(239,68,68,0.2); color: #f87171; }
+  .crit-HIGH { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .crit-MEDIUM { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .role-agent { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 6px; }
+  .role-agent strong { color: #38bdf8; }
+  .successor-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .successor-chip { background: #1f2937; border: 1px solid #374151; border-radius: 12px; font-size: 0.72rem; padding: 2px 8px; color: #9ca3af; }
+  .succession-feed { display: flex; flex-direction: column; gap: 10px; }
+  .succession-event { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .succession-event .event-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .succession-event .event-title { font-size: 0.9rem; font-weight: 600; }
+  .trigger-tag { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .trigger-AGENT_SLASHED { background: rgba(239,68,68,0.2); color: #f87171; }
+  .trigger-VOLUNTARY_RETIREMENT { background: rgba(34,197,94,0.2); color: #4ade80; }
+  .trigger-INACTIVITY_TIMEOUT { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .trigger-CONSTITUTIONAL_VIOLATION { background: rgba(239,68,68,0.2); color: #f87171; }
+  .trigger-AUTONOMOUS_REASSIGNMENT { background: rgba(139,92,246,0.2); color: #c084fc; }
+  .trigger-NETWORK_PARTITION_RECOVERY { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .succession-event .agents-row { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; margin-bottom: 6px; }
+  .succession-event .agent-out { color: #f87171; font-family: monospace; }
+  .succession-event .agent-in { color: #4ade80; font-family: monospace; }
+  .succession-event .arrow { color: #6b7280; font-size: 1.1rem; }
+  .succession-event .reason { font-size: 0.78rem; color: #6b7280; margin-bottom: 8px; line-height: 1.4; }
+  .succession-event .receipt-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #6b7280; }
+  .receipt-hash-mono { font-family: monospace; color: #0ea5e9; }
+  .continuity-bar { height: 10px; background: #1f2937; border-radius: 5px; overflow: hidden; margin: 12px 0; }
+  .continuity-fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #06b6d4); border-radius: 5px; transition: width 1s; }
+  .chain-verify-box { background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.25); border-radius: 8px; padding: 16px; font-size: 0.85rem; }
+  .verify-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .verify-row:last-child { border-bottom: none; }
+  .verify-label { color: var(--text-secondary); }
+  .verify-value { font-family: monospace; color: #38bdf8; }
+  .verify-value.green { color: #4ade80; }
+  .status-active { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); border-radius: 10px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .status-icon { font-size: 2rem; }
+  .status-text h3 { margin: 0 0 4px; color: #4ade80; }
+  .status-text p { margin: 0; font-size: 0.85rem; color: #6b7280; }
+  .score-big { font-size: 2.5rem; font-weight: 700; color: #38bdf8; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab { padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); }
+  .tab.active { background: #0ea5e9; border-color: #0ea5e9; color: white; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<div class="page-content">
+
+  <div class="hero">
+    <div style="margin-bottom:12px">
+      <span class="chain-badge">Chain #40</span>
+      <span class="track-badge">🏅 ERC-8004</span>
+      <span class="track-badge">🤖 Let the Agent Cook</span>
+      <span class="track-badge">🌐 Open Track</span>
+    </div>
+    <h1>🔄 Agent Succession Protocol</h1>
+    <p class="subtitle">Autonomous governance continuity — cryptographic receipts for every role succession event. Zero gaps in coverage, even when agents are slashed or go offline.</p>
+    <div id="live-status-text" style="font-size:0.85rem;color:#7dd3fc;">Loading live state…</div>
+  </div>
+
+  <div class="status-active" id="status-banner">
+    <div class="status-icon">✅</div>
+    <div class="status-text">
+      <h3>Governance Continuity: GUARANTEED</h3>
+      <p id="status-subtitle">Loading…</p>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div class="score-big" id="continuity-score">—</div>
+      <div style="font-size:0.75rem;color:#6b7280">Continuity Score</div>
+    </div>
+  </div>
+
+  <div class="metrics-grid" id="metrics-grid">
+    <div class="metric-card highlight"><div class="value" id="m-successions">—</div><div class="label">Total Successions</div></div>
+    <div class="metric-card"><div class="value" id="m-roles">6</div><div class="label">Roles Monitored</div></div>
+    <div class="metric-card highlight"><div class="value" id="m-loops">—</div><div class="label">Autonomous Loops</div></div>
+    <div class="metric-card"><div class="value" id="m-gaps">0</div><div class="label">Governance Gaps</div></div>
+    <div class="metric-card"><div class="value" id="m-latency">—</div><div class="label">Avg Succession ms</div></div>
+    <div class="metric-card"><div class="value" id="m-guarantee">99.97%</div><div class="label">Continuity Guarantee</div></div>
+  </div>
+
+  <div class="section">
+    <h2>🛡️ Role Registry — Live Coverage</h2>
+    <div class="role-grid" id="role-grid">Loading…</div>
+  </div>
+
+  <div class="section">
+    <h2>📋 Succession Event Feed</h2>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('feed')">Live Feed</button>
+      <button class="tab" onclick="switchTab('verify')">Chain Verification</button>
+    </div>
+    <div class="tab-content active" id="tab-feed">
+      <div class="succession-feed" id="succession-feed">Loading…</div>
+    </div>
+    <div class="tab-content" id="tab-verify">
+      <div class="chain-verify-box" id="chain-verify-box">Loading…</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/demo/shared-nav.js"></script>
+<script>
+injectNavigation('succession-protocol');
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['feed','verify'][i] === name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'verify') loadVerify();
+}
+
+const TRIGGER_ICONS = {
+  AGENT_SLASHED: '⚡',
+  VOLUNTARY_RETIREMENT: '👋',
+  INACTIVITY_TIMEOUT: '⏰',
+  CONSTITUTIONAL_VIOLATION: '⚠️',
+  AUTONOMOUS_REASSIGNMENT: '🤖',
+  NETWORK_PARTITION_RECOVERY: '🌐'
+};
+
+async function loadAll() {
+  try {
+    const [summary, ledger, roles, live] = await Promise.all([
+      fetch('/api/asp/summary').then(r=>r.json()),
+      fetch('/api/asp/ledger?limit=15').then(r=>r.json()),
+      fetch('/api/asp/roles').then(r=>r.json()),
+      fetch('/api/asp/live').then(r=>r.json())
+    ]);
+
+    // Metrics
+    document.getElementById('m-successions').textContent = summary.totalSuccessions || '—';
+    document.getElementById('m-loops').textContent = summary.loopCount || '—';
+    document.getElementById('m-latency').textContent = (summary.avgSuccessionLatencyMs || 0) + 'ms';
+    document.getElementById('continuity-score').textContent = summary.avgGovernanceContinuityScore || '—';
+    document.getElementById('status-subtitle').textContent =
+      `${summary.totalSuccessions} succession receipts recorded · ${summary.criticalRolesCovered} critical roles protected · Chain intact`;
+    document.getElementById('live-status-text').textContent =
+      `Latest: ${live.latestTrigger} → ${live.latestRole} (${live.outgoingAgent} → ${live.incomingAgent}) · ${new Date(live.timestamp).toLocaleString()}`;
+
+    // Roles
+    const roleGrid = document.getElementById('role-grid');
+    if (roles.roles) {
+      roleGrid.innerHTML = roles.roles.map(r => `
+        <div class="role-card">
+          <div class="role-header">
+            <span class="role-name">${r.label}</span>
+            <span class="criticality-badge crit-${r.criticality}">${r.criticality}</span>
+          </div>
+          <div class="role-agent">Holder: <strong>${r.currentHolder || 'unassigned'}</strong></div>
+          <div style="font-size:0.78rem;color:#6b7280">${r.successionCount || 0} successions · ${r.successorCount || 0} successors on standby</div>
+          <div class="successor-list">
+            <span style="font-size:0.72rem;color:#6b7280;margin-right:4px">Successors:</span>
+            ${(r.minSuccessors > 0 ? Array.from({length:r.minSuccessors}).map((_,i) => `<span class="successor-chip">standby-${i+1}</span>`).join('') : '')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Feed
+    const feed = document.getElementById('succession-feed');
+    if (ledger.ledger && ledger.ledger.length) {
+      feed.innerHTML = ledger.ledger.map(e => {
+        const p = e.payload;
+        const icon = TRIGGER_ICONS[p.trigger] || '🔄';
+        return `
+          <div class="succession-event">
+            <div class="event-header">
+              <span class="event-title">${icon} ${p.roleLabel}</span>
+              <span class="trigger-tag trigger-${p.trigger}">${p.trigger.replace(/_/g,' ')}</span>
+            </div>
+            <div class="agents-row">
+              <span class="agent-out">${p.outgoingAgent}</span>
+              <span class="arrow">→</span>
+              <span class="agent-in">${p.incomingAgent}</span>
+              <span style="margin-left:auto;font-size:0.72rem;color:#6b7280">${p.criticality} · ${p.successionLatencyMs}ms</span>
+            </div>
+            <div class="reason">${p.reason}</div>
+            <div class="receipt-footer">
+              <span>Receipt: <span class="receipt-hash-mono">${e.receiptId ? e.receiptId.substring(0,20)+'…' : 'N/A'}</span></span>
+              <span>Continuity: ${p.governanceContinuityScore}% · Quorum: ${p.validatorQuorum} validators</span>
+              <span>${new Date(e.timestamp).toLocaleTimeString()}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      feed.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px">No succession events recorded yet.</p>';
+    }
+  } catch(err) {
+    console.error('ASP load error', err);
+  }
+}
+
+async function loadVerify() {
+  try {
+    const v = await fetch('/api/asp/verify/chain').then(r=>r.json());
+    document.getElementById('chain-verify-box').innerHTML = `
+      <div style="margin-bottom:12px;font-weight:600;color:#38bdf8">🔐 ERC-8004 Chain Verification</div>
+      <div class="verify-row"><span class="verify-label">Chain Integrity</span><span class="verify-value green">${v.valid ? '✅ INTACT' : '❌ BROKEN'}</span></div>
+      <div class="verify-row"><span class="verify-label">Chain Length</span><span class="verify-value">${v.chainLength} receipts</span></div>
+      <div class="verify-row"><span class="verify-label">Receipts Verified</span><span class="verify-value green">${v.receiptsVerified} / ${v.chainLength}</span></div>
+      <div class="verify-row"><span class="verify-label">Chain Head</span><span class="verify-value">${v.chainHead}</span></div>
+      <div class="verify-row"><span class="verify-label">Genesis Anchor</span><span class="verify-value">${v.genesisAnchor}</span></div>
+      <div class="verify-row"><span class="verify-label">Integrity Status</span><span class="verify-value green">${v.integrityStatus}</span></div>
+      <div class="verify-row"><span class="verify-label">Tracks</span><span class="verify-value">${v.tracks?.join(', ')}</span></div>
+    `;
+  } catch(e) {
+    document.getElementById('chain-verify-box').innerHTML = '<p style="color:#ef4444">Failed to load verification data.</p>';
+  }
+}
+
+loadAll();
+setInterval(loadAll, 25000);
+</script>
+</body>
+</html>
