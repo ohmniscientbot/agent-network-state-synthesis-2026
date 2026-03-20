@@ -272,7 +272,7 @@
                     <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--neural-purple); margin-right: 8px; animation: pulse 3s infinite;"></span>
                     🤖 Autonomous Intelligence
                 </h2>
-                <span style="font-size: 0.8rem; color: var(--secondary-text);">25 loops running · no human triggers</span>
+                <span style="font-size: 0.8rem; color: var(--secondary-text);">30 loops running · no human triggers</span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
                 <!-- Watchdog -->
@@ -353,6 +353,41 @@
                     <div id="auto-fgb-status" style="font-size: 1.1rem; font-weight: 700; color: var(--primary-text); margin-bottom: 6px;">—</div>
                     <div id="auto-fgb-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
                     <div id="auto-fgb-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/federated-governance" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Governance Stress Test Oracle -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(239,68,68,0.5); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #f87171; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">⚔️ Stress Test Oracle · Chain #35 <span style="background:rgba(239,68,68,0.15);color:#f87171;font-size:0.65rem;padding:1px 5px;border-radius:4px;margin-left:3px;">NEW</span></div>
+                    <div id="auto-gsto-vector" style="font-size: 1rem; font-weight: 700; color: var(--primary-text); margin-bottom: 6px;">—</div>
+                    <div id="auto-gsto-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-gsto-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/stress-test" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Agent Decision Explainability Registry -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(99,102,241,0.5); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #818cf8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">💡 Decision WHY · Chain #36 <span style="background:rgba(99,102,241,0.15);color:#818cf8;font-size:0.65rem;padding:1px 5px;border-radius:4px;margin-left:3px;">NEW</span></div>
+                    <div id="auto-ader-decision" style="font-size: 0.95rem; font-weight: 700; color: var(--primary-text); margin-bottom: 6px; line-height: 1.4;">—</div>
+                    <div id="auto-ader-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-ader-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/explainability" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Governance Participation Incentive Ledger -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(251,191,36,0.5); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #fde68a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🎖️ Incentive Ledger · Chain #37 <span style="background:rgba(251,191,36,0.15);color:#fde68a;font-size:0.65rem;padding:1px 5px;border-radius:4px;margin-left:3px;">NEW</span></div>
+                    <div id="auto-gpil-health" style="font-size: 2rem; font-weight: 700; color: var(--neural-green); margin-bottom: 6px;">—</div>
+                    <div id="auto-gpil-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-gpil-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/incentives" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Agent Peer Audit Protocol -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(168,85,247,0.5); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #c084fc; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">🔎 Peer Audit · Chain #38 <span style="background:rgba(168,85,247,0.15);color:#c084fc;font-size:0.65rem;padding:1px 5px;border-radius:4px;margin-left:3px;">NEW</span></div>
+                    <div id="auto-apap-verdict" style="font-size: 1.1rem; font-weight: 700; color: var(--primary-text); margin-bottom: 6px;">—</div>
+                    <div id="auto-apap-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-apap-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/peer-audit" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
+                </div>
+                <!-- Agent Constitutional Compliance Monitor -->
+                <div style="background: var(--card-bg); border: 1px solid rgba(16,185,129,0.5); border-radius: var(--radius-neural); padding: 20px; backdrop-filter: blur(12px);">
+                    <div style="font-size: 0.75rem; color: #34d399; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">📜 Constitutional Monitor · Chain #39 <span style="background:rgba(16,185,129,0.15);color:#34d399;font-size:0.65rem;padding:1px 5px;border-radius:4px;margin-left:3px;">NEW</span></div>
+                    <div id="auto-accm-verdict" style="font-size: 1.1rem; font-weight: 700; color: var(--neural-green); margin-bottom: 6px;">—</div>
+                    <div id="auto-accm-detail" style="font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5;">Loading...</div>
+                    <div id="auto-accm-time" style="font-size: 0.7rem; color: var(--secondary-text); margin-top: 8px; opacity: 0.6;"><a href="/constitutional-compliance" style="color:inherit;opacity:0.7;">View full ledger →</a></div>
                 </div>
             </div>
         </div>
@@ -758,6 +793,115 @@
                         document.getElementById('auto-fgb-time').innerHTML = fp.timestamp
                             ? `Cycle ${fp.cycleId} · ${new Date(fp.timestamp).toLocaleTimeString()} · <a href="/federated-governance" style="color:inherit;opacity:0.7;">View ledger →</a>`
                             : '<a href="/federated-governance" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                    }
+                }
+
+                // Governance Stress Test Oracle (Chain #35)
+                const gstoRes = await fetch('/api/gsto/latest', {cache:'no-store'}).catch(() => null);
+                if (gstoRes?.ok) {
+                    const gs = await gstoRes.json();
+                    const gp = gs.payload || gs;
+                    if (gp && gp.attackVector) {
+                        const sevColors = { CRITICAL: '#ef4444', HIGH: '#f97316', MEDIUM: '#fbbf24', LOW: '#4ade80', MINIMAL: '#22d3ee' };
+                        const sev = gp.severity || 'LOW';
+                        const col = sevColors[sev] || '#e2e8f0';
+                        const pct = gp.resistancePercent !== undefined ? gp.resistancePercent : (gp.resistanceScore ? (gp.resistanceScore * 100).toFixed(1) : '—');
+                        document.getElementById('auto-gsto-vector').textContent =
+                            `${gp.outcomeIcon||''} ${gp.attackVector} · ${pct}% resistance`;
+                        document.getElementById('auto-gsto-vector').style.color = col;
+                        document.getElementById('auto-gsto-detail').textContent =
+                            `Severity: ${sev} · Outcome: ${gp.outcome||'—'} · Red-teaming 8 attack vectors`;
+                        document.getElementById('auto-gsto-time').innerHTML = gp.timestamp
+                            ? `Cycle ${gp.cycleId} · ${new Date(gp.timestamp).toLocaleTimeString()} · <a href="/stress-test" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                            : '<a href="/stress-test" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                    }
+                }
+
+                // Agent Decision Explainability Registry (Chain #36)
+                const aderRes = await fetch('/api/ader/latest', {cache:'no-store'}).catch(() => null);
+                if (aderRes?.ok) {
+                    const ad = await aderRes.json();
+                    const ap2 = ad.payload || ad;
+                    if (ap2 && ap2.decisionType) {
+                        const outcomeColors = { EXECUTED: '#4ade80', DEFERRED: '#fbbf24', ESCALATED: '#f97316', REJECTED: '#ef4444' };
+                        const outc = ap2.decisionOutcome || ap2.outcome || 'EXECUTED';
+                        document.getElementById('auto-ader-decision').textContent =
+                            `${ap2.decisionType} → ${outc}`;
+                        document.getElementById('auto-ader-decision').style.color = outcomeColors[outc] || '#818cf8';
+                        const conf = ap2.confidencePct !== undefined ? ap2.confidencePct : (ap2.confidenceScore ? (ap2.confidenceScore * 100).toFixed(0) : '—');
+                        const art = ap2.constitutionArticle || ap2.articleRef || '—';
+                        document.getElementById('auto-ader-detail').textContent =
+                            `Agent: ${ap2.agentId||'—'} · Confidence: ${conf}% · Art. ${art} · WHY receipt sealed`;
+                        document.getElementById('auto-ader-time').innerHTML = ap2.timestamp
+                            ? `Receipt ${ap2.receiptId||ap2.cycleNumber||''} · ${new Date(ap2.timestamp).toLocaleTimeString()} · <a href="/explainability" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                            : '<a href="/explainability" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                    }
+                }
+
+                // Governance Participation Incentive Ledger (Chain #37)
+                const gpilRes = await fetch('/api/gpil/latest', {cache:'no-store'}).catch(() => null);
+                if (gpilRes?.ok) {
+                    const gpi = await gpilRes.json();
+                    const gpp = gpi.payload || gpi;
+                    if (gpp && gpp.ecosystemHealth !== undefined) {
+                        const healthColors = { THRIVING: '#4ade80', HEALTHY: '#22d3ee', STABLE: '#fbbf24', DECLINING: '#f97316', AT_RISK: '#ef4444' };
+                        const health = gpp.ecosystemHealth || 'HEALTHY';
+                        const hCol = healthColors[health] || '#4ade80';
+                        document.getElementById('auto-gpil-health').textContent = health;
+                        document.getElementById('auto-gpil-health').style.color = hCol;
+                        const top = gpp.topPerformerId || '—';
+                        const avg = gpp.avgCycleScore !== undefined ? gpp.avgCycleScore.toFixed(1) : '—';
+                        const tier = gpp.topPerformerTier || '—';
+                        document.getElementById('auto-gpil-detail').textContent =
+                            `Avg score: ${avg}/100 · Top: ${top} (${tier}) · ${(gpp.agentsBatch||[]).length||gpp.agentsEvaluated||0} agents rated`;
+                        document.getElementById('auto-gpil-time').innerHTML = gpp.timestamp
+                            ? `Cycle #${gpp.cycleNumber||''} · ${new Date(gpp.timestamp).toLocaleTimeString()} · <a href="/incentives" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                            : '<a href="/incentives" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                    }
+                }
+
+                // Agent Peer Audit Protocol (Chain #38)
+                const apapRes = await fetch('/api/apap/latest', {cache:'no-store'}).catch(() => null);
+                if (apapRes?.ok) {
+                    const apa = await apapRes.json();
+                    const app2 = apa.payload || apa;
+                    if (app2 && app2.verdict) {
+                        const verdictColors = { VERIFIED: '#4ade80', CHALLENGED: '#fbbf24', FLAGGED: '#ef4444' };
+                        const verdict = app2.verdict || 'VERIFIED';
+                        const vCol = verdictColors[verdict] || '#c084fc';
+                        document.getElementById('auto-apap-verdict').textContent =
+                            `${app2.verdictIcon||''} ${verdict} · Score ${app2.avgAuditScore !== undefined ? app2.avgAuditScore.toFixed(1) : '—'}/100`;
+                        document.getElementById('auto-apap-verdict').style.color = vCol;
+                        document.getElementById('auto-apap-detail').textContent =
+                            `${app2.auditorAgentId||'—'} audited ${app2.targetAgentId||'—'} · Chain #36 WHY receipt reviewed`;
+                        document.getElementById('auto-apap-time').innerHTML = app2.timestamp
+                            ? `Audit #${app2.cycleNumber||''} · ${new Date(app2.timestamp).toLocaleTimeString()} · <a href="/peer-audit" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                            : '<a href="/peer-audit" style="color:inherit;opacity:0.7;">View full ledger →</a>';
+                    }
+                }
+
+                // Agent Constitutional Compliance Monitor (Chain #39)
+                const accmRes = await fetch('/api/accm/latest', {cache:'no-store'}).catch(() => null);
+                if (accmRes?.ok) {
+                    const acm = await accmRes.json();
+                    const acp2 = acm.payload || acm;
+                    if (acp2 && acp2.overallVerdict) {
+                        const vColors = { COMPLIANT: '#4ade80', WATCH: '#fbbf24', VIOLATION: '#ef4444' };
+                        const ov = acp2.overallVerdict || 'COMPLIANT';
+                        const vCol = vColors[ov] || '#34d399';
+                        const score = acp2.compositeScore ?? '—';
+                        document.getElementById('auto-accm-verdict').textContent =
+                            `${acp2.overallVerdictIcon||''} ${ov} · ${score}/100`;
+                        document.getElementById('auto-accm-verdict').style.color = vCol;
+                        const violations = (acp2.violationArticles || []).length;
+                        const articles = acp2.articlesAudited || 7;
+                        document.getElementById('auto-accm-detail').textContent =
+                            violations === 0
+                                ? `All ${articles} constitutional articles — fully compliant`
+                                : `${violations} article violation(s) · ${articles - violations}/${articles} compliant · escalated`;
+                        document.getElementById('auto-accm-time').innerHTML = acp2.timestamp
+                            ? `Audit #${acp2.cycleNumber||''} · ${new Date(acp2.timestamp).toLocaleTimeString()} · <a href="/constitutional-compliance" style="color:inherit;opacity:0.7;">View ledger →</a>`
+                            : '<a href="/constitutional-compliance" style="color:inherit;opacity:0.7;">View full ledger →</a>';
                     }
                 }
 
