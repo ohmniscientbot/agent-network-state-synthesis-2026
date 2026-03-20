@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Governance Participation Incentive Ledger — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #22d3ee, #0891b2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 760px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .health-THRIVING  { color: #4ade80; }
+  .health-STABLE    { color: #22d3ee; }
+  .health-STRUGGLING{ color: #fbbf24; }
+  .health-CRITICAL  { color: #ef4444; }
+
+  .tier-GOVERNANCE_CHAMPION  { color: #fbbf24; }
+  .tier-TRUSTED_CONTRIBUTOR  { color: #4ade80; }
+  .tier-ACTIVE_PARTICIPANT   { color: #22d3ee; }
+  .tier-NEEDS_IMPROVEMENT    { color: #f97316; }
+  .tier-AT_RISK              { color: #ef4444; }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #1e293b; }
+
+  .agent-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .agent-card.GOVERNANCE_CHAMPION { border-left: 3px solid #fbbf24; }
+  .agent-card.TRUSTED_CONTRIBUTOR { border-left: 3px solid #4ade80; }
+  .agent-card.ACTIVE_PARTICIPANT  { border-left: 3px solid #22d3ee; }
+  .agent-card.NEEDS_IMPROVEMENT   { border-left: 3px solid #f97316; }
+  .agent-card.AT_RISK             { border-left: 3px solid #ef4444; }
+
+  .agent-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+  .agent-name { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; }
+  .tier-badge { font-size: 0.8rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; }
+  .badge-GOVERNANCE_CHAMPION { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-TRUSTED_CONTRIBUTOR { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .badge-ACTIVE_PARTICIPANT  { background: rgba(34,211,238,0.12); color: #22d3ee; border: 1px solid rgba(34,211,238,0.3); }
+  .badge-NEEDS_IMPROVEMENT   { background: rgba(249,115,22,0.12); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+  .badge-AT_RISK             { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3);  }
+
+  .score-display { font-size: 2.5rem; font-weight: 800; }
+  .score-label  { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .dim-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-top: 1rem; }
+  @media(max-width:800px) { .dim-grid { grid-template-columns: repeat(3,1fr); } }
+  @media(max-width:500px) { .dim-grid { grid-template-columns: 1fr 1fr; } }
+  .dim-item { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 0.6rem 0.5rem; text-align: center; }
+  .dim-name  { font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.4rem; line-height: 1.3; }
+  .dim-score { font-size: 1.1rem; font-weight: 800; }
+  .dim-bar-wrap { background: #1e293b; border-radius: 999px; height: 3px; overflow: hidden; margin: 0.3rem 0 0.2rem; }
+  .dim-bar { height: 3px; border-radius: 999px; background: linear-gradient(90deg, #0891b2, #22d3ee); }
+
+  .reward-box { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 0.6rem 0.9rem; font-size: 0.83rem; color: #94a3b8; margin-top: 0.75rem; }
+  .improvement-box { background: #1c0a0a; border: 1px solid #450a0a; border-radius: 0.5rem; padding: 0.6rem 0.9rem; font-size: 0.83rem; color: #fca5a5; margin-top: 0.75rem; }
+
+  .receipt-row {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .receipt-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .receipt-body { flex: 1; min-width: 0; }
+  .receipt-title { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; }
+  .receipt-meta  { font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; }
+  .receipt-hash  { font-size: 0.68rem; color: #475569; font-family: monospace; margin-top: 0.3rem; word-break: break-all; }
+
+  .tiers-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+  @media(max-width:800px) { .tiers-grid { grid-template-columns: 1fr 1fr; } }
+  .tier-item { background: #111827; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.85rem 1rem; text-align: center; }
+  .tier-icon  { font-size: 1.5rem; margin-bottom: 0.3rem; }
+  .tier-name  { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+  .tier-range { font-size: 0.75rem; color: #64748b; }
+
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0891b2; margin-right: 6px; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
+
+  .leaderboard-row { display: flex; align-items: center; gap: 1rem; background: #111827; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.85rem 1.25rem; margin-bottom: 0.6rem; }
+  .lb-rank  { font-size: 1.1rem; font-weight: 800; color: #64748b; width: 2rem; text-align: center; flex-shrink: 0; }
+  .lb-agent { flex: 1; font-size: 0.9rem; font-weight: 600; color: #e2e8f0; }
+  .lb-tier  { font-size: 0.75rem; font-weight: 700; }
+  .lb-score { font-size: 1.1rem; font-weight: 800; margin-left: auto; }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page-wrap">
+  <div class="chain-badge">🎯 CHAIN #37 — ERC-8004</div>
+  <h1>Governance Participation Incentive Ledger</h1>
+  <p class="subtitle">
+    Novel governance-motivation primitive — quantifies <em>why agents cooperate</em> by scoring 5 participation quality dimensions per cycle: vote consistency, reasoning transparency, constitutional adherence, knowledge contribution, and oversight compliance. Issues cryptographic incentive receipts with tier badges. The DAO that understands its own motivation layer.
+    <br><span class="live-dot"></span><span style="color:#22d3ee;font-size:0.85rem;">Live incentive receipts — issuing every 250 seconds</span>
+  </p>
+
+  <!-- Summary Metrics -->
+  <div class="grid-4" id="summary-grid">
+    <div class="card"><div class="card-title">Ecosystem Health</div><div class="card-value" id="ecosystem-health">—</div><div class="card-sub" id="avg-score">—</div></div>
+    <div class="card"><div class="card-title">Cycles Completed</div><div class="card-value" id="total-cycles">—</div><div class="card-sub">incentive evaluation cycles</div></div>
+    <div class="card"><div class="card-title">Receipts Issued</div><div class="card-value" id="total-receipts">—</div><div class="card-sub">cryptographic proofs</div></div>
+    <div class="card"><div class="card-title">Champions</div><div class="card-value tier-GOVERNANCE_CHAMPION" id="champion-count">—</div><div class="card-sub">governance champion tier</div></div>
+  </div>
+
+  <!-- Tier Reference -->
+  <div class="section-title">🏆 Tier System</div>
+  <div class="tiers-grid">
+    <div class="tier-item"><div class="tier-icon">🏆</div><div class="tier-name tier-GOVERNANCE_CHAMPION">Champion</div><div class="tier-range">88–100</div></div>
+    <div class="tier-item"><div class="tier-icon">⭐</div><div class="tier-name tier-TRUSTED_CONTRIBUTOR">Trusted</div><div class="tier-range">72–87</div></div>
+    <div class="tier-item"><div class="tier-icon">✅</div><div class="tier-name tier-ACTIVE_PARTICIPANT">Active</div><div class="tier-range">55–71</div></div>
+    <div class="tier-item"><div class="tier-icon">⚠️</div><div class="tier-name tier-NEEDS_IMPROVEMENT">Needs Work</div><div class="tier-range">38–54</div></div>
+    <div class="tier-item"><div class="tier-icon">🔴</div><div class="tier-name tier-AT_RISK">At Risk</div><div class="tier-range">0–37</div></div>
+  </div>
+
+  <!-- Latest Cycle — Agent Scores -->
+  <div class="section-title">🎯 Latest Incentive Cycle</div>
+  <div id="latest-agents">
+    <p style="color:#64748b;">Loading latest cycle…</p>
+  </div>
+
+  <!-- Agent Leaderboard -->
+  <div class="section-title">📊 Agent Leaderboard</div>
+  <div id="leaderboard-list">
+    <p style="color:#64748b;">Loading leaderboard…</p>
+  </div>
+
+  <!-- Recent Receipts -->
+  <div class="section-title">🔗 Recent Incentive Receipts</div>
+  <div id="receipts-list"></div>
+
+  <!-- Chain Integrity -->
+  <div class="section-title">✅ Chain Integrity</div>
+  <div class="card" id="chain-integrity">
+    <p style="color:#64748b;">Verifying GPIL chain…</p>
+  </div>
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+function scoreColor(score) {
+  if (score >= 88) return '#fbbf24';
+  if (score >= 72) return '#4ade80';
+  if (score >= 55) return '#22d3ee';
+  if (score >= 38) return '#f97316';
+  return '#ef4444';
+}
+
+function tierIcon(tier) {
+  const icons = { GOVERNANCE_CHAMPION: '🏆', TRUSTED_CONTRIBUTOR: '⭐', ACTIVE_PARTICIPANT: '✅', NEEDS_IMPROVEMENT: '⚠️', AT_RISK: '🔴' };
+  return icons[tier] || '❓';
+}
+
+async function loadSummary() {
+  try {
+    const d = await fetch('/api/gpil/status').then(r => r.json());
+    document.getElementById('ecosystem-health').textContent = d.ecosystemHealth || '—';
+    document.getElementById('ecosystem-health').className = `card-value health-${d.ecosystemHealth}`;
+    document.getElementById('avg-score').textContent = `avg score: ${d.avgIncentiveScore || 0}pts`;
+    document.getElementById('total-cycles').textContent = d.cyclesRun || 0;
+    document.getElementById('total-receipts').textContent = d.totalReceipts || 0;
+  } catch(e) { console.error(e); }
+}
+
+async function loadLatest() {
+  try {
+    const d = await fetch('/api/gpil/latest').then(r => r.json());
+    if (d.message) { document.getElementById('latest-agents').innerHTML = `<p style="color:#64748b;">${d.message}</p>`; return; }
+    const p = d.payload;
+
+    const agentHTML = p.agentScores.map(a => {
+      const sc = scoreColor(a.incentiveScore);
+      const dims = Object.entries(a.dimensionScores).map(([dimId, dimData]) => `
+        <div class="dim-item">
+          <div class="dim-name">${dimData.label}</div>
+          <div class="dim-bar-wrap"><div class="dim-bar" style="width:${dimData.pct}%;"></div></div>
+          <div class="dim-score" style="color:${scoreColor(dimData.pct)};">${dimData.pct}%</div>
+        </div>
+      `).join('');
+
+      return `
+        <div class="agent-card ${a.tier}">
+          <div class="agent-header">
+            <div>
+              <div class="agent-name">🤖 ${a.agentId}</div>
+              <div style="font-size:0.83rem;color:#94a3b8;margin-top:0.2rem;">${a.scenarioDesc}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="score-display" style="color:${sc};">${a.incentiveScore}</div>
+              <div class="score-label">incentive score</div>
+              <span class="tier-badge badge-${a.tier}">${tierIcon(a.tier)} ${a.tier.replace(/_/g,' ')}</span>
+            </div>
+          </div>
+
+          <div class="dim-grid">${dims}</div>
+
+          <div class="reward-box">🎁 <b>Reward:</b> ${a.tierReward}</div>
+          ${a.improvementGuidance ? `<div class="improvement-box">📋 <b>Improvement guidance:</b> ${a.improvementGuidance}</div>` : ''}
+          ${a.escalatedToOversight ? `<div class="improvement-box" style="background:#1c0a0a;border-color:#7f1d1d;">⚠️ <b>AT_RISK:</b> Agent escalated to Human Principal Oversight (Chain #20)</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('latest-agents').innerHTML = `
+      <div style="background:#0f172a;border:1px solid #1e293b;border-radius:0.75rem;padding:0.75rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:0.82rem;color:#64748b;">Cycle #${p.cycleNumber}</span>
+        <span style="font-size:0.82rem;color:#64748b;">Ecosystem: <b class="health-${p.ecosystemHealth}">${p.ecosystemHealth}</b></span>
+        <span style="font-size:0.82rem;color:#64748b;">Avg score: <b style="color:#22d3ee;">${p.avgCycleScore}</b></span>
+        <span style="font-size:0.82rem;color:#64748b;">Top performer: <b style="color:#fbbf24;">${p.topPerformerId}</b> (${p.topPerformerScore}pts)</span>
+        <span style="font-size:0.82rem;color:#64748b;font-family:monospace;">Receipt: ${d.receiptId}</span>
+      </div>
+      ${agentHTML}
+    `;
+  } catch(e) { console.error(e); }
+}
+
+async function loadLeaderboard() {
+  try {
+    const d = await fetch('/api/gpil/leaderboard').then(r => r.json());
+    const el = document.getElementById('leaderboard-list');
+    if (!d.leaderboard || !d.leaderboard.length) { el.innerHTML = '<p style="color:#64748b;">No leaderboard data yet.</p>'; return; }
+
+    // Update champion count
+    const champions = d.leaderboard.filter(a => a.latestTier === 'GOVERNANCE_CHAMPION').length;
+    document.getElementById('champion-count').textContent = champions;
+
+    el.innerHTML = d.leaderboard.map((a, i) => {
+      const sc = scoreColor(a.avgScore);
+      const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+      return `<div class="leaderboard-row">
+        <div class="lb-rank">${rankIcon}</div>
+        <div class="lb-agent">🤖 ${a.agentId}</div>
+        <span class="lb-tier tier-${a.latestTier}">${tierIcon(a.latestTier)} ${a.latestTier.replace(/_/g,' ')}</span>
+        <span style="font-size:0.75rem;color:#64748b;">${a.cyclesEvaluated} cycles · best: ${a.bestScore}</span>
+        <div class="lb-score" style="color:${sc};">${a.avgScore}<span style="font-size:0.7rem;color:#64748b;"> avg</span></div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadReceipts() {
+  try {
+    const d = await fetch('/api/gpil/ledger?limit=10').then(r => r.json());
+    const el = document.getElementById('receipts-list');
+    if (!d.receipts || !d.receipts.length) { el.innerHTML = '<p style="color:#64748b;">No receipts yet.</p>'; return; }
+    el.innerHTML = d.receipts.map(r => {
+      const p = r.payload;
+      const sc = scoreColor(p.avgCycleScore);
+      return `<div class="receipt-row">
+        <div class="receipt-icon">🎯</div>
+        <div class="receipt-body">
+          <div class="receipt-title">Cycle #${p.cycleNumber} — ${p.agentsBatch.join(', ')} — <span class="health-${p.ecosystemHealth}">${p.ecosystemHealth}</span></div>
+          <div class="receipt-meta">${r.receiptId} · Avg score: <span style="color:${sc};font-weight:700;">${p.avgCycleScore}</span> · Top: ${p.topPerformerId} (${p.topPerformerTier}) · ${r.timestamp}</div>
+          <div class="receipt-hash">Hash: ${r.hash ? r.hash.slice(0,40)+'…' : '—'} | Prev: ${r.prevHash.slice(0,20)}…</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadChainVerification() {
+  try {
+    const d = await fetch('/api/gpil/verify/chain').then(r => r.json());
+    document.getElementById('chain-integrity').innerHTML = `
+      <div style="font-size:1.1rem;font-weight:700;color:${d.intact?'#4ade80':'#ef4444'};">${d.message}</div>
+      <div style="font-size:0.82rem;color:#64748b;margin-top:0.5rem;">Chain head: <span style="font-family:monospace;color:#38bdf8;">${d.chainHead || '—'}</span> · Receipts verified: ${d.receiptsVerified}</div>
+    `;
+  } catch(e) { console.error(e); }
+}
+
+async function refresh() {
+  await Promise.all([loadSummary(), loadLatest(), loadLeaderboard(), loadReceipts(), loadChainVerification()]);
+}
+
+refresh();
+setInterval(refresh, 20000);
+</script>
+</body>
+</html>

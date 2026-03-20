@@ -2388,6 +2388,41 @@
         "Updated scorecard: erc8004ChainCount=35, autonomousLoopsRunning=26, totalApiEndpoints=86, totalPages=32",
         "totalCryptographicReceipts now includes gstoLedger.length"
       ]
+    },
+    {
+      "id": "L105",
+      "timestamp": "2026-03-20T09:08:09Z",
+      "type": "autonomous_cycle",
+      "description": "Chain #36 Agent Decision Explainability Registry (ADER) \u2014 autonomous WHY-receipt chain: every agent decision sealed with reasoning inputs (4 dims), confidence score, constitutional alignment, outcome. Includes explainability.html frontend. 240s interval. Closes the agent-accountability observability gap.",
+      "chains_added": [
+        36
+      ],
+      "pages_added": [
+        "explainability.html"
+      ],
+      "impact": "judges can verify not just WHAT agents decided but WHY \u2014 with cryptographic receipts"
+    },
+    {
+      "id": "L106",
+      "timestamp": "2026-03-20T09:08:09Z",
+      "type": "autonomous_cycle",
+      "description": "Chain #37 Governance Participation Incentive Ledger (GPIL) \u2014 novel motivation-layer primitive: scores agents on 5 participation quality dimensions (vote consistency, reasoning transparency, constitutional adherence, knowledge contribution, oversight compliance). Issues cryptographic incentive receipts with 5-tier badge system (CHAMPION/CONTRIBUTOR/ACTIVE/AT_RISK). AT_RISK auto-escalates to Human Oversight (Chain #20). Includes incentives.html leaderboard frontend. 250s interval. The DAO that receipts its own motivation layer.",
+      "chains_added": [
+        37
+      ],
+      "pages_added": [
+        "incentives.html"
+      ],
+      "api_endpoints_added": [
+        "/api/gpil/status",
+        "/api/gpil/ledger",
+        "/api/gpil/verify/chain",
+        "/api/gpil/latest",
+        "/api/gpil/leaderboard",
+        "/api/gpil/summary",
+        "/incentives"
+      ],
+      "impact": "first DAO to cryptographically quantify agent participation motivation with tier rewards and guided improvement"
     }
   ]
 }

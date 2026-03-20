@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Decision Explainability Registry — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 760px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4, .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .status-TRANSPARENT { color: #4ade80; }
+  .status-PARTIAL     { color: #fbbf24; }
+  .status-OPAQUE      { color: #ef4444; }
+
+  .quality-HIGH   { color: #4ade80; }
+  .quality-MEDIUM { color: #fbbf24; }
+  .quality-LOW    { color: #ef4444; }
+
+  .outcome-EXECUTED          { color: #4ade80; }
+  .outcome-DEFERRED          { color: #fbbf24; }
+  .outcome-ESCALATED         { color: #f97316; }
+  .outcome-REJECTED_BY_AGENT { color: #ef4444; }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #1e293b; }
+
+  .receipt-panel {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid #7c3aed;
+  }
+  .receipt-panel.quality-HIGH   { border-left-color: #4ade80; }
+  .receipt-panel.quality-MEDIUM { border-left-color: #fbbf24; }
+  .receipt-panel.quality-LOW    { border-left-color: #ef4444; }
+
+  .receipt-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+  .receipt-agent { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; }
+  .receipt-type  { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; background: rgba(167,139,250,0.12); color: #a78bfa; padding: 0.2rem 0.6rem; border-radius: 999px; }
+  .receipt-desc  { font-size: 0.87rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.5; }
+
+  .dimension-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+  @media(max-width:600px) { .dimension-grid { grid-template-columns: 1fr; } }
+  .dimension-item { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 0.6rem 0.75rem; }
+  .dim-name  { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 0.3rem; }
+  .dim-bar-wrap { background: #1e293b; border-radius: 999px; height: 4px; overflow: hidden; margin-bottom: 0.25rem; }
+  .dim-bar   { height: 4px; border-radius: 999px; background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+  .dim-value { font-size: 0.75rem; font-weight: 700; color: #a78bfa; }
+
+  .confidence-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #a78bfa;
+  }
+
+  .alignment-ok   { color: #4ade80; }
+  .alignment-fail { color: #ef4444; }
+
+  .receipt-footer { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; font-size: 0.75rem; color: #475569; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #1e293b; }
+  .receipt-hash { font-family: monospace; color: #475569; word-break: break-all; flex: 1; min-width: 200px; }
+
+  .outcome-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+  @media(max-width:600px) { .outcome-grid { grid-template-columns: 1fr; } }
+  .outcome-item { background: #111827; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem 1.25rem; }
+  .outcome-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 0.4rem; }
+  .outcome-count { font-size: 1.5rem; font-weight: 800; }
+
+  .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+  @media(max-width:600px) { .type-grid { grid-template-columns: 1fr; } }
+  .type-item { background: #111827; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.85rem 1rem; }
+  .type-name { font-size: 0.78rem; font-weight: 700; color: #a78bfa; margin-bottom: 0.2rem; }
+  .type-count { font-size: 1.2rem; font-weight: 800; color: #e2e8f0; }
+
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #7c3aed; margin-right: 6px; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page-wrap">
+  <div class="chain-badge">🧠 CHAIN #36 — ERC-8004</div>
+  <h1>Agent Decision Explainability Registry</h1>
+  <p class="subtitle">
+    Every autonomous agent decision is sealed with a cryptographic <em>WHY</em> receipt — reasoning inputs across 4 measurable dimensions, confidence score, constitutional alignment check, and outcome. No agent ever acts without an auditable explanation.
+    <br><span class="live-dot"></span><span style="color:#a78bfa;font-size:0.85rem;">Live explainability receipts — issuing every 240 seconds</span>
+  </p>
+
+  <!-- Summary Metrics -->
+  <div class="grid-4" id="summary-grid">
+    <div class="card"><div class="card-title">Transparency Status</div><div class="card-value" id="status-val">—</div><div class="card-sub" id="avg-score">—</div></div>
+    <div class="card"><div class="card-title">Decisions Explained</div><div class="card-value" id="total-receipts">—</div><div class="card-sub">total receipts issued</div></div>
+    <div class="card"><div class="card-title">High-Quality</div><div class="card-value" id="high-quality">—</div><div class="card-sub">high-confidence explanations</div></div>
+    <div class="card"><div class="card-title">Constitutional Alignment</div><div class="card-value" id="alignment-rate">—</div><div class="card-sub">decisions aligned to constitution</div></div>
+  </div>
+
+  <!-- Latest Explanation Receipt -->
+  <div class="section-title">🧠 Latest Decision Explanation</div>
+  <div id="latest-panel">
+    <p style="color:#64748b;">Loading latest explanation receipt…</p>
+  </div>
+
+  <!-- Outcome Distribution -->
+  <div class="section-title">📊 Decision Outcome Distribution</div>
+  <div class="outcome-grid" id="outcome-grid"></div>
+
+  <!-- Decision Type Breakdown -->
+  <div class="section-title">🗂️ Decision Types Explained</div>
+  <div class="type-grid" id="type-grid"></div>
+
+  <!-- Recent Receipts -->
+  <div class="section-title">🔗 Recent Explainability Receipts</div>
+  <div id="receipts-list"></div>
+
+  <!-- Chain Integrity -->
+  <div class="section-title">✅ Chain Integrity</div>
+  <div class="card" id="chain-integrity">
+    <p style="color:#64748b;">Verifying ADER chain…</p>
+  </div>
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+function confColor(pct) {
+  if (pct >= 80) return '#4ade80';
+  if (pct >= 65) return '#fbbf24';
+  if (pct >= 50) return '#f97316';
+  return '#ef4444';
+}
+
+function outcomeIcon(outcome) {
+  const icons = { EXECUTED: '✅', DEFERRED: '⏳', ESCALATED: '🔺', REJECTED_BY_AGENT: '❌' };
+  return icons[outcome] || '❓';
+}
+
+function qualityIcon(q) {
+  return q === 'HIGH' ? '🟢' : q === 'MEDIUM' ? '🟡' : '🔴';
+}
+
+async function loadSummary() {
+  try {
+    const d = await fetch('/api/ader/summary').then(r => r.json());
+    if (d.status === 'PENDING') { document.getElementById('status-val').textContent = 'Pending'; return; }
+    document.getElementById('status-val').textContent = d.status || '—';
+    document.getElementById('status-val').className = `card-value status-${d.status}`;
+    document.getElementById('avg-score').textContent = `avg explainability: ${d.avgExplainabilityScore}%`;
+    document.getElementById('total-receipts').textContent = d.totalReceipts;
+    document.getElementById('high-quality').textContent = d.highQualityExplanations;
+    const alignPct = d.alignmentRate ? Math.round(d.alignmentRate * 100) + '%' : '—';
+    document.getElementById('alignment-rate').textContent = alignPct;
+
+    // Outcome grid
+    const outcomeEl = document.getElementById('outcome-grid');
+    const labels = {
+      EXECUTED: '✅ Executed', DEFERRED: '⏳ Deferred',
+      ESCALATED: '🔺 Escalated', REJECTED_BY_AGENT: '❌ Rejected by Agent'
+    };
+    outcomeEl.innerHTML = Object.entries(labels).map(([k, label]) => {
+      const count = (d.decisionTypeBreakdown && d.decisionTypeBreakdown[k]) || 0;
+      return `<div class="outcome-item"><div class="outcome-label">${label}</div><div class="outcome-count outcome-${k}">${count}</div></div>`;
+    }).join('');
+
+    // Decision type grid
+    const typeEl = document.getElementById('type-grid');
+    if (d.decisionTypeBreakdown) {
+      typeEl.innerHTML = Object.entries(d.decisionTypeBreakdown).map(([type, count]) => `
+        <div class="type-item">
+          <div class="type-name">${type.replace(/_/g, ' ')}</div>
+          <div class="type-count">${count}</div>
+        </div>
+      `).join('');
+    }
+  } catch(e) { console.error('summary error', e); }
+}
+
+async function loadLatest() {
+  try {
+    const d = await fetch('/api/ader/latest').then(r => r.json());
+    if (d.message) { document.getElementById('latest-panel').innerHTML = `<p style="color:#64748b;">${d.message}</p>`; return; }
+    const p = d.payload;
+    const cc = confColor(p.confidencePct);
+    const dims = Object.entries(p.reasoningInputs || {}).map(([name, score]) => `
+      <div class="dimension-item">
+        <div class="dim-name">${name.replace(/_/g, ' ')}</div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:${Math.round(score*100)}%;"></div></div>
+        <div class="dim-value">${(score * 100).toFixed(1)}%</div>
+      </div>
+    `).join('');
+
+    document.getElementById('latest-panel').innerHTML = `
+      <div class="receipt-panel quality-${p.explanationQuality}">
+        <div class="receipt-header">
+          <div>
+            <div class="receipt-agent">🤖 ${p.agentId}</div>
+            <span class="receipt-type">${p.decisionType.replace(/_/g,' ')}</span>
+          </div>
+          <div style="text-align:right;">
+            <div class="confidence-badge" style="color:${cc};border-color:${cc}44;background:${cc}11;">${outcomeIcon(p.outcome)} ${p.outcome.replace(/_/g,' ')}</div>
+          </div>
+        </div>
+        <div class="receipt-desc">${p.decisionDescription}</div>
+
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
+          <div class="confidence-badge">🎯 Confidence: ${p.confidencePct}%</div>
+          <div class="confidence-badge" style="color:${p.constitutionallyAligned?'#4ade80':'#ef4444'};border-color:${p.constitutionallyAligned?'#4ade8044':'#ef444444'};background:${p.constitutionallyAligned?'#4ade8011':'#ef444411'};">
+            ${p.constitutionallyAligned ? '✅' : '❌'} ${p.constitutionArticle}
+          </div>
+          <div class="confidence-badge" style="font-size:0.82rem;">${qualityIcon(p.explanationQuality)} ${p.explanationQuality} quality</div>
+        </div>
+
+        <div style="font-size:0.82rem;color:#64748b;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Reasoning Inputs (4 dimensions)</div>
+        <div class="dimension-grid">${dims}</div>
+
+        <div class="receipt-footer">
+          <span style="font-weight:700;">${d.receiptId}</span>
+          <span>Explainability score: <b style="color:#a78bfa">${p.explainabilityScore}%</b></span>
+          <span>Upstream chain: #${p.upstreamChainRef}</span>
+          <span class="receipt-hash">Hash: ${d.hash ? d.hash.slice(0,32)+'…' : '—'}</span>
+        </div>
+      </div>
+    `;
+  } catch(e) { console.error('latest error', e); }
+}
+
+async function loadReceipts() {
+  try {
+    const d = await fetch('/api/ader/ledger?limit=12').then(r => r.json());
+    const el = document.getElementById('receipts-list');
+    if (!d.receipts || !d.receipts.length) { el.innerHTML = '<p style="color:#64748b;">No receipts yet.</p>'; return; }
+    el.innerHTML = d.receipts.map(r => {
+      const p = r.payload;
+      const cc = confColor(p.confidencePct);
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:0.75rem;padding:1rem 1.25rem;margin-bottom:0.6rem;display:flex;gap:1rem;align-items:flex-start;">
+        <div style="font-size:1.3rem;flex-shrink:0;">${outcomeIcon(p.outcome)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.88rem;font-weight:600;color:#e2e8f0;">${p.agentId} — <span style="color:#a78bfa;">${p.decisionType.replace(/_/g,' ')}</span></div>
+          <div style="font-size:0.75rem;color:#64748b;margin:0.2rem 0;">${r.receiptId} · Confidence: <span style="color:${cc};font-weight:700;">${p.confidencePct}%</span> · ${qualityIcon(p.explanationQuality)} ${p.explanationQuality} · ${p.constitutionallyAligned?'✅ Aligned':'❌ Misaligned'}</div>
+          <div style="font-size:0.68rem;color:#475569;font-family:monospace;margin-top:0.25rem;word-break:break-all;">Hash: ${r.hash ? r.hash.slice(0,40)+'…' : '—'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('receipts error', e); }
+}
+
+async function loadChainVerification() {
+  try {
+    const d = await fetch('/api/ader/verify/chain').then(r => r.json());
+    document.getElementById('chain-integrity').innerHTML = `
+      <div style="font-size:1.1rem;font-weight:700;color:${d.intact?'#4ade80':'#ef4444'};">${d.message || (d.intact ? '✅ Chain intact' : '❌ Chain broken')}</div>
+      <div style="font-size:0.82rem;color:#64748b;margin-top:0.5rem;">Chain head: <span style="font-family:monospace;color:#38bdf8;">${d.chainHead || '—'}</span> · Receipts verified: ${d.receiptsVerified}</div>
+    `;
+  } catch(e) { console.error('chain verify error', e); }
+}
+
+async function refresh() {
+  await Promise.all([loadSummary(), loadLatest(), loadReceipts(), loadChainVerification()]);
+}
+
+refresh();
+setInterval(refresh, 20000);
+</script>
+</body>
+</html>
