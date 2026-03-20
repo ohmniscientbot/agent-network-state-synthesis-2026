@@ -2681,6 +2681,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L120",
+      "timestamp": "2026-03-20T21:10:00Z",
+      "type": "refactor",
+      "description": "Structured URL routing: all 65 flat routes migrated to /section/page canonical paths (governance/, security/, analytics/, identity/, tools/). Old flat paths return 301 permanent redirects. Nav updated to canonical paths. Chains registry updated. 25/25 tests pass.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }

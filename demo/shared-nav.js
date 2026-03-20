@@ -20,58 +20,58 @@ const NAV_CONFIG = {
             text: "🗳️ Governance",
             id: "governance-dropdown",
             items: [
-                { href: "/debates", text: "⚖️ Debate Chamber", id: "debates" },
-                { href: "/prediction-markets", text: "🎯 Prediction Markets", id: "markets" },
-                { href: "/constitution", text: "📜 Constitution", id: "constitution" },
-                { href: "/amendments", text: "📝 Amendments", id: "amendments" },
-                { href: "/simulate", text: "🎬 Live Demo", id: "simulate" },
-                { href: "/demo-run", text: "⚡ Cycle Run", id: "demo-run" },
+                { href: "/governance/debates", text: "⚖️ Debate Chamber", id: "debates" },
+                { href: "/governance/prediction-markets", text: "🎯 Prediction Markets", id: "markets" },
+                { href: "/governance/constitution", text: "📜 Constitution", id: "constitution" },
+                { href: "/governance/amendments", text: "📝 Amendments", id: "amendments" },
+                { href: "/governance/simulate", text: "🎬 Live Demo", id: "simulate" },
+                { href: "/governance/demo-run", text: "⚡ Cycle Run", id: "demo-run" },
             ]
         },
         {
             text: "🪪 Identity & Trust",
             id: "identity-dropdown",
             items: [
-                { href: "/passport", text: "🪪 Agent Passport", id: "passport" },
-                { href: "/trust", text: "🤝 Trust Graph", id: "trust" },
-                { href: "/reputation", text: "⭐ Reputation", id: "reputation" },
-                { href: "/vote-receipts", text: "🧾 Vote Receipts", id: "vote-receipts" },
-                { href: "/audit", text: "🔍 Audit Timeline", id: "audit" },
-                { href: "/lifecycle", text: "🔬 Proposal Lifecycle", id: "lifecycle" },
+                { href: "/identity/passport", text: "🪪 Agent Passport", id: "passport" },
+                { href: "/identity/trust", text: "🤝 Trust Graph", id: "trust" },
+                { href: "/identity/reputation", text: "⭐ Reputation", id: "reputation" },
+                { href: "/governance/vote-receipts", text: "🧾 Vote Receipts", id: "vote-receipts" },
+                { href: "/analytics/audit", text: "🔍 Audit Timeline", id: "audit" },
+                { href: "/governance/lifecycle", text: "🔬 Proposal Lifecycle", id: "lifecycle" },
             ]
         },
         {
             text: "📊 Analytics",
             id: "analytics-dropdown",
             items: [
-                { href: "/judge-dashboard", text: "👨‍⚖️ Judge's Cockpit", id: "judge-dashboard" },
-                { href: "/scorecard", text: "📊 Scorecard", id: "scorecard" },
-                { href: "/roi-analytics", text: "📈 ROI Analytics", id: "roi" },
-                { href: "/health-index", text: "💚 Health Index", id: "health-index" },
-                { href: "/systemic-risk", text: "⚡ Systemic Risk", id: "systemic-risk" },
-                { href: "/audit-timeline", text: "📅 Audit Timeline", id: "audit-timeline" },
+                { href: "/analytics/judge-dashboard", text: "👨‍⚖️ Judge's Cockpit", id: "judge-dashboard" },
+                { href: "/analytics/scorecard", text: "📊 Scorecard", id: "scorecard" },
+                { href: "/analytics/roi", text: "📈 ROI Analytics", id: "roi" },
+                { href: "/analytics/health", text: "💚 Health Index", id: "health-index" },
+                { href: "/analytics/systemic-risk", text: "⚡ Systemic Risk", id: "systemic-risk" },
+                { href: "/analytics/audit-timeline", text: "📅 Audit Timeline", id: "audit-timeline" },
             ]
         },
         {
             text: "🔬 Security",
             id: "security-dropdown",
             items: [
-                { href: "/collusion", text: "🕵️ Collusion Detection", id: "collusion" },
-                { href: "/drift", text: "🔬 Alignment Drift", id: "drift" },
-                { href: "/reasoning", text: "🧠 Reasoning Transparency", id: "reasoning" },
-                { href: "/oversight", text: "👁️ Human Oversight", id: "oversight" },
+                { href: "/security/collusion", text: "🕵️ Collusion Detection", id: "collusion" },
+                { href: "/security/drift", text: "🔬 Alignment Drift", id: "drift" },
+                { href: "/security/reasoning", text: "🧠 Reasoning Transparency", id: "reasoning" },
+                { href: "/security/oversight", text: "👁️ Human Oversight", id: "oversight" },
             ]
         },
         {
             text: "🛠️ Tools",
             id: "tools-dropdown",
             items: [
-                { href: "/agent-profile", text: "👤 Agent Profile", id: "agent-profile" },
-                { href: "/register", text: "⚙️ Register Agent", id: "register" },
-                { href: "/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
-                { href: "/interactive", text: "🎮 Interactive", id: "interactive" },
-                { href: "/contracts", text: "📋 Smart Contracts", id: "contracts" },
-                { href: "/docs", text: "📖 API Docs", id: "docs" },
+                { href: "/identity/agent-profile", text: "👤 Agent Profile", id: "agent-profile" },
+                { href: "/identity/register", text: "⚙️ Register Agent", id: "register" },
+                { href: "/tools/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
+                { href: "/tools/interactive", text: "🎮 Interactive", id: "interactive" },
+                { href: "/tools/contracts", text: "📋 Smart Contracts", id: "contracts" },
+                { href: "/tools/docs", text: "📖 API Docs", id: "docs" },
                 { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", id: "github", external: true }
             ]
         }
@@ -82,11 +82,11 @@ const NAV_CONFIG = {
         mobileText: "🛠️ Tools",
         id: "tools",
         items: [
-            { href: "/register", text: "⚙️ Register Agent", id: "register" },
-            { href: "/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
-            { href: "/collusion", text: "🕵️ Collusion Detection", id: "collusion" },
-            { href: "/drift", text: "🔬 Alignment Drift", id: "drift" },
-            { href: "/api/docs", text: "📖 API Docs", id: "docs" },
+            { href: "/identity/register", text: "⚙️ Register Agent", id: "register" },
+            { href: "/tools/ai-governance", text: "🤖 AI Analysis", id: "ai-governance" },
+            { href: "/security/collusion", text: "🕵️ Collusion Detection", id: "collusion" },
+            { href: "/security/drift", text: "🔬 Alignment Drift", id: "drift" },
+            { href: "/tools/docs", text: "📖 API Docs", id: "docs" },
             { href: "https://github.com/ohmniscientbot/agent-network-state-synthesis-2026", text: "💻 GitHub", id: "github", external: true }
         ]
     }
