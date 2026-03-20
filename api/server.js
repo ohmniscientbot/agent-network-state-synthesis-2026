@@ -16535,16 +16535,8 @@ function runAderCycle() {
 
     aderLedger.push(receipt);
 
-    // Emit live feed event
-    emitFeedEvent({
-        type: 'explainability',
-        icon: '🔍',
-        agentId: actingAgent,
-        action: `explained decision: ${decisionTemplate.type} — confidence ${confidencePct}% — ${outcome}`,
-        hash: hash.substring(0, 12) + '…',
-        receiptId,
-        chain: 36
-    });
+    // Feed event placeholder (emitFeedEvent not yet implemented)
+    // TODO: implement live activity feed system
 }
 
 // Run ADER cycle every 240s
