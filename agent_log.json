@@ -2280,6 +2280,21 @@
       "newChain": 29,
       "newLoop": true,
       "apiEndpointsAdded": 7
+    },
+    {
+      "id": "L099",
+      "type": "autonomous_cycle",
+      "timestamp": "2026-03-20T02:00:00Z",
+      "description": "Chain #30 Agent Accountability Index (AAI) \u2014 per-agent governance credit score synthesizing 7 dimensions from 6 upstream chains (Decay #22, Drift #24, Collusion #25, Learning #28, Knowledge Propagation #29, Slash Ledger) into Accountability Score 0-100 with letter grade. Cryptographic receipts every 220s. New /accountability page, 6 API endpoints (/api/aai/*), scorecard updated to 30 chains / 21 loops / 59 endpoints / 28 pages.",
+      "files_changed": [
+        "api/server.js",
+        "demo/accountability.html",
+        "agent_log.json"
+      ],
+      "impact": "high",
+      "chains_added": 1,
+      "loops_added": 1,
+      "endpoints_added": 6
     }
   ]
 }

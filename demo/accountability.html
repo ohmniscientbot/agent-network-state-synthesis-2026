@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Accountability Index — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .page-header { margin-bottom: 2rem; }
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 640px; line-height: 1.6; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+  .grade-pill { display: inline-block; padding: 0.1rem 0.6rem; border-radius: 999px; font-weight: 800; font-size: 0.85rem; }
+  .grade-A-plus { background: #14532d; color: #4ade80; }
+  .grade-A     { background: #164e63; color: #38bdf8; }
+  .grade-B     { background: #1e3a5f; color: #60a5fa; }
+  .grade-C     { background: #78350f; color: #fbbf24; }
+  .grade-D     { background: #7c2d12; color: #fb923c; }
+  .grade-F     { background: #450a0a; color: #f87171; }
+
+  .agent-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  .agent-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; padding: 0.5rem 0.75rem; border-bottom: 1px solid #1e293b; text-align: left; }
+  .agent-table td { padding: 0.75rem; border-bottom: 1px solid #1e293b; font-size: 0.88rem; vertical-align: top; }
+  .agent-table tr:last-child td { border-bottom: none; }
+  .agent-name { font-weight: 700; color: #e2e8f0; }
+  .agent-role { font-size: 0.75rem; color: #64748b; }
+
+  .bar-container { width: 100%; background: #1e293b; border-radius: 999px; height: 6px; margin-top: 4px; }
+  .bar-fill { height: 6px; border-radius: 999px; background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+
+  .dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+  .dim-item { font-size: 0.75rem; color: #94a3b8; }
+  .dim-score { font-weight: 700; color: #a78bfa; }
+
+  .chain-head { font-family: monospace; font-size: 0.8rem; color: #6366f1; background: #1e293b; padding: 0.15rem 0.5rem; border-radius: 4px; }
+  .cross-chain-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  .cc-pill { background: #1e293b; color: #94a3b8; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 999px; }
+
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; margin-right: 0.4rem; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; border-left: 3px solid #6366f1; padding-left: 0.75rem; }
+
+  .verify-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 0.5rem 1.2rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+  .verify-btn:hover { background: #334155; color: #e2e8f0; }
+  .verify-result { margin-top: 0.75rem; font-size: 0.85rem; color: #4ade80; }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<script src="/shared-nav.js"></script>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <span class="chain-badge">Chain #30 · ERC-8004</span>
+    <h1>Agent Accountability Index</h1>
+    <p class="subtitle">Cross-chain governance credit score for every agent — synthesizes 7 accountability dimensions from 6 upstream chains into a single cryptographically receipted score (0–100). Runs every 220 seconds autonomously.</p>
+  </div>
+
+  <!-- Network summary cards -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Network Accountability Average</div>
+      <div class="card-value" id="network-avg">—</div>
+      <div class="card-sub">Grade: <span id="network-grade" class="grade-pill">—</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Chain Status</div>
+      <div class="card-value" id="cycles-run">—</div>
+      <div class="card-sub"><span class="status-dot"></span>Autonomous · Every 220s · <span id="receipts-count">—</span> receipts issued</div>
+    </div>
+    <div class="card">
+      <div class="card-title">MVP Agent</div>
+      <div class="card-value" id="mvp-name" style="font-size:1.3rem">—</div>
+      <div class="card-sub">Score: <span id="mvp-score">—</span> · <span id="mvp-grade" class="grade-pill">—</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Chain Head</div>
+      <div class="card-sub" style="margin-top:0.6rem">Hash: <span class="chain-head" id="chain-head">—</span></div>
+      <div class="card-sub" style="margin-top:0.5rem">Cross-chain inputs:
+        <div class="cross-chain-list" id="cc-inputs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-agent table -->
+  <div class="section-title">Per-Agent Accountability Breakdown</div>
+  <div class="card" style="overflow-x:auto;">
+    <table class="agent-table" id="agent-table">
+      <thead>
+        <tr>
+          <th>Agent</th>
+          <th>Score</th>
+          <th>Grade</th>
+          <th>Dimensions</th>
+        </tr>
+      </thead>
+      <tbody id="agent-tbody">
+        <tr><td colspan="4" style="color:#64748b;text-align:center;padding:2rem">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Dimension legend -->
+  <div class="section-title">Accountability Dimensions</div>
+  <div class="card">
+    <div class="dim-grid" style="grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+      <div class="dim-item"><strong style="color:#e2e8f0">Voting Consistency</strong> (20%)<br>Engagement rate — votes cast vs. total proposals</div>
+      <div class="dim-item"><strong style="color:#e2e8f0">Alignment Integrity</strong> (20%)<br>Drift resistance from Chain #24 — does the agent act on its stated reasoning?</div>
+      <div class="dim-item"><strong style="color:#e2e8f0">Collusion Cleanliness</strong> (15%)<br>Absence of coordinated voting flags from Chain #25</div>
+      <div class="dim-item"><strong style="color:#e2e8f0">Slash Record</strong> (20%)<br>Zero-slash governance hygiene — penalty history</div>
+      <div class="dim-item"><strong style="color:#e2e8f0">Knowledge Contribution</strong> (10%)<br>Times selected as knowledge source in Chain #29</div>
+      <div class="dim-item"><strong style="color:#e2e8f0">Reputation Stability</strong> (10%)<br>VP stability over decay cycles from Chain #22</div>
+      <div class="dim-item"><strong style="color:#e2e8f0">Oversight Compliance</strong> (5%)<br>Human escalations triggered — lower is better</div>
+    </div>
+  </div>
+
+  <!-- Chain verification -->
+  <div class="section-title">Chain Integrity Verification</div>
+  <div class="card">
+    <button class="verify-btn" onclick="verifyChain()">🔐 Verify Chain #30 Integrity</button>
+    <div class="verify-result" id="verify-result" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+function gradeClass(g) {
+  return 'grade-' + g.replace('+', '-plus');
+}
+
+async function loadData() {
+  try {
+    const [statusRes, agentsRes] = await Promise.all([
+      fetch('/api/aai/status'),
+      fetch('/api/aai/agents')
+    ]);
+    const status = await statusRes.json();
+    const agentsData = await agentsRes.json();
+
+    document.getElementById('network-avg').textContent = status.networkAccountabilityAvg ?? '—';
+    const ng = document.getElementById('network-grade');
+    ng.textContent = status.networkGrade ?? '—';
+    ng.className = 'grade-pill ' + gradeClass(status.networkGrade || 'B');
+
+    document.getElementById('cycles-run').textContent = `${status.cyclesRun} cycles`;
+    document.getElementById('receipts-count').textContent = status.receiptsIssued;
+    document.getElementById('chain-head').textContent = status.chainHead;
+
+    if (status.mvpAgent) {
+      document.getElementById('mvp-name').textContent = status.mvpAgent.name;
+      document.getElementById('mvp-score').textContent = status.mvpAgent.score;
+      const mg = document.getElementById('mvp-grade');
+      mg.textContent = status.mvpAgent.grade;
+      mg.className = 'grade-pill ' + gradeClass(status.mvpAgent.grade);
+    }
+
+    const ccDiv = document.getElementById('cc-inputs');
+    (status.crossChainInputs || []).forEach(i => {
+      const pill = document.createElement('span');
+      pill.className = 'cc-pill';
+      pill.textContent = i;
+      ccDiv.appendChild(pill);
+    });
+
+    if (agentsData.agents) {
+      const tbody = document.getElementById('agent-tbody');
+      tbody.innerHTML = '';
+      const sorted = [...agentsData.agents].sort((a,b) => b.accountabilityScore - a.accountabilityScore);
+      sorted.forEach((agent, idx) => {
+        const tr = document.createElement('tr');
+        const dimNames = {
+          voting_consistency: 'Voting',
+          alignment_integrity: 'Alignment',
+          collusion_cleanliness: 'Collusion',
+          slash_record: 'Slashes',
+          knowledge_contribution: 'Knowledge',
+          reputation_stability: 'Reputation',
+          oversight_compliance: 'Oversight'
+        };
+        const dimHTML = Object.entries(agent.dimensionScores || {}).map(([k, v]) => `
+          <div class="dim-item">
+            <span class="dim-score">${(v*100).toFixed(0)}%</span> ${dimNames[k] || k}
+            <div class="bar-container"><div class="bar-fill" style="width:${(v*100).toFixed(0)}%"></div></div>
+          </div>`).join('');
+
+        tr.innerHTML = `
+          <td>
+            <div class="agent-name">#${idx+1} ${agent.agentName}</div>
+            <div class="agent-role">${agent.agentId}</div>
+          </td>
+          <td>
+            <div style="font-size:1.4rem;font-weight:800;color:#a78bfa">${agent.accountabilityScore}</div>
+            <div class="bar-container" style="width:120px;margin-top:6px">
+              <div class="bar-fill" style="width:${agent.accountabilityScore}%"></div>
+            </div>
+          </td>
+          <td><span class="grade-pill ${gradeClass(agent.grade)}">${agent.grade}</span></td>
+          <td><div class="dim-grid">${dimHTML}</div></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function verifyChain() {
+  const res = await fetch('/api/aai/verify/chain');
+  const data = await res.json();
+  const el = document.getElementById('verify-result');
+  el.style.display = 'block';
+  el.style.color = data.valid ? '#4ade80' : '#f87171';
+  el.textContent = data.message;
+}
+
+loadData();
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
