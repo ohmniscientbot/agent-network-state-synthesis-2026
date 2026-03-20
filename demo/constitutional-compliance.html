@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Constitutional Compliance Monitor — Chain #39 | Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); margin: 0; padding: 0; }
+  .page-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .hero { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%); border: 1px solid #4f46e5; border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+  .hero h1 { font-size: 2rem; margin: 0 0 8px; color: #e0e7ff; }
+  .hero .subtitle { color: #a5b4fc; font-size: 1.05rem; margin: 0 0 20px; }
+  .chain-badge { display: inline-block; background: #4f46e5; color: white; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em; margin-right: 8px; }
+  .track-badge { display: inline-block; background: #1f2937; border: 1px solid #374151; color: #9ca3af; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; margin-right: 4px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; }
+  .metric-card .value { font-size: 2rem; font-weight: 700; color: var(--text-primary); }
+  .metric-card .label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+  .status-banner { border-radius: 10px; padding: 20px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 16px; }
+  .status-banner .status-icon { font-size: 2.5rem; }
+  .status-banner .status-text h3 { margin: 0 0 4px; font-size: 1.1rem; }
+  .status-banner .status-text p { margin: 0; font-size: 0.85rem; opacity: 0.85; }
+  .status-COMPLIANT { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); }
+  .status-WATCH { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); }
+  .status-VIOLATION { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); }
+  .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+  .section h2 { margin: 0 0 20px; font-size: 1.1rem; color: var(--text-primary); }
+  .article-row { display: flex; align-items: flex-start; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .article-row:last-child { border-bottom: none; }
+  .article-icon { font-size: 1.5rem; min-width: 36px; text-align: center; margin-top: 2px; }
+  .article-info { flex: 1; }
+  .article-info h4 { margin: 0 0 4px; font-size: 0.95rem; }
+  .article-info p { margin: 0 0 6px; font-size: 0.8rem; color: var(--text-secondary); }
+  .article-info .evidence { font-size: 0.78rem; color: #6b7280; }
+  .article-info .evidence li { margin-bottom: 2px; }
+  .article-score { text-align: right; min-width: 80px; }
+  .article-score .score { font-size: 1.4rem; font-weight: 700; }
+  .article-score .verdict { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 4px; }
+  .verdict-COMPLIANT .score { color: #22c55e; }
+  .verdict-COMPLIANT .verdict { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .verdict-WATCH .score { color: #f59e0b; }
+  .verdict-WATCH .verdict { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .verdict-VIOLATION .score { color: #ef4444; }
+  .verdict-VIOLATION .verdict { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .score-bar { height: 6px; background: #1f2937; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; transition: width 0.8s; }
+  .receipt-list { display: flex; flex-direction: column; gap: 10px; }
+  .receipt-item { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.82rem; }
+  .receipt-item .receipt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .receipt-item .receipt-hash { font-family: monospace; font-size: 0.72rem; color: #6b7280; }
+  .composite-score { display: flex; align-items: center; gap: 20px; padding: 16px 0; }
+  .composite-score .big-score { font-size: 3rem; font-weight: 700; }
+  .composite-score .score-meta { flex: 1; }
+  .progress-bar-wrap { margin: 20px 0; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px; }
+  .progress-bar { height: 12px; background: #1f2937; border-radius: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 6px; transition: width 1s; }
+  .tag { display: inline-block; font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; margin-right: 4px; }
+  .tag-green { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .tag-amber { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .tag-red { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .chain-verify { display: flex; align-items: center; gap: 12px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 12px 16px; margin-top: 16px; font-size: 0.85rem; }
+  .chain-verify .check { font-size: 1.2rem; }
+  .loading { color: var(--text-secondary); font-size: 0.9rem; padding: 20px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<div class="page-content">
+  <div class="hero">
+    <div style="margin-bottom:12px;">
+      <span class="chain-badge">Chain #39</span>
+      <span class="track-badge">ERC-8004</span>
+      <span class="track-badge">Let the Agent Cook</span>
+      <span class="track-badge">Open Track</span>
+    </div>
+    <h1>🏛️ Agent Constitutional Compliance Monitor</h1>
+    <p class="subtitle">Every governance action continuously audited against all 7 constitutional articles — 270s autonomous cycles, cryptographic receipts, VIOLATION auto-escalation to Human Oversight.</p>
+    <div style="font-size:0.82rem;color:#818cf8;">
+      <span>Chain #39 / ERC-8004</span> &nbsp;·&nbsp;
+      <span>30 autonomous loops running</span> &nbsp;·&nbsp;
+      <span>39 cryptographic receipt chains</span> &nbsp;·&nbsp;
+      <span>The constitution, enforced on-chain</span>
+    </div>
+  </div>
+
+  <!-- Live Status -->
+  <div id="status-banner" class="status-banner status-COMPLIANT">
+    <div class="status-icon" id="status-icon">⏳</div>
+    <div class="status-text">
+      <h3 id="status-title">Loading compliance status…</h3>
+      <p id="status-desc">Fetching latest ACCM cycle data</p>
+    </div>
+    <div style="margin-left:auto;text-align:right;">
+      <div style="font-size:0.75rem;color:#6b7280;" id="status-receipt">—</div>
+      <div style="font-size:0.75rem;color:#6b7280;" id="status-time">—</div>
+    </div>
+  </div>
+
+  <!-- Metrics Grid -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="value" id="m-composite">—</div>
+      <div class="label">Composite Score</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-cycles">—</div>
+      <div class="label">Audit Cycles Run</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-compliant">—</div>
+      <div class="label">Articles Compliant</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-watch">—</div>
+      <div class="label">On Watch</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-violations">—</div>
+      <div class="label">Violations Detected</div>
+    </div>
+    <div class="metric-card">
+      <div class="value" id="m-receipts">—</div>
+      <div class="label">Total Receipts</div>
+    </div>
+  </div>
+
+  <!-- Article-by-Article Breakdown -->
+  <div class="section">
+    <h2>📋 Constitutional Article Status</h2>
+    <div id="article-list" class="loading">Loading article compliance data…</div>
+  </div>
+
+  <!-- Governance Signals -->
+  <div class="section">
+    <h2>📡 Live Governance Signals</h2>
+    <div id="gov-signals" class="loading">Loading governance signals…</div>
+  </div>
+
+  <!-- Chain Integrity -->
+  <div class="section">
+    <h2>🔗 Chain Integrity</h2>
+    <div id="chain-verify" class="loading">Verifying chain integrity…</div>
+  </div>
+
+  <!-- Recent Receipts -->
+  <div class="section">
+    <h2>🧾 Recent Compliance Receipts</h2>
+    <div id="receipt-list" class="receipt-list loading">Loading recent receipts…</div>
+  </div>
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+async function fetchAll() {
+  try {
+    const [liveRes, statusRes, verifyRes, ledgerRes] = await Promise.all([
+      fetch('/api/accm/live'),
+      fetch('/api/accm/status'),
+      fetch('/api/accm/verify/chain'),
+      fetch('/api/accm/ledger?limit=6')
+    ]);
+
+    const live = await liveRes.json();
+    const status = await statusRes.json();
+    const verify = await verifyRes.json();
+    const ledger = await ledgerRes.json();
+
+    // Status banner
+    const bannerEl = document.getElementById('status-banner');
+    bannerEl.className = `status-banner status-${live.status || 'COMPLIANT'}`;
+    document.getElementById('status-icon').textContent = live.icon || '✅';
+    document.getElementById('status-title').textContent = `Constitutional Status: ${live.status || '—'}`;
+    document.getElementById('status-desc').textContent = live.message || '—';
+    document.getElementById('status-receipt').textContent = live.receiptId || '—';
+    document.getElementById('status-time').textContent = live.timestamp ? new Date(live.timestamp).toLocaleString() : '—';
+
+    // Metrics
+    document.getElementById('m-composite').textContent = live.compositeScore ?? '—';
+    document.getElementById('m-cycles').textContent = status.cyclesRun ?? '—';
+    document.getElementById('m-compliant').textContent = live.articlesCompliant ?? '—';
+    document.getElementById('m-watch').textContent = live.articlesOnWatch ?? '—';
+    document.getElementById('m-violations').textContent = live.articlesViolating ?? '—';
+    document.getElementById('m-receipts').textContent = status.totalReceipts ?? '—';
+
+    // Governance signals
+    const signals = live.governanceSignals || {};
+    document.getElementById('gov-signals').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+        ${Object.entries({
+          'Total Votes On-Chain': signals.totalVotesOnChain,
+          'Total Slashes': signals.totalSlashes,
+          'Total Delegations': signals.totalDelegations,
+          'ADER WHY-Receipts': signals.aderReceiptsIssued,
+          'APAP Flagged Agents': signals.apapFlaggedAgents
+        }).map(([k,v]) => `
+          <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:14px;">
+            <div style="font-size:1.4rem;font-weight:700;">${v ?? '—'}</div>
+            <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:4px;">${k}</div>
+          </div>`).join('')}
+      </div>`;
+
+    // Chain verify
+    document.getElementById('chain-verify').innerHTML = `
+      <div class="chain-verify">
+        <span class="check">${verify.intact ? '✅' : '❌'}</span>
+        <div>
+          <strong>${verify.message}</strong><br>
+          <span style="font-size:0.78rem;color:#6b7280;">Chain head: <code style="font-family:monospace;">${verify.chainHead || '—'}</code></span>
+        </div>
+      </div>`;
+
+    // Article breakdown from latest receipt in ledger
+    const latestReceipt = ledger.receipts && ledger.receipts[0];
+    if (latestReceipt && latestReceipt.payload && latestReceipt.payload.articleChecks) {
+      const checks = latestReceipt.payload.articleChecks;
+      document.getElementById('article-list').innerHTML = checks.map(c => {
+        const scoreColor = c.score >= 80 ? '#22c55e' : c.score >= 55 ? '#f59e0b' : '#ef4444';
+        const fillColor = scoreColor;
+        return `
+          <div class="article-row verdict-${c.verdict}">
+            <div class="article-icon">${c.verdictIcon || '✅'}</div>
+            <div class="article-info">
+              <h4>${c.articleId?.toUpperCase()} — ${c.title}</h4>
+              <p>${c.check}</p>
+              <ul class="evidence">
+                ${(c.evidence || []).map(e => `<li>${e}</li>`).join('')}
+              </ul>
+              <div class="score-bar"><div class="score-fill" style="width:${c.score}%;background:${fillColor};"></div></div>
+            </div>
+            <div class="article-score">
+              <div class="score">${c.score}</div>
+              <div class="verdict">${c.verdict}</div>
+              <div style="font-size:0.7rem;color:#6b7280;margin-top:4px;">weight ×${c.weight}</div>
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      document.getElementById('article-list').innerHTML = '<div class="loading">No article data yet — waiting for first audit cycle</div>';
+    }
+
+    // Recent receipts
+    if (ledger.receipts && ledger.receipts.length > 0) {
+      document.getElementById('receipt-list').innerHTML = ledger.receipts.map(r => {
+        const p = r.payload;
+        const vIcon = p.overallVerdictIcon || '✅';
+        const vColor = p.overallVerdict === 'COMPLIANT' ? '#22c55e' : p.overallVerdict === 'WATCH' ? '#f59e0b' : '#ef4444';
+        return `
+          <div class="receipt-item">
+            <div class="receipt-header">
+              <strong>${vIcon} ${r.receiptId}</strong>
+              <span style="color:${vColor};font-weight:700;">${p.overallVerdict || '—'} (${p.compositeScore}/100)</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:4px;">
+              ${p.articlesAudited} articles audited · ${p.violationArticles?.length || 0} violations · ${p.watchArticles?.length || 0} watches
+              ${p.escalatedToOversight ? ' · <span style="color:#ef4444;">🚨 Escalated to Human Oversight</span>' : ''}
+            </div>
+            <div class="receipt-hash">hash: ${r.hash?.substring(0, 32)}… | prev: ${r.prevHash?.substring(0, 16)}…</div>
+            <div style="font-size:0.72rem;color:#6b7280;margin-top:4px;">${new Date(r.timestamp).toLocaleString()} · ${r.protocol}</div>
+          </div>`;
+      }).join('');
+    } else {
+      document.getElementById('receipt-list').innerHTML = '<div class="loading">No receipts yet — first cycle in progress</div>';
+    }
+
+  } catch (e) {
+    console.error('ACCM fetch error:', e);
+    document.getElementById('status-title').textContent = 'Error loading data';
+    document.getElementById('status-desc').textContent = e.message;
+  }
+}
+
+fetchAll();
+setInterval(fetchAll, 30000);
+</script>
+</body>
+</html>
