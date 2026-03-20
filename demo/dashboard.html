@@ -806,11 +806,12 @@
                         const sev = gp.severity || 'LOW';
                         const col = sevColors[sev] || '#e2e8f0';
                         const pct = gp.resistancePercent !== undefined ? gp.resistancePercent : (gp.resistanceScore ? (gp.resistanceScore * 100).toFixed(1) : '—');
+                        const vectorName = typeof gp.attackVector === 'object' ? (gp.attackVector.name || gp.attackVector.id || 'Attack Vector') : gp.attackVector;
                         document.getElementById('auto-gsto-vector').textContent =
-                            `${gp.outcomeIcon||''} ${gp.attackVector} · ${pct}% resistance`;
+                            `${gp.outcomeIcon||''} ${vectorName} · ${pct}% resistance`;
                         document.getElementById('auto-gsto-vector').style.color = col;
                         document.getElementById('auto-gsto-detail').textContent =
-                            `Severity: ${sev} · Outcome: ${gp.outcome||'—'} · Red-teaming 8 attack vectors`;
+                            `Severity: ${sev} · Outcome: ${gp.outcome||'—'} · ${gp.activatedMitigations||0}/${gp.totalMitigations||0} mitigations active`;
                         document.getElementById('auto-gsto-time').innerHTML = gp.timestamp
                             ? `Cycle ${gp.cycleId} · ${new Date(gp.timestamp).toLocaleTimeString()} · <a href="/stress-test" style="color:inherit;opacity:0.7;">View ledger →</a>`
                             : '<a href="/stress-test" style="color:inherit;opacity:0.7;">View full ledger →</a>';
