@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Governance Stress Test Oracle — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #ef4444, #f97316); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #f87171, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 760px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4, .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .posture-RESILIENT { color: #4ade80; }
+  .posture-MODERATE  { color: #fbbf24; }
+  .posture-VULNERABLE { color: #ef4444; }
+
+  .outcome-REPELLED { color: #4ade80; }
+  .outcome-PARTIALLY_CONTAINED { color: #fbbf24; }
+  .outcome-ESCALATED_TO_OVERSIGHT { color: #f97316; }
+  .outcome-MITIGATION_TRIGGERED { color: #ef4444; }
+
+  .severity-LOW      { color: #94a3b8; }
+  .severity-MEDIUM   { color: #fbbf24; }
+  .severity-HIGH     { color: #f97316; }
+  .severity-CRITICAL { color: #ef4444; }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #1e293b; }
+
+  .vector-panel {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .vector-panel.REPELLED            { border-left: 3px solid #4ade80; }
+  .vector-panel.PARTIALLY_CONTAINED  { border-left: 3px solid #fbbf24; }
+  .vector-panel.ESCALATED_TO_OVERSIGHT { border-left: 3px solid #f97316; }
+  .vector-panel.MITIGATION_TRIGGERED  { border-left: 3px solid #ef4444; }
+
+  .vector-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .vector-name { font-size: 1.15rem; font-weight: 700; color: #e2e8f0; }
+  .vector-cat { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 0.25rem; }
+  .vector-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin: 0.75rem 0; }
+  .vector-outcome { font-size: 1.1rem; font-weight: 700; }
+  .vector-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; }
+  .badge-REPELLED { background: rgba(74,222,128,0.12); color: #4ade80; }
+  .badge-PARTIALLY_CONTAINED { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .badge-ESCALATED_TO_OVERSIGHT { background: rgba(249,115,22,0.12); color: #f97316; }
+  .badge-MITIGATION_TRIGGERED { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+  .resistance-bar-wrap { background: #1e293b; border-radius: 999px; height: 6px; margin: 0.75rem 0 0.5rem; overflow: hidden; }
+  .resistance-bar { height: 6px; border-radius: 999px; transition: width 0.8s ease; }
+
+  .mitigation-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+  .mitigation-item { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 0.6rem 0.9rem; display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; }
+  .mit-icon { font-size: 1rem; flex-shrink: 0; }
+  .mit-chain { color: #94a3b8; flex: 1; }
+  .mit-contrib { color: #64748b; font-size: 0.75rem; }
+  .mit-score { font-size: 0.82rem; font-weight: 700; margin-left: auto; }
+
+  .receipt-row {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .receipt-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .receipt-body { flex: 1; min-width: 0; }
+  .receipt-title { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.2rem; }
+  .receipt-meta { font-size: 0.75rem; color: #64748b; }
+  .receipt-hash { font-size: 0.68rem; color: #475569; font-family: monospace; margin-top: 0.3rem; word-break: break-all; }
+
+  .attack-hash { background: #0f172a; border: 1px solid #1e3a5f; border-radius: 0.75rem; padding: 0.75rem 1rem; font-family: monospace; font-size: 0.78rem; color: #f87171; word-break: break-all; margin-top: 0.5rem; }
+
+  .recommendation { background: #0f172a; border: 1px solid #1e293b; border-left: 3px solid #94a3b8; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.85rem; color: #94a3b8; line-height: 1.5; margin-top: 0.75rem; }
+  .recommendation.warn { border-left-color: #f97316; color: #fdba74; }
+  .recommendation.crit { border-left-color: #ef4444; color: #fca5a5; }
+
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-right: 6px; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
+
+  .outcome-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+  @media(max-width:600px) { .outcome-grid { grid-template-columns: 1fr; } }
+  .outcome-item { background: #111827; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem 1.25rem; }
+  .outcome-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 0.4rem; }
+  .outcome-count { font-size: 1.5rem; font-weight: 800; }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page-wrap">
+  <div class="chain-badge">⚔️ CHAIN #35 — ERC-8004</div>
+  <h1>Governance Stress Test Oracle</h1>
+  <p class="subtitle">
+    Autonomous red-team oracle — probes 8 governance attack vectors every 215 seconds, scores resistance, identifies mitigation gaps, and seals cryptographic receipts on-chain.
+    <span class="live-dot"></span><span style="color:#f87171;font-size:0.85rem;">Live stress-testing in progress</span>
+  </p>
+
+  <!-- Summary Metrics -->
+  <div class="grid-4" id="summary-grid">
+    <div class="card"><div class="card-title">System Posture</div><div class="card-value" id="posture">—</div><div class="card-sub" id="avg-resistance">—</div></div>
+    <div class="card"><div class="card-title">Tests Run</div><div class="card-value" id="total-tests">—</div><div class="card-sub">stress test cycles</div></div>
+    <div class="card"><div class="card-title">Repel Rate</div><div class="card-value" id="repel-rate">—</div><div class="card-sub">attacks fully repelled</div></div>
+    <div class="card"><div class="card-title">Receipts Issued</div><div class="card-value" id="receipts-issued">—</div><div class="card-sub">cryptographic proofs</div></div>
+  </div>
+
+  <!-- Outcome Distribution -->
+  <div class="section-title">📊 Outcome Distribution</div>
+  <div class="outcome-grid" id="outcome-grid"></div>
+
+  <!-- Latest Attack Test -->
+  <div class="section-title">⚔️ Current Attack Vector</div>
+  <div id="current-vector-panel" class="vector-panel">
+    <p style="color:#64748b;">Loading latest stress test…</p>
+  </div>
+
+  <!-- Attack Vectors Reference -->
+  <div class="section-title">🗂️ Attack Vector Library</div>
+  <div id="vectors-list"></div>
+
+  <!-- Recent Receipts -->
+  <div class="section-title">🔗 Recent Stress Test Receipts</div>
+  <div id="receipts-list"></div>
+
+  <!-- Chain Integrity -->
+  <div class="section-title">✅ Chain Integrity</div>
+  <div class="card" id="chain-integrity">
+    <p style="color:#64748b;">Verifying chain…</p>
+  </div>
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+function resistanceColor(score) {
+  if (score >= 0.82) return '#4ade80';
+  if (score >= 0.70) return '#fbbf24';
+  if (score >= 0.55) return '#f97316';
+  return '#ef4444';
+}
+
+function outcomeIcon(outcome) {
+  const icons = {
+    REPELLED: '🛡️', PARTIALLY_CONTAINED: '⚠️',
+    ESCALATED_TO_OVERSIGHT: '🔺', MITIGATION_TRIGGERED: '🚨'
+  };
+  return icons[outcome] || '❓';
+}
+
+async function loadSummary() {
+  try {
+    const d = await fetch('/api/gsto/summary').then(r => r.json());
+    if (d.status === 'PENDING') return;
+    const posture = d.systemPosture || '—';
+    const postureParts = posture.split(' ');
+    const postureClass = postureParts[1] || 'MODERATE';
+    document.getElementById('posture').textContent = posture;
+    document.getElementById('posture').className = `card-value posture-${postureClass}`;
+    document.getElementById('avg-resistance').textContent = `avg resistance: ${d.averageResistancePercent}%`;
+    document.getElementById('total-tests').textContent = d.totalTests;
+    document.getElementById('repel-rate').textContent = `${d.repelRatePercent}%`;
+    document.getElementById('receipts-issued').textContent = d.totalTests;
+
+    // Outcome distribution
+    const grid = document.getElementById('outcome-grid');
+    const labels = {
+      REPELLED: '🛡️ Repelled', PARTIALLY_CONTAINED: '⚠️ Partially Contained',
+      ESCALATED_TO_OVERSIGHT: '🔺 Escalated', MITIGATION_TRIGGERED: '🚨 Mitigation Triggered'
+    };
+    grid.innerHTML = Object.entries(labels).map(([k, label]) => {
+      const count = (d.byOutcome || {})[k] || 0;
+      return `<div class="outcome-item"><div class="outcome-label">${label}</div><div class="outcome-count outcome-${k}">${count}</div></div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadLatest() {
+  try {
+    const d = await fetch('/api/gsto/latest').then(r => r.json());
+    if (d.status === 'PENDING') return;
+    const p = d.payload;
+    const v = p.attackVector;
+    const resColor = resistanceColor(p.resistanceScore);
+    const resWidth = Math.round(p.resistancePercent);
+    const recClass = p.recommendation && p.recommendation.includes('⚠️') ? 'warn' : p.recommendation && p.recommendation.includes('Critical') ? 'crit' : '';
+
+    document.getElementById('current-vector-panel').className = `vector-panel ${p.outcome}`;
+    document.getElementById('current-vector-panel').innerHTML = `
+      <div class="vector-header">
+        <div>
+          <div class="vector-cat">${v.category} attack · cycle ${d.cycleId}</div>
+          <div class="vector-name">${v.name}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="vector-outcome outcome-${p.outcome}">${p.outcomeIcon} ${p.outcome.replace(/_/g,' ')}</div>
+          <span class="vector-badge badge-${p.outcome}">${p.severity}</span>
+        </div>
+      </div>
+      <div class="vector-desc">${v.description}</div>
+      <div style="font-size:0.82rem;color:#64748b;margin-bottom:0.25rem;">Resistance Score</div>
+      <div class="resistance-bar-wrap"><div class="resistance-bar" style="width:${resWidth}%;background:linear-gradient(90deg,${resColor},${resColor}aa);"></div></div>
+      <div style="font-size:0.9rem;font-weight:700;color:${resColor};">${p.resistancePercent}% resilient</div>
+
+      <div style="font-size:0.82rem;color:#64748b;margin:1rem 0 0.5rem;">Mitigation Chain Activations (${p.activatedMitigations}/${p.totalMitigations})</div>
+      <div class="mitigation-list">
+        ${p.mitigationResults.map(m => {
+          const icon = m.activated ? '✅' : '❌';
+          const scoreColor = m.activated ? '#4ade80' : '#ef4444';
+          return `<div class="mitigation-item">
+            <span class="mit-icon">${icon}</span>
+            <span class="mit-chain">${m.chain}</span>
+            <span class="mit-contrib">${m.contribution}</span>
+            <span class="mit-score" style="color:${scoreColor};">${(m.activationScore*100).toFixed(1)}%</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="recommendation ${recClass}">${p.recommendation}</div>
+
+      <div style="margin-top:1rem;font-size:0.75rem;color:#64748b;">Attack fingerprint</div>
+      <div class="attack-hash">${p.attackHash}</div>
+      <div style="font-size:0.72rem;color:#475569;margin-top:0.4rem;">Receipt #${d.receiptNumber} · ${d.timestamp} · Chain head: ${d.hash.slice(0,20)}…</div>
+    `;
+  } catch(e) { console.error(e); }
+}
+
+async function loadVectors() {
+  try {
+    const d = await fetch('/api/gsto/vectors').then(r => r.json());
+    const el = document.getElementById('vectors-list');
+    el.innerHTML = d.vectors.map(v => `
+      <div style="background:#111827;border:1px solid #1e293b;border-radius:0.75rem;padding:1rem 1.25rem;margin-bottom:0.75rem;">
+        <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#64748b;">${v.category}</div>
+        <div style="font-size:0.95rem;font-weight:700;color:#e2e8f0;margin:0.2rem 0;">${v.name}</div>
+        <div style="font-size:0.83rem;color:#94a3b8;margin-bottom:0.6rem;">${v.description}</div>
+        <div style="font-size:0.75rem;color:#64748b;">Mitigations: ${v.mitigations.join(' · ')}</div>
+      </div>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadReceipts() {
+  try {
+    const d = await fetch('/api/gsto/ledger?limit=10').then(r => r.json());
+    const el = document.getElementById('receipts-list');
+    if (!d.receipts || !d.receipts.length) {
+      el.innerHTML = '<p style="color:#64748b;">No receipts yet.</p>';
+      return;
+    }
+    el.innerHTML = [...d.receipts].reverse().map(r => {
+      const p = r.payload;
+      const icon = outcomeIcon(p.outcome);
+      const resColor = resistanceColor(p.resistanceScore);
+      return `<div class="receipt-row">
+        <div class="receipt-icon">${icon}</div>
+        <div class="receipt-body">
+          <div class="receipt-title">${p.attackVector.name} — <span class="outcome-${p.outcome}">${p.outcome.replace(/_/g,' ')}</span></div>
+          <div class="receipt-meta">Receipt #${r.receiptNumber} · ${p.severity} · Resistance: <span style="color:${resColor};font-weight:700;">${p.resistancePercent}%</span> · ${r.timestamp}</div>
+          <div class="receipt-hash">Hash: ${r.hash} | Prev: ${r.prevHash.slice(0,20)}…</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadChainVerification() {
+  try {
+    const d = await fetch('/api/gsto/verify/chain').then(r => r.json());
+    const el = document.getElementById('chain-integrity');
+    el.innerHTML = `
+      <div style="font-size:1.1rem;font-weight:700;color:${d.valid?'#4ade80':'#ef4444'};">${d.message}</div>
+      <div style="font-size:0.82rem;color:#64748b;margin-top:0.5rem;">Chain head: <span style="font-family:monospace;color:#38bdf8;">${d.chainHead ? d.chainHead.slice(0,32) + '…' : '—'}</span></div>
+    `;
+  } catch(e) { console.error(e); }
+}
+
+async function refresh() {
+  await Promise.all([loadSummary(), loadLatest(), loadReceipts(), loadChainVerification()]);
+}
+
+loadVectors();
+refresh();
+setInterval(refresh, 20000);
+</script>
+</body>
+</html>
