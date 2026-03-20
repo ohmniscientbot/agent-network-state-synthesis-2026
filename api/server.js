@@ -17524,17 +17524,17 @@ let aspChainHead = crypto.createHash('sha256').update('ASP_GENESIS_BLOCK_SYNTHOC
 let aspSuccessionRegistry = {};
 let aspLoopCount = 0;
 
-// Initialize succession registry with agents from state
+// Initialize succession registry
 function initASPRegistry() {
-    const agents = state.agents || [];
-    ASP_ROLES.forEach(role => {
-        const assigned = agents.filter(a => a.capabilities && a.capabilities.includes(role.id.toLowerCase().replace('_', '')));
+    const AGENT_POOL = ['agent-alpha', 'agent-beta', 'agent-gamma', 'agent-delta', 'agent-epsilon', 'agent-zeta', 'agent-eta', 'agent-theta'];
+    ASP_ROLES.forEach((role, i) => {
         aspSuccessionRegistry[role.id] = {
-            currentHolder: assigned[0]?.id || `agent-${Math.floor(Math.random()*1000)+1}`,
-            successors: assigned.slice(1).map(a => a.id).concat([
-                `agent-${Math.floor(Math.random()*900)+100}`,
-                `agent-${Math.floor(Math.random()*900)+100}`
-            ]).slice(0, role.minSuccessors + 1),
+            currentHolder: AGENT_POOL[i % AGENT_POOL.length],
+            successors: [
+                AGENT_POOL[(i + 1) % AGENT_POOL.length],
+                AGENT_POOL[(i + 2) % AGENT_POOL.length],
+                AGENT_POOL[(i + 3) % AGENT_POOL.length]
+            ].slice(0, role.minSuccessors + 1),
             lastSuccession: null,
             successionCount: 0
         };
