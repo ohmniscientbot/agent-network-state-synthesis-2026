@@ -15419,9 +15419,10 @@ function ageMultiplier(ageHours) {
 function runGDRCycle() {
     const now = new Date().toISOString();
     const cycleId = `GDR-${Date.now()}`;
-    const agents = state.agents || [];
-    const proposals = state.proposals || [];
-    const constitution = state.constitution || {};
+    // agents, proposals, constitution are module-level variables populated by loadState()
+    const gdrAgents = (typeof agents !== 'undefined' ? agents : []);
+    const gdrProposals = (typeof proposals !== 'undefined' ? proposals : []);
+    const gdrConstitution = (typeof constitution !== 'undefined' ? constitution : {});
 
     // ── Synthesize debt items from upstream chain signals ──────────────────
     const debtItems = [];
