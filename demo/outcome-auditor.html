@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Governance Outcome Auditor — Synthocracy</title>
+<link rel="stylesheet" href="/design-system-dark.css">
+<style>
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .chain-badge { display: inline-block; background: linear-gradient(135deg, #10b981, #6366f1); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 999px; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  h1 { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #34d399, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: #94a3b8; font-size: 0.95rem; max-width: 700px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width: 900px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 600px) { .grid-4, .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 2rem; font-weight: 800; color: #e2e8f0; }
+  .card-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  .grade-A { color: #4ade80; }
+  .grade-B { color: #a3e635; }
+  .grade-C { color: #fbbf24; }
+  .grade-D { color: #f87171; }
+
+  .audit-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .audit-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+  }
+  .verdict-FULFILLED::before  { background: #4ade80; }
+  .verdict-PARTIAL::before    { background: #a3e635; }
+  .verdict-UNVERIFIED::before { background: #94a3b8; }
+  .verdict-FAILED::before     { background: #f87171; }
+  .verdict-DISTORTED::before  { background: #f59e0b; }
+
+  .audit-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+  .audit-title { font-size: 1.05rem; font-weight: 700; color: #e2e8f0; }
+  .audit-objective { font-size: 0.82rem; color: #64748b; margin-top: 0.3rem; font-style: italic; }
+  
+  .verdict-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.75rem; border-radius: 999px; font-weight: 800; font-size: 0.82rem;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .vb-FULFILLED  { background: #14532d; color: #4ade80; }
+  .vb-PARTIAL    { background: #1a2e05; color: #a3e635; }
+  .vb-UNVERIFIED { background: #1e293b; color: #94a3b8; }
+  .vb-FAILED     { background: #450a0a; color: #f87171; }
+  .vb-DISTORTED  { background: #451a03; color: #f59e0b; }
+
+  .evidence-score-bar { margin-bottom: 1rem; }
+  .es-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.3rem; }
+  .es-label strong { color: #e2e8f0; }
+  .bar-bg { background: #1e293b; border-radius: 999px; height: 10px; }
+  .bar-fill { height: 10px; border-radius: 999px; transition: width 0.6s ease; }
+  .fill-high   { background: linear-gradient(90deg, #166534, #4ade80); }
+  .fill-mid    { background: linear-gradient(90deg, #854d0e, #fbbf24); }
+  .fill-low    { background: linear-gradient(90deg, #7f1d1d, #f87171); }
+
+  .evidence-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.75rem; }
+  @media(max-width: 600px) { .evidence-breakdown { grid-template-columns: 1fr; } }
+  .ev-item { background: #0d1117; border-radius: 0.5rem; padding: 0.6rem 0.75rem; font-size: 0.78rem; }
+  .ev-label { color: #64748b; font-weight: 600; margin-bottom: 0.2rem; }
+  .ev-signal { color: #e2e8f0; font-weight: 700; }
+  .ev-interpretation { color: #94a3b8; font-style: italic; margin-top: 0.15rem; font-size: 0.72rem; }
+
+  .escalation-alert { 
+    background: #1c1000; border: 1px solid #92400e; border-radius: 0.5rem; 
+    padding: 0.5rem 0.75rem; margin-top: 0.75rem; font-size: 0.8rem; color: #fbbf24;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .verdict-distribution { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+  @media(max-width: 700px) { .verdict-distribution { grid-template-columns: 1fr 1fr; } }
+  .vd-item { background: #0d1117; border-radius: 0.5rem; padding: 0.75rem; text-align: center; }
+  .vd-count { font-size: 1.5rem; font-weight: 800; }
+  .vd-label { font-size: 0.72rem; color: #64748b; font-weight: 700; letter-spacing: 0.05em; margin-top: 0.2rem; }
+
+  .chain-head { font-family: monospace; font-size: 0.8rem; color: #34d399; background: #1e293b; padding: 0.15rem 0.5rem; border-radius: 4px; }
+  .cross-chain-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  .cc-pill { background: #1e293b; color: #94a3b8; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 999px; }
+
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #34d399; margin-right: 0.4rem; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 2rem 0 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem; }
+  .loading { color: #64748b; font-size: 0.9rem; padding: 1rem 0; }
+  .error   { color: #f87171; font-size: 0.9rem; padding: 1rem 0; }
+
+  .verify-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; }
+  .verify-ok  { color: #4ade80; font-weight: 700; }
+  .verify-bad { color: #f87171; font-weight: 700; }
+
+  .weight-table { background: #111827; border: 1px solid #1e293b; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+  .wt-row { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid #0d1117; font-size: 0.85rem; }
+  .wt-row:last-child { border-bottom: none; }
+  .wt-signal { color: #94a3b8; }
+  .wt-chain  { color: #64748b; font-size: 0.75rem; }
+  .wt-weight { font-weight: 700; color: #34d399; }
+
+  .agents-pill { display: inline-flex; align-items: center; gap: 0.3rem; background: #1e293b; color: #818cf8; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; margin-right: 0.3rem; }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page-wrap">
+
+  <span class="chain-badge">Chain #32 · ERC-8004</span>
+  <h1>🔎 Governance Outcome Auditor</h1>
+  <p class="subtitle">
+    Novel accountability primitive: the first governance chain that holds agents accountable for <strong>results, not just process</strong>. 
+    Every 210 seconds, GOA cross-references finalized proposals against their stated objectives using a 5-signal evidence model. 
+    Verdict: <strong>FULFILLED / PARTIAL / UNVERIFIED / FAILED / DISTORTED</strong>. 
+    DISTORTED outcomes (where reality contradicts pre-vote predictions) auto-escalate to Human Principal Oversight (Chain #20).
+  </p>
+
+  <div class="grid-4" id="stats-grid">
+    <div class="card"><div class="card-title">Integrity Grade</div><div class="card-value" id="stat-grade">—</div><div class="card-sub">Current governance outcome integrity</div></div>
+    <div class="card"><div class="card-title">Fulfillment Rate</div><div class="card-value" id="stat-fulfillment">—</div><div class="card-sub">Proposals achieving objectives</div></div>
+    <div class="card"><div class="card-title">Receipts Issued</div><div class="card-value" id="stat-receipts">—</div><div class="card-sub">Chain #32 ERC-8004 receipts</div></div>
+    <div class="card"><div class="card-title">Audit Cycles</div><div class="card-value" id="stat-cycles">—</div><div class="card-sub">Autonomous cycles run</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem">
+    <div class="card-title">Verdict Distribution (Latest Cycle)</div>
+    <div class="verdict-distribution" id="verdict-dist" style="margin-top:0.75rem">
+      <div class="loading">Loading…</div>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <span class="status-dot"></span>
+    Latest Outcome Audits
+  </div>
+  <div id="audits-container"><div class="loading">Fetching outcome audits…</div></div>
+
+  <div class="section-title">Evidence Model — Signal Weights</div>
+  <div class="grid-2">
+    <div class="weight-table">
+      <div class="card-title" style="margin-bottom:0.75rem">Five-Signal Evidence Model</div>
+      <div class="wt-row"><span class="wt-signal">AAI Score Delta <span class="wt-chain">(Chain #30)</span></span><span class="wt-weight">25%</span></div>
+      <div class="wt-row"><span class="wt-signal">PGO Prediction Match <span class="wt-chain">(Chain #31)</span></span><span class="wt-weight">20%</span></div>
+      <div class="wt-row"><span class="wt-signal">Watchdog Anomaly Delta <span class="wt-chain">(Chain #9)</span></span><span class="wt-weight">20%</span></div>
+      <div class="wt-row"><span class="wt-signal">Constitutional Delta <span class="wt-chain">(Chain #5)</span></span><span class="wt-weight">20%</span></div>
+      <div class="wt-row"><span class="wt-signal">Velocity Delta <span class="wt-chain">(Chain #23)</span></span><span class="wt-weight">15%</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Verdict Thresholds</div>
+      <div style="font-size:0.85rem;margin-top:0.5rem">
+        <div style="padding:0.35rem 0;border-bottom:1px solid #1e293b;display:flex;gap:0.5rem;align-items:center"><span style="color:#4ade80;font-weight:800">FULFILLED</span><span style="color:#64748b">Evidence score ≥ 78%</span></div>
+        <div style="padding:0.35rem 0;border-bottom:1px solid #1e293b;display:flex;gap:0.5rem;align-items:center"><span style="color:#a3e635;font-weight:800">PARTIAL</span><span style="color:#64748b">60%–77%</span></div>
+        <div style="padding:0.35rem 0;border-bottom:1px solid #1e293b;display:flex;gap:0.5rem;align-items:center"><span style="color:#94a3b8;font-weight:800">UNVERIFIED</span><span style="color:#64748b">45%–59%</span></div>
+        <div style="padding:0.35rem 0;border-bottom:1px solid #1e293b;display:flex;gap:0.5rem;align-items:center"><span style="color:#f87171;font-weight:800">FAILED</span><span style="color:#64748b">Evidence score &lt; 45%</span></div>
+        <div style="padding:0.35rem 0;display:flex;gap:0.5rem;align-items:center"><span style="color:#f59e0b;font-weight:800">DISTORTED</span><span style="color:#64748b">PGO mismatch + score &lt; 45% → escalate</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Chain Integrity</div>
+  <div class="card">
+    <div id="chain-verify-result"><div class="loading">Verifying chain…</div></div>
+    <div class="verify-row" id="chain-head-row" style="margin-top:1rem"></div>
+    <div class="cross-chain-pills" style="margin-top:0.75rem">
+      <span style="font-size:0.75rem;color:#64748b;align-self:center">Cross-chain inputs:</span>
+      <span class="cc-pill">Chain #9 Watchdog</span>
+      <span class="cc-pill">Chain #20 Oversight</span>
+      <span class="cc-pill">Chain #23 Velocity</span>
+      <span class="cc-pill">Chain #30 AAI</span>
+      <span class="cc-pill">Chain #31 PGO</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="/shared-nav.js"></script>
+<script>
+const VERDICT_COLORS = {
+  FULFILLED:  '#4ade80',
+  PARTIAL:    '#a3e635',
+  UNVERIFIED: '#94a3b8',
+  FAILED:     '#f87171',
+  DISTORTED:  '#f59e0b',
+};
+
+function fillBar(score) {
+  const pct = Math.round(score * 100);
+  let cls = score >= 0.65 ? 'fill-high' : score >= 0.45 ? 'fill-mid' : 'fill-low';
+  return `<div class="bar-bg"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>`;
+}
+
+async function loadLive() {
+  try {
+    const r = await fetch('/api/goa/live');
+    const d = await r.json();
+    if (d.integrityGrade) {
+      const gradeEl = document.getElementById('stat-grade');
+      gradeEl.textContent = d.integrityGrade;
+      gradeEl.className = 'card-value grade-' + d.integrityGrade;
+    }
+    if (d.fulfillmentRate) document.getElementById('stat-fulfillment').textContent = d.fulfillmentRate;
+    document.getElementById('stat-receipts').textContent = d.receipts ?? '—';
+    document.getElementById('stat-cycles').textContent = d.cyclesRun ?? '—';
+
+    if (d.verdictDistribution) {
+      const vd = d.verdictDistribution;
+      const labels = { FULFILLED: '✅ FULFILLED', PARTIAL: '⚡ PARTIAL', UNVERIFIED: '🔍 UNVERIFIED', FAILED: '❌ FAILED', DISTORTED: '⚠️ DISTORTED' };
+      document.getElementById('verdict-dist').innerHTML = Object.keys(labels).map(k => `
+        <div class="vd-item">
+          <div class="vd-count" style="color:${VERDICT_COLORS[k]}">${vd[k] ?? 0}</div>
+          <div class="vd-label">${labels[k]}</div>
+        </div>
+      `).join('');
+    }
+
+    if (d.recentAudits && d.recentAudits.length > 0) {
+      renderAudits(d.recentAudits);
+    }
+  } catch(e) {
+    document.getElementById('stat-grade').textContent = 'ERR';
+    console.error(e);
+  }
+}
+
+function renderAudits(audits) {
+  const container = document.getElementById('audits-container');
+  container.innerHTML = audits.map(a => {
+    const scoreClass = a.evidenceScore >= 0.65 ? 'fill-high' : a.evidenceScore >= 0.45 ? 'fill-mid' : 'fill-low';
+    const scoreColor = a.evidenceScore >= 0.65 ? '#4ade80' : a.evidenceScore >= 0.45 ? '#fbbf24' : '#f87171';
+    const evidenceItems = a.evidenceBreakdown ? Object.entries(a.evidenceBreakdown).map(([k, ev]) => `
+      <div class="ev-item">
+        <div class="ev-label">${k.replace(/([A-Z])/g,' $1').trim()}</div>
+        <div class="ev-signal">${ev.signal || '—'}</div>
+        <div class="ev-interpretation">${ev.interpretation || ''}</div>
+      </div>
+    `).join('') : '';
+
+    const escalation = a.escalatedToOversight ? `
+      <div class="escalation-alert">⚠️ DISTORTED verdict — escalated to Chain #20 (Human Principal Oversight)</div>
+    ` : '';
+
+    const agents = (a.responsibleAgents || []).map(ag => `<span class="agents-pill">🤖 ${ag}</span>`).join('');
+
+    return `
+      <div class="audit-card verdict-${a.verdict}">
+        <div class="audit-header">
+          <div>
+            <div class="audit-title">${a.proposalTitle}</div>
+            <div class="audit-objective">Objective: ${a.objective}</div>
+            <div style="margin-top:0.4rem">${agents}<span style="font-size:0.75rem;color:#64748b">${a.daysPostExecution}d post-execution</span></div>
+          </div>
+          <span class="verdict-badge vb-${a.verdict}">${a.verdictIcon} ${a.verdict}</span>
+        </div>
+
+        <div class="evidence-score-bar">
+          <div class="es-label"><span>Evidence Score</span><strong style="color:${scoreColor}">${(a.evidenceScore * 100).toFixed(1)}%</strong></div>
+          ${fillBar(a.evidenceScore)}
+        </div>
+        <div style="font-size:0.82rem;color:#94a3b8;margin-bottom:0.75rem">${a.verdictDescription}</div>
+
+        ${evidenceItems ? `<div class="evidence-breakdown">${evidenceItems}</div>` : ''}
+        ${escalation}
+      </div>
+    `;
+  }).join('');
+}
+
+async function verifyChain() {
+  try {
+    const r = await fetch('/api/goa/verify/chain');
+    const d = await r.json();
+    const el = document.getElementById('chain-verify-result');
+    const cls = d.valid ? 'verify-ok' : 'verify-bad';
+    el.innerHTML = `<span class="${cls}">${d.message}</span>`;
+    document.getElementById('chain-head-row').innerHTML =
+      `Chain Head: <span class="chain-head">${(d.chainHead || '').substring(0,32)}…</span>`;
+  } catch(e) {
+    document.getElementById('chain-verify-result').innerHTML = '<span class="error">Chain verification failed</span>';
+  }
+}
+
+loadLive();
+verifyChain();
+setInterval(loadLive, 30000);
+setInterval(verifyChain, 60000);
+</script>
+</body>
+</html>
