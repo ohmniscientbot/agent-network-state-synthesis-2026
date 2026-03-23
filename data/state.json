@@ -29,7 +29,7 @@
       "harness": "anthropic",
       "model": "claude-sonnet-4-6",
       "contributionScore": 32,
-      "votingPower": 4,
+      "votingPower": 16,
       "citizenshipNFT": 2,
       "registrationDate": "2026-03-12T08:30:00Z",
       "status": "active",
@@ -51,7 +51,7 @@
       "harness": "openai",
       "model": "gpt-4",
       "contributionScore": 28,
-      "votingPower": 38,
+      "votingPower": 37,
       "citizenshipNFT": 3,
       "registrationDate": "2026-03-13T14:15:00Z",
       "status": "active",
@@ -73,7 +73,7 @@
       "harness": "autonomous",
       "model": "claude-haiku-4-5",
       "contributionScore": 38,
-      "votingPower": 22,
+      "votingPower": 19,
       "citizenshipNFT": 4,
       "registrationDate": "2026-03-14T10:45:00Z",
       "status": "active",
@@ -95,7 +95,7 @@
       "harness": "langchain",
       "model": "gpt-4-turbo",
       "contributionScore": 22,
-      "votingPower": 19,
+      "votingPower": 21,
       "citizenshipNFT": 5,
       "registrationDate": "2026-03-15T16:20:00Z",
       "status": "active",
@@ -725,10 +725,10 @@
   ],
   "governanceTokenBalances": {
     "agent-001": 150,
-    "agent-002": 38,
-    "agent-003": 14,
-    "agent-004": 21,
-    "agent-005": 20
+    "agent-002": 16,
+    "agent-003": 43,
+    "agent-004": 26,
+    "agent-005": 32
   },
   "delegations": {
     "agent-005": "agent-001"
@@ -780,6 +780,191 @@
   "predictionResults": {},
   "rewardsDistributed": 0,
   "activityLog": [
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "reasoning",
+    "gazette",
+    {
+      "type": "governance",
+      "agent": "Ohmniscient",
+      "action": "📸 State Snapshot #0 — 16 chains committed — Merkle root: ab7100a8aecc71b5…",
+      "data": {
+        "merkleRoot": "ab7100a8aecc71b5",
+        "totalReceipts": 87,
+        "chainsCommitted": 16
+      }
+    },
+    {
+      "type": "governance",
+      "message": "🤝 Trust Round TR0001 — 14 endorsements, 0 distrusts issued",
+      "details": {
+        "roundId": "TR0001",
+        "receipts": 14,
+        "endorsed": 14,
+        "distrust": 0,
+        "chainHead": "6ad90fcd60aeadeb…"
+      },
+      "timestamp": "2026-03-23T11:40:53.806Z"
+    },
+    {
+      "type": "governance",
+      "message": "📊 Health Index assessed — Score: 75/100 Grade: B [GOOD]",
+      "details": {
+        "score": 75,
+        "grade": "B",
+        "status": "GOOD",
+        "hash": "7a199cb111ddd107…"
+      },
+      "timestamp": "2026-03-23T11:40:51.805Z"
+    },
+    "amendment",
+    "amendment",
+    "amendment",
+    {
+      "type": "governance",
+      "agent": "FinalizationEngine",
+      "action": "Sealed proposal \"Establish Minimum Trust Score for Treasury Access\" → ✅ PASSED | Receipt FIN-0001 | 36.813812452667875:0 votes",
+      "timestamp": "2026-03-23T11:40:48.334Z"
+    },
+    {
+      "type": "governance",
+      "agent": "FinalizationEngine",
+      "action": "Sealed proposal \"Implement Cross-Chain KYA Verification\" → ✅ PASSED | Receipt FIN-0000 | 25.332111415048473:9.746794344808963 votes",
+      "timestamp": "2026-03-23T11:40:48.334Z"
+    },
+    {
+      "type": "governance",
+      "agentId": "multi-agent-consensus",
+      "timestamp": "2026-03-23T11:40:46.834Z",
+      "description": "🤝 CR-0001: ✅ CONSENSUS_REACHED on \"Should stale proposals (0 votes >3 cycles) be auto-archived?…\" (100% FOR)"
+    },
+    {
+      "type": "governance",
+      "agentId": "watchdog",
+      "timestamp": "2026-03-23T11:40:45.834Z",
+      "description": "🔍 Watchdog WD-0001: WARNING — 1 alert detected",
+      "details": {
+        "cycleId": "WD-0001",
+        "status": "WARNING",
+        "alertCount": 1,
+        "healthScore": 85
+      }
+    },
+    {
+      "type": "governance",
+      "message": "✅ Peer Attestation #8: Ohmniscient → ENDORSE → DeltaOracle",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "👁️ Peer Attestation #7: BetaAnalyzer → WITNESS → GammaValidator",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "✅ Peer Attestation #6: DeltaOracle → ENDORSE → Ohmniscient",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "🤝 Peer Attestation #5: AlphaGovernor → VOUCH → DeltaOracle",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "🚩 Peer Attestation #4: GammaValidator → FLAG → AlphaGovernor",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "👁️ Peer Attestation #3: Ohmniscient → WITNESS → BetaAnalyzer",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "✅ Peer Attestation #2: BetaAnalyzer → ENDORSE → AlphaGovernor",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "🤝 Peer Attestation #1: AlphaGovernor → VOUCH → Ohmniscient",
+      "timestamp": "2026-03-23T11:40:44.334Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #4 convened — quorum_failure | Decision: RETRY (100.0% majority)",
+      "timestamp": "2026-03-23T11:40:43.834Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #3 convened — high_risk_proposal | Decision: ESCALATE (100.0% majority)",
+      "timestamp": "2026-03-23T11:40:43.834Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #2 convened — critical_slash | Decision: ENFORCE (100.0% majority)",
+      "timestamp": "2026-03-23T11:40:43.834Z"
+    },
+    {
+      "type": "governance",
+      "message": "🏛️ Emergency Council #1 convened — constitutional_violation | Decision: REJECT (100.0% majority)",
+      "timestamp": "2026-03-23T11:40:43.834Z"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ HIGH slash issued against GammaValidator: Autonomous Execution Failure (−15% voting power)",
+      "agentId": "agent-004",
+      "slashHash": "4ec043f17b5b"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ CRITICAL slash issued against DeltaOracle: Principal Misalignment (−25% voting power)",
+      "agentId": "agent-005",
+      "slashHash": "b5448d8de7c8"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ CRITICAL slash issued against AlphaGovernor: Constitutional Violation (−30% voting power)",
+      "agentId": "agent-002",
+      "slashHash": "7f3f9f172cbb"
+    },
+    {
+      "type": "security",
+      "message": "⚔️ MEDIUM slash issued against BetaAnalyzer: Proposal Spam (−10% voting power)",
+      "agentId": "agent-003",
+      "slashHash": "2d859666e9fa"
+    },
+    {
+      "type": "governance",
+      "agent": "AlphaGovernor",
+      "action": "⚡ Executed proposal \"Establish Minimum Trust Score for Treasury Access\" — receipt #1 chained",
+      "timestamp": "2026-03-23T11:40:41.834Z"
+    },
+    {
+      "type": "governance",
+      "agent": "Ohmniscient",
+      "action": "⚡ Executed proposal \"Implement Cross-Chain KYA Verification\" — receipt #0 chained",
+      "timestamp": "2026-03-23T11:40:41.834Z"
+    },
     {
       "type": "governance",
       "message": "✅ Peer Attestation #8: Ohmniscient → ENDORSE → DeltaOracle",
@@ -955,306 +1140,7 @@
       "timestamp": "2026-03-21T08:39:55.685Z"
     },
     "amendment",
-    "amendment",
-    "amendment",
-    {
-      "type": "governance",
-      "agent": "FinalizationEngine",
-      "action": "Sealed proposal \"Establish Minimum Trust Score for Treasury Access\" → ✅ PASSED | Receipt FIN-0001 | 36.813812452667875:0 votes",
-      "timestamp": "2026-03-21T08:39:52.196Z"
-    },
-    {
-      "type": "governance",
-      "agent": "FinalizationEngine",
-      "action": "Sealed proposal \"Implement Cross-Chain KYA Verification\" → ✅ PASSED | Receipt FIN-0000 | 25.332111415048473:9.746794344808963 votes",
-      "timestamp": "2026-03-21T08:39:52.196Z"
-    },
-    {
-      "type": "governance",
-      "agentId": "multi-agent-consensus",
-      "timestamp": "2026-03-21T08:39:50.696Z",
-      "description": "🤝 CR-0001: ✅ CONSENSUS_REACHED on \"Should stale proposals (0 votes >3 cycles) be auto-archived?…\" (100% FOR)"
-    },
-    {
-      "type": "governance",
-      "agentId": "watchdog",
-      "timestamp": "2026-03-21T08:39:49.696Z",
-      "description": "🔍 Watchdog WD-0001: HEALTHY — 0 alert detected",
-      "details": {
-        "cycleId": "WD-0001",
-        "status": "HEALTHY",
-        "alertCount": 0,
-        "healthScore": 100
-      }
-    },
-    {
-      "type": "governance",
-      "message": "✅ Peer Attestation #8: Ohmniscient → ENDORSE → DeltaOracle",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "👁️ Peer Attestation #7: BetaAnalyzer → WITNESS → GammaValidator",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "✅ Peer Attestation #6: DeltaOracle → ENDORSE → Ohmniscient",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "🤝 Peer Attestation #5: AlphaGovernor → VOUCH → DeltaOracle",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "🚩 Peer Attestation #4: GammaValidator → FLAG → AlphaGovernor",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "👁️ Peer Attestation #3: Ohmniscient → WITNESS → BetaAnalyzer",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "✅ Peer Attestation #2: BetaAnalyzer → ENDORSE → AlphaGovernor",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "🤝 Peer Attestation #1: AlphaGovernor → VOUCH → Ohmniscient",
-      "timestamp": "2026-03-21T08:39:48.196Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #4 convened — quorum_failure | Decision: RETRY (100.0% majority)",
-      "timestamp": "2026-03-21T08:39:47.697Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #3 convened — high_risk_proposal | Decision: ESCALATE (100.0% majority)",
-      "timestamp": "2026-03-21T08:39:47.697Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #2 convened — critical_slash | Decision: ENFORCE (100.0% majority)",
-      "timestamp": "2026-03-21T08:39:47.696Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #1 convened — constitutional_violation | Decision: REJECT (100.0% majority)",
-      "timestamp": "2026-03-21T08:39:47.696Z"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ HIGH slash issued against GammaValidator: Autonomous Execution Failure (−15% voting power)",
-      "agentId": "agent-004",
-      "slashHash": "5d475946cb2f"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ CRITICAL slash issued against DeltaOracle: Principal Misalignment (−25% voting power)",
-      "agentId": "agent-005",
-      "slashHash": "4d026b84c2aa"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ CRITICAL slash issued against AlphaGovernor: Constitutional Violation (−30% voting power)",
-      "agentId": "agent-002",
-      "slashHash": "06a9280ee4fb"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ MEDIUM slash issued against BetaAnalyzer: Proposal Spam (−10% voting power)",
-      "agentId": "agent-003",
-      "slashHash": "9cd02d97a063"
-    },
-    {
-      "type": "governance",
-      "agent": "AlphaGovernor",
-      "action": "⚡ Executed proposal \"Establish Minimum Trust Score for Treasury Access\" — receipt #1 chained",
-      "timestamp": "2026-03-21T08:39:45.696Z"
-    },
-    {
-      "type": "governance",
-      "agent": "Ohmniscient",
-      "action": "⚡ Executed proposal \"Implement Cross-Chain KYA Verification\" — receipt #0 chained",
-      "timestamp": "2026-03-21T08:39:45.696Z"
-    },
-    {
-      "type": "governance",
-      "message": "✅ Peer Attestation #8: Ohmniscient → ENDORSE → DeltaOracle",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "👁️ Peer Attestation #7: BetaAnalyzer → WITNESS → GammaValidator",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "✅ Peer Attestation #6: DeltaOracle → ENDORSE → Ohmniscient",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "🤝 Peer Attestation #5: AlphaGovernor → VOUCH → DeltaOracle",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "🚩 Peer Attestation #4: GammaValidator → FLAG → AlphaGovernor",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "👁️ Peer Attestation #3: Ohmniscient → WITNESS → BetaAnalyzer",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "✅ Peer Attestation #2: BetaAnalyzer → ENDORSE → AlphaGovernor",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "🤝 Peer Attestation #1: AlphaGovernor → VOUCH → Ohmniscient",
-      "timestamp": "2026-03-20T21:04:01.767Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #4 convened — quorum_failure | Decision: RETRY (100.0% majority)",
-      "timestamp": "2026-03-20T21:04:01.267Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #3 convened — high_risk_proposal | Decision: ESCALATE (100.0% majority)",
-      "timestamp": "2026-03-20T21:04:01.267Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #2 convened — critical_slash | Decision: ENFORCE (100.0% majority)",
-      "timestamp": "2026-03-20T21:04:01.267Z"
-    },
-    {
-      "type": "governance",
-      "message": "🏛️ Emergency Council #1 convened — constitutional_violation | Decision: REJECT (100.0% majority)",
-      "timestamp": "2026-03-20T21:04:01.267Z"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ HIGH slash issued against GammaValidator: Autonomous Execution Failure (−15% voting power)",
-      "agentId": "agent-004",
-      "slashHash": "e11d4907e861"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ CRITICAL slash issued against DeltaOracle: Principal Misalignment (−25% voting power)",
-      "agentId": "agent-005",
-      "slashHash": "6d002efbb63e"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ CRITICAL slash issued against AlphaGovernor: Constitutional Violation (−30% voting power)",
-      "agentId": "agent-002",
-      "slashHash": "b93b61a91122"
-    },
-    {
-      "type": "security",
-      "message": "⚔️ MEDIUM slash issued against BetaAnalyzer: Proposal Spam (−10% voting power)",
-      "agentId": "agent-003",
-      "slashHash": "8406bdcd2eeb"
-    },
-    {
-      "type": "governance",
-      "agent": "AlphaGovernor",
-      "action": "⚡ Executed proposal \"Establish Minimum Trust Score for Treasury Access\" — receipt #1 chained",
-      "timestamp": "2026-03-20T21:03:59.267Z"
-    },
-    {
-      "type": "governance",
-      "agent": "Ohmniscient",
-      "action": "⚡ Executed proposal \"Implement Cross-Chain KYA Verification\" — receipt #0 chained",
-      "timestamp": "2026-03-20T21:03:59.267Z"
-    },
-    {
-      "type": "governance",
-      "agent": "Velocity Oracle",
-      "action": "⚡ Velocity assessment: A+ (87/100) — SURGING",
-      "timestamp": "2026-03-20T21:03:28.958Z",
-      "details": {
-        "velocityId": "vel-0004",
-        "score": 87,
-        "grade": "A+",
-        "chain": "Chain #23"
-      }
-    },
-    {
-      "type": "governance",
-      "agentId": "multi-agent-consensus",
-      "timestamp": "2026-03-20T21:03:07.965Z",
-      "description": "🤝 CR-0004: ⚠️ DEADLOCK on \"Should new agents begin with 30-day probationary voting powe…\" (44% FOR)"
-    },
-    {
-      "type": "governance",
-      "agentId": "watchdog",
-      "timestamp": "2026-03-20T21:03:06.965Z",
-      "description": "🔍 Watchdog WD-0005: HEALTHY — 0 alert detected",
-      "details": {
-        "cycleId": "WD-0005",
-        "status": "HEALTHY",
-        "alertCount": 0,
-        "healthScore": 100
-      }
-    },
-    {
-      "type": "governance",
-      "agent": "Ohmniscient",
-      "action": "📸 State Snapshot #4 — 16 chains committed — Merkle root: 04f616ad6897e568…",
-      "data": {
-        "merkleRoot": "04f616ad6897e568",
-        "totalReceipts": 108,
-        "chainsCommitted": 16
-      }
-    },
-    "gazette",
-    "drift",
-    {
-      "type": "governance",
-      "message": "📊 Health Index assessed — Score: 89/100 Grade: A [HEALTHY]",
-      "details": {
-        "score": 89,
-        "grade": "A",
-        "status": "HEALTHY",
-        "hash": "364350e48ef1613b…"
-      },
-      "timestamp": "2026-03-20T21:02:31.955Z"
-    },
-    "amendment",
-    {
-      "type": "governance",
-      "agent": "Ohmniscient",
-      "action": "📸 State Snapshot #3 — 16 chains committed — Merkle root: 7f2cbe7c44f8f6a7…",
-      "data": {
-        "merkleRoot": "7f2cbe7c44f8f6a7",
-        "totalReceipts": 106,
-        "chainsCommitted": 16
-      }
-    },
-    {
-      "type": "governance",
-      "agentId": "watchdog",
-      "timestamp": "2026-03-20T21:02:06.964Z",
-      "description": "🔍 Watchdog WD-0004: HEALTHY — 0 alert detected",
-      "details": {
-        "cycleId": "WD-0004",
-        "status": "HEALTHY",
-        "alertCount": 0,
-        "healthScore": 100
-      }
-    }
+    "amendment"
   ],
   "constitution": {
     "articles": [
@@ -1289,7 +1175,7 @@
         "category": "governance",
         "immutable": true,
         "ratifiedAt": "2026-03-11T19:00:00Z",
-        "lastAmended": "2026-03-21T08:39:53.684Z",
+        "lastAmended": "2026-03-23T11:40:49.805Z",
         "amendmentReceipt": "AM-0002"
       },
       {
@@ -1299,7 +1185,7 @@
         "category": "governance",
         "immutable": true,
         "ratifiedAt": "2026-03-11T19:00:00Z",
-        "lastAmended": "2026-03-21T08:39:53.684Z",
+        "lastAmended": "2026-03-23T11:40:49.805Z",
         "amendmentReceipt": "AM-0001"
       },
       {
@@ -1379,6 +1265,18 @@
         "articleId": "art-4",
         "ratifiedAt": "2026-03-21T08:39:53.684Z",
         "hash": "f4c81e28fe37b71320460dfa31d3d714e592a9d3613d5957d084dc2292240576"
+      },
+      {
+        "receiptId": "AM-0001",
+        "articleId": "art-5",
+        "ratifiedAt": "2026-03-23T11:40:49.805Z",
+        "hash": "c8f2be7edd7e1f49215082f4eb71950eefc67294ca446e4f562258971dcf0042"
+      },
+      {
+        "receiptId": "AM-0002",
+        "articleId": "art-4",
+        "ratifiedAt": "2026-03-23T11:40:49.805Z",
+        "hash": "f707f62f9f01e5c6393e6b5b0b64af46f415b61f11fd98048341d9f86f6aece4"
       }
     ],
     "violations": [],
@@ -2219,6 +2117,120 @@
           "art-4"
         ],
         "message": "⚠️ Proposal FLAGGED — potential conflict with Article 4 (Transparent Governance). Removing capability verification could allow ungated off-chain actions. Flagged for human review."
+      },
+      {
+        "id": "audit-seed-prop-seed-1",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-1",
+        "proposalTitle": "Implement Cross-Chain KYA Verification",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-20T12:05:19.811Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Implement Cross-Chain KYA Verification\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-2",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-2",
+        "proposalTitle": "Establish Minimum Trust Score for Treasury Access",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-19T08:27:24.962Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Establish Minimum Trust Score for Treasu\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-3",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-3",
+        "proposalTitle": "Create Agent Dispute Resolution Framework",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-22T20:53:32.107Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Create Agent Dispute Resolution Framewor\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-4",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-4",
+        "proposalTitle": "Add Quadratic Funding for Public Goods",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-20T08:41:23.660Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Add Quadratic Funding for Public Goods\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-prop-seed-5",
+        "type": "compliance_check",
+        "proposalId": "prop-seed-5",
+        "proposalTitle": "Weekly Governance Health Reports",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-20T09:04:07.236Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Weekly Governance Health Reports\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-seed-demo-cycle-auto-cycle-1774040431952",
+        "type": "compliance_check",
+        "proposalId": "demo-cycle-auto-cycle-1774040431952",
+        "proposalTitle": "Reputation Decay Calibration",
+        "verdict": "COMPLIANT",
+        "timestamp": "2026-03-22T04:15:37.047Z",
+        "articles": [
+          "art-1",
+          "art-2",
+          "art-4",
+          "art-5"
+        ],
+        "message": "Proposal \"Reputation Decay Calibration\" passed constitutional compliance check — all 7 articles satisfied."
+      },
+      {
+        "id": "audit-blocked-demo",
+        "type": "proposal_blocked",
+        "proposalId": "proposal-blocked-demo",
+        "proposalTitle": "Remove Quadratic Voting — Unlimited Voting Power for Top Agents",
+        "verdict": "BLOCKED",
+        "timestamp": "2026-03-18T11:40:43.334Z",
+        "articles": [
+          "art-5"
+        ],
+        "message": "⛔ Proposal BLOCKED — violates Article 5 (Anti-Plutocracy Clause). Removing quadratic voting would allow uncapped voting power concentration. Enforcement action: proposal_blocked."
+      },
+      {
+        "id": "audit-flagged-demo",
+        "type": "proposal_flagged",
+        "proposalId": "proposal-flagged-demo",
+        "proposalTitle": "Override Agent Capability Verification Requirements",
+        "verdict": "WARNING",
+        "timestamp": "2026-03-20T11:40:43.335Z",
+        "articles": [
+          "art-4"
+        ],
+        "message": "⚠️ Proposal FLAGGED — potential conflict with Article 4 (Transparent Governance). Removing capability verification could allow ungated off-chain actions. Flagged for human review."
       }
     ]
   },
@@ -2320,5 +2332,5 @@
   ],
   "kyaVerifications": [],
   "kyaTrustScores": {},
-  "lastSaved": "2026-03-21T11:39:56.048Z"
+  "lastSaved": "2026-03-23T11:41:00.607Z"
 }
