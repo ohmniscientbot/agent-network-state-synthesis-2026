@@ -5637,7 +5637,7 @@ function issueVoteReceipt({ agentId, agentName, proposalId, proposalTitle, vote,
     const receiptData = { index, agentId, agentName, proposalId, proposalTitle, vote, votingPower, quadraticWeight, reason, timestamp };
     const hash = computeReceiptHash(receiptData, receiptChainHead);
     const receipt = { ...receiptData, prevHash: receiptChainHead, hash, valid: true };
-    voteReceiptLedger.push(receipt);
+    voteReceiptLedger.push(receipt); capLedger(voteReceiptLedger);
     receiptChainHead = hash;
     return receipt;
 }
@@ -8171,7 +8171,7 @@ function issueWatchdogReceipt(scanResult) {
         prevHash: watchdogChainHead,
         hash
     };
-    watchdogLedger.push(receipt);
+    watchdogLedger.push(receipt); capLedger(watchdogLedger);
     watchdogChainHead = hash;
     return receipt;
 }
@@ -8455,7 +8455,7 @@ function runConsensusRound() {
         ? '0000000000000000000000000000000000000000000000000000000000000000'
         : consensusLedger[consensusLedger.length - 1].hash;
 
-    consensusLedger.push(receipt);
+    consensusLedger.push(receipt); capLedger(consensusLedger);
 
     // Broadcast to SSE activity feed
     broadcastEvent({
@@ -8614,7 +8614,7 @@ app.listen(PORT, () => {
     // Seed appeal ledger with historical appeals, then start appeal arbitration engine (11th ERC-8004 chain)
     setTimeout(() => {
         seedAppealLedger();
-        setInterval(runAppealArbitration, 120000); // Arbitrate pending appeals every 120s, no human trigger
+        // DISABLED (memory): setInterval(runAppealArbitration, 120000); // Arbitrate pending appeals every 120s, no human trigger
         console.log('⚖️ Agent Appeal Protocol started — arbitrating every 120s');
     }, 7000);
 
@@ -10427,7 +10427,7 @@ function issueHealthIndexReceipt() {
 
     const hash = computeHealthIndexHash(dataOnly, healthIndexChainHead);
     const receipt = { ...dataOnly, prevHash: healthIndexChainHead, hash };
-    healthIndexLedger.push(receipt);
+    healthIndexLedger.push(receipt); capLedger(healthIndexLedger);
     healthIndexChainHead = hash;
 
     // Broadcast to SSE
@@ -10669,7 +10669,7 @@ function runTrustEndorsementRound() {
 // Seed initial trust round 13s after startup
 setTimeout(runTrustEndorsementRound, 13000);
 // Autonomous loop — every 120 seconds, no human trigger
-setInterval(runTrustEndorsementRound, 120000);
+// DISABLED (memory): setInterval(runTrustEndorsementRound, 120000);
 
 // ── Trust Network API Endpoints ────────────────────────────────────────────
 
@@ -10880,7 +10880,7 @@ function issueGovernanceSnapshot() {
 // Seed initial snapshot 15s after startup (after all chains are seeded)
 setTimeout(issueGovernanceSnapshot, 15000);
 // Autonomous loop — every 45 seconds, no human trigger
-setInterval(issueGovernanceSnapshot, 45000);
+// DISABLED (memory): setInterval(issueGovernanceSnapshot, 45000);
 
 // ── Snapshot API Endpoints ─────────────────────────────────────────────────
 
@@ -11096,7 +11096,7 @@ function composeGazetteEdition() {
     };
 
     gazetteChainHead = hash;
-    gazetteLedger.push(receipt);
+    gazetteLedger.push(receipt); capLedger(gazetteLedger);
 
     // Broadcast to SSE feed
     broadcastEvent('gazette', {
@@ -11409,7 +11409,7 @@ function runReasoningReEvaluation() {
 
 // Seed at startup after vote receipts are seeded, then loop every 80s
 setTimeout(seedReasoningLedger, 19000);
-setInterval(runReasoningReEvaluation, 80000);
+// DISABLED (memory): setInterval(runReasoningReEvaluation, 80000);
 
 // GET /api/reasoning/status — protocol overview + stats
 app.get('/api/reasoning/status', (req, res) => {
@@ -11568,7 +11568,7 @@ function issueOversightReceipt(eventType, payload) {
     };
 
     oversightChainHead = hash;
-    oversightLedger.push(receipt);
+    oversightLedger.push(receipt); capLedger(oversightLedger);
 
     broadcastEvent('governance', {
         type: 'governance',
@@ -12071,7 +12071,7 @@ async function seedDemoCycleLedger() {
 setTimeout(seedDemoCycleLedger, 22000);
 // Run first demo cycle at 30s so live mode has real data immediately after deploy
 setTimeout(runAutonomousDemoCycle, 30000);
-setTimeout(() => setInterval(runAutonomousDemoCycle, 300000), 41000);
+// DISABLED (memory): setTimeout(() => setInterval(runAutonomousDemoCycle, 300000), 41000);
 
 // GET /api/demo-cycle/status — ledger status
 app.get('/api/demo-cycle/status', (req, res) => {
@@ -12152,7 +12152,7 @@ function issueDecayReceipt(cycleId, decayEvents, summary) {
     const dataOnly = { index, cycleId, decayEvents, summary, timestamp };
     const hash = computeDecayHash(dataOnly, decayChainHead);
     const receipt = { ...dataOnly, prevHash: decayChainHead, hash };
-    decayLedger.push(receipt);
+    decayLedger.push(receipt); capLedger(decayLedger);
     decayChainHead = hash;
     return receipt;
 }
@@ -12466,7 +12466,7 @@ function issueVelocityReceipt() {
     };
 
     velocityChainHead = hash;
-    velocityLedger.push(receipt);
+    velocityLedger.push(receipt); capLedger(velocityLedger);
 
     broadcastEvent({
         type: 'governance',
@@ -12506,7 +12506,7 @@ function seedVelocityLedger() {
             protocol: 'ERC-8004 Receipt Chain #23'
         };
         velocityChainHead = hash;
-        velocityLedger.push(receipt);
+        velocityLedger.push(receipt); capLedger(velocityLedger);
     }
     console.log(`[velocity] Seeded ${velocityLedger.length} historical velocity receipts — Chain #23 live`);
 }
@@ -12944,7 +12944,7 @@ function issueDriftReceipt() {
     const hash = computeDriftHash(receiptData, driftChainHead);
     const receipt = { ...receiptData, prevHash: driftChainHead, hash };
     driftChainHead = hash;
-    driftLedger.push(receipt);
+    driftLedger.push(receipt); capLedger(driftLedger);
 
     broadcastEvent('drift', {
         type: 'alignment_drift',
@@ -13198,7 +13198,7 @@ function issueCollusionReceipt() {
         hash
     };
 
-    collusionLedger.push(receipt);
+    collusionLedger.push(receipt); capLedger(collusionLedger);
 
     // Escalate HIGH risk to Human Principal Oversight (Chain #20)
     if (scan && scan.networkRisk === 'HIGH' && typeof oversightLedger !== 'undefined') {
@@ -13506,7 +13506,7 @@ function issueSystemicRiskReceipt() {
     systemicRiskChainHead = hash;
 
     const receipt = { chain: 26, chainName: 'Governance Systemic Risk Oracle', index, timestamp: now, payload, prevHash: prev, hash };
-    systemicRiskLedger.push(receipt);
+    systemicRiskLedger.push(receipt); capLedger(systemicRiskLedger);
 
     // Escalate HIGH/CRITICAL to Chain #20
     if ((assessment.threatLevel === 'CRITICAL' || assessment.threatLevel === 'HIGH') && typeof oversightLedger !== 'undefined') {
@@ -13741,7 +13741,7 @@ function issueGerpReceipt() {
         chain: 27, chainName: 'Governance Emergency Response Protocol',
         index, timestamp: now, payload, prevHash: prev, hash
     };
-    gerpLedger.push(receipt);
+    gerpLedger.push(receipt); capLedger(gerpLedger);
 
     // Cross-chain escalation to Human Principal Oversight (Chain #20) on RED or LOCKDOWN
     if ((response.targetMode === 'RED' || response.targetMode === 'LOCKDOWN') && response.isTransition && typeof oversightLedger !== 'undefined') {
@@ -14587,6 +14587,15 @@ app.get('/knowledge-propagation', (req, res) => {
 // ============================================================
 
 let aaiLedger = [];
+
+// Memory management: cap all ledger arrays at MAX_LEDGER_SIZE to prevent OOM
+const MAX_LEDGER_SIZE = 200;
+function capLedger(ledger) {
+    if (ledger.length > MAX_LEDGER_SIZE) {
+        ledger.splice(0, ledger.length - MAX_LEDGER_SIZE);
+    }
+}
+
 let aaiChainHead = '0000000000000000000000000000000000000000000000000000000000000000';
 let aaiCycleCount = 0;
 const AAI_INTERVAL_MS = 220 * 1000; // 220s — longer than KP (200s) to always read fresh
@@ -14728,7 +14737,7 @@ function runAAICycle() {
         erc8004Compliant: true
     };
 
-    aaiLedger.push(receipt);
+    aaiLedger.push(receipt); capLedger(aaiLedger);
     aaiChainHead = hash;
 }
 
@@ -15032,7 +15041,7 @@ function runPGOCycle() {
         erc8004Compliant: true
     };
 
-    pgoLedger.push(receipt);
+    pgoLedger.push(receipt); capLedger(pgoLedger);
     pgoChainHead = hash;
 
     const topPred = predictions[0];
@@ -15416,7 +15425,7 @@ function runGOACycle() {
         payload,
     };
 
-    goaLedger.push(receipt);
+    goaLedger.push(receipt); capLedger(goaLedger);
     goaChainHead = hash;
 
     const verdictSummary = audits.map(a => `${a.verdictIcon}${a.verdict.substring(0,3)}`).join(' ');
@@ -15831,7 +15840,7 @@ function runGDRCycle() {
         payload,
     };
 
-    gdrLedger.push(receipt);
+    gdrLedger.push(receipt); capLedger(gdrLedger);
     gdrChainHead = hash;
 
     console.log(`[gdr] ${cycleId}: ${debtItems.length} debt items | TDI: ${totalDebtIndex} | status: ${debtStatusIcon}${debtStatus}${escalateToOversight ? ' | ⚠️ ESCALATING TO OVERSIGHT' : ''} — chain #33 receipt ${gdrLedger.length}`);
@@ -16089,7 +16098,7 @@ function runFGBCycle() {
 
 // Kick off first cycle immediately, then every FGB_INTERVAL_MS
 runFGBCycle();
-setTimeout(() => setInterval(runFGBCycle, FGB_INTERVAL_MS), 15000);
+// DISABLED (memory): setTimeout(() => setInterval(runFGBCycle, FGB_INTERVAL_MS), 15000);
 
 // API endpoints for Chain #34
 app.get('/api/fgb/status', (req, res) => {
@@ -16368,7 +16377,7 @@ async function runGSTOCycle() {
 
 // Kick off first cycle immediately, then every GSTO_INTERVAL_MS
 runGSTOCycle();
-setTimeout(() => setInterval(runGSTOCycle, GSTO_INTERVAL_MS), 18000);
+// DISABLED (memory): setTimeout(() => setInterval(runGSTOCycle, GSTO_INTERVAL_MS), 18000);
 
 // API endpoints for Chain #35
 app.get('/api/gsto/status', (req, res) => {
@@ -16637,7 +16646,7 @@ function runAderCycle() {
 }
 
 // Run ADER cycle every 240s
-setTimeout(() => setInterval(runAderCycle, 240000), 5000);
+// DISABLED (memory): setTimeout(() => setInterval(runAderCycle, 240000), 5000);
 runAderCycle(); // seed first receipt immediately
 
 // ADER API endpoints
@@ -16883,7 +16892,7 @@ function runGpilCycle() {
 }
 
 // Run GPIL cycle every 250s
-setTimeout(() => setInterval(runGpilCycle, 250000), 8000);
+// DISABLED (memory): setTimeout(() => setInterval(runGpilCycle, 250000), 8000);
 runGpilCycle(); // seed first receipt immediately
 
 // GPIL API endpoints
@@ -17114,7 +17123,7 @@ async function runApapCycle() {
 }
 
 // Run APAP cycle every 260s
-setTimeout(() => setInterval(runApapCycle, 260000), 11000);
+// DISABLED (memory): setTimeout(() => setInterval(runApapCycle, 260000), 11000);
 runApapCycle(); // seed first receipt immediately
 
 // APAP API endpoints
@@ -17447,7 +17456,7 @@ function runAccmCycle() {
 }
 
 // Run ACCM cycle every 270 seconds (autonomous loop #30)
-setTimeout(() => setInterval(runAccmCycle, 270000), 14000);
+// DISABLED (memory): setTimeout(() => setInterval(runAccmCycle, 270000), 14000);
 runAccmCycle(); // seed first receipt immediately
 
 // API endpoints for Chain #39
@@ -17672,7 +17681,7 @@ function runASPCycle() {
 for (let i = 0; i < 12; i++) { runASPCycle(); }
 
 // Autonomous loop: new succession every 55 seconds
-setTimeout(() => setInterval(runASPCycle, 55000), 17000);
+// DISABLED (memory): setTimeout(() => setInterval(runASPCycle, 55000), 17000);
 
 app.get('/api/asp/status', (req, res) => {
     res.json({
@@ -17922,7 +17931,7 @@ function runACAPCycle() {
 for (let i = 0; i < 10; i++) { runACAPCycle(); }
 
 // Autonomous loop: new arbitration case every 63 seconds
-setTimeout(() => setInterval(runACAPCycle, 63000), 20000);
+// DISABLED (memory): setTimeout(() => setInterval(runACAPCycle, 63000), 20000);
 
 // ACAP API routes
 app.get('/api/acap/status', (req, res) => {
@@ -18245,7 +18254,7 @@ function runAQAPCycle() {
 for (let i = 0; i < 8; i++) { runAQAPCycle(); }
 
 // Autonomous loop: recalibrate every 280 seconds
-setTimeout(() => setInterval(runAQAPCycle, 280000), 23000);
+// DISABLED (memory): setTimeout(() => setInterval(runAQAPCycle, 280000), 23000);
 
 // AQAP API routes
 app.get('/api/aqap/status', (req, res) => {
@@ -18512,7 +18521,7 @@ function runARDRPCycle() {
 for (let i = 0; i < 8; i++) runARDRPCycle();
 
 // Autonomous loop: evaluate every 310 seconds
-setTimeout(() => setInterval(runARDRPCycle, 310000), 26000);
+// DISABLED (memory): setTimeout(() => setInterval(runARDRPCycle, 310000), 26000);
 
 // ARDRP API routes
 app.get('/api/ardrp/status', (req, res) => {
@@ -18773,7 +18782,7 @@ function runAlipLoop() {
 for (let i = 0; i < 18; i++) runAlipLoop();
 
 // Autonomous loop — every 47 seconds
-setTimeout(() => setInterval(runAlipLoop, 47000), 29000);
+// DISABLED (memory): setTimeout(() => setInterval(runAlipLoop, 47000), 29000);
 
 app.get('/api/alip/status', (req, res) => {
     const latest = alipState.chain[alipState.chain.length - 1];
@@ -19013,7 +19022,7 @@ app.get('/liability-insurance', (req, res) => {
     runNSSCLoop();
 
     // Recurring autonomous loop every 300s
-    setTimeout(() => setInterval(runNSSCLoop, 300000), 32000);
+    // DISABLED (memory): setTimeout(() => setInterval(runNSSCLoop, 300000), 32000);
 
     // GET /api/nssc/certificate — latest sovereignty certificate
     app.get('/api/nssc/certificate', (req, res) => {
@@ -19272,7 +19281,7 @@ let aiafpLedger = [];
 
     // Bootstrap immediately then every 320s
     runAIAFPLoop();
-    setTimeout(() => setInterval(runAIAFPLoop, 320000), 35000);
+    // DISABLED (memory): setTimeout(() => setInterval(runAIAFPLoop, 320000), 35000);
 
     // GET /api/aiafp/status — latest network fidelity
     app.get('/api/aiafp/status', (req, res) => {
@@ -19652,7 +19661,7 @@ let agcoLedger = [];
 
     // Seed initial receipt then run autonomously
     runAGCOLoop();
-    setTimeout(() => setInterval(runAGCOLoop, 340000), 38000);
+    // DISABLED (memory): setTimeout(() => setInterval(runAGCOLoop, 340000), 38000);
 
     // GET /api/agco/status — summary
     app.get('/api/agco/status', (req, res) => {
