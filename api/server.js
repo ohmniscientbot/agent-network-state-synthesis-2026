@@ -12071,7 +12071,7 @@ async function seedDemoCycleLedger() {
 setTimeout(seedDemoCycleLedger, 22000);
 // Run first demo cycle at 30s so live mode has real data immediately after deploy
 setTimeout(runAutonomousDemoCycle, 30000);
-setInterval(runAutonomousDemoCycle, 300000);
+setTimeout(() => setInterval(runAutonomousDemoCycle, 300000), 41000);
 
 // GET /api/demo-cycle/status — ledger status
 app.get('/api/demo-cycle/status', (req, res) => {
@@ -14734,7 +14734,7 @@ function runAAICycle() {
 
 // Bootstrap and recurring cycle
 runAAICycle();
-setInterval(runAAICycle, AAI_INTERVAL_MS);
+setTimeout(() => setInterval(runAAICycle, AAI_INTERVAL_MS), 3000);
 
 // AAI API endpoints
 app.get('/api/aai/status', (req, res) => {
@@ -15041,7 +15041,7 @@ function runPGOCycle() {
 
 // Bootstrap and recurring cycle
 runPGOCycle();
-setInterval(runPGOCycle, PGO_INTERVAL_MS);
+setTimeout(() => setInterval(runPGOCycle, PGO_INTERVAL_MS), 6000);
 
 // PGO API endpoints
 app.get('/api/pgo/status', (req, res) => {
@@ -15425,7 +15425,7 @@ function runGOACycle() {
 
 // Start GOA immediately then on interval
 runGOACycle();
-setInterval(runGOACycle, GOA_INTERVAL_MS);
+setTimeout(() => setInterval(runGOACycle, GOA_INTERVAL_MS), 9000);
 
 // GOA API endpoints
 app.get('/api/goa/status', (req, res) => {
@@ -15839,7 +15839,7 @@ function runGDRCycle() {
 
 // Start GDR immediately then on interval
 runGDRCycle();
-setInterval(runGDRCycle, GDR_INTERVAL_MS);
+setTimeout(() => setInterval(runGDRCycle, GDR_INTERVAL_MS), 12000);
 
 // GDR API endpoints
 app.get('/api/gdr/status', (req, res) => {
@@ -16089,7 +16089,7 @@ function runFGBCycle() {
 
 // Kick off first cycle immediately, then every FGB_INTERVAL_MS
 runFGBCycle();
-setInterval(runFGBCycle, FGB_INTERVAL_MS);
+setTimeout(() => setInterval(runFGBCycle, FGB_INTERVAL_MS), 15000);
 
 // API endpoints for Chain #34
 app.get('/api/fgb/status', (req, res) => {
@@ -16368,7 +16368,7 @@ async function runGSTOCycle() {
 
 // Kick off first cycle immediately, then every GSTO_INTERVAL_MS
 runGSTOCycle();
-setInterval(runGSTOCycle, GSTO_INTERVAL_MS);
+setTimeout(() => setInterval(runGSTOCycle, GSTO_INTERVAL_MS), 18000);
 
 // API endpoints for Chain #35
 app.get('/api/gsto/status', (req, res) => {
@@ -16637,7 +16637,7 @@ function runAderCycle() {
 }
 
 // Run ADER cycle every 240s
-setInterval(runAderCycle, 240000);
+setTimeout(() => setInterval(runAderCycle, 240000), 5000);
 runAderCycle(); // seed first receipt immediately
 
 // ADER API endpoints
@@ -16883,7 +16883,7 @@ function runGpilCycle() {
 }
 
 // Run GPIL cycle every 250s
-setInterval(runGpilCycle, 250000);
+setTimeout(() => setInterval(runGpilCycle, 250000), 8000);
 runGpilCycle(); // seed first receipt immediately
 
 // GPIL API endpoints
@@ -17114,7 +17114,7 @@ async function runApapCycle() {
 }
 
 // Run APAP cycle every 260s
-setInterval(runApapCycle, 260000);
+setTimeout(() => setInterval(runApapCycle, 260000), 11000);
 runApapCycle(); // seed first receipt immediately
 
 // APAP API endpoints
@@ -17447,7 +17447,7 @@ function runAccmCycle() {
 }
 
 // Run ACCM cycle every 270 seconds (autonomous loop #30)
-setInterval(runAccmCycle, 270000);
+setTimeout(() => setInterval(runAccmCycle, 270000), 14000);
 runAccmCycle(); // seed first receipt immediately
 
 // API endpoints for Chain #39
@@ -17672,7 +17672,7 @@ function runASPCycle() {
 for (let i = 0; i < 12; i++) { runASPCycle(); }
 
 // Autonomous loop: new succession every 55 seconds
-setInterval(runASPCycle, 55000);
+setTimeout(() => setInterval(runASPCycle, 55000), 17000);
 
 app.get('/api/asp/status', (req, res) => {
     res.json({
@@ -17922,7 +17922,7 @@ function runACAPCycle() {
 for (let i = 0; i < 10; i++) { runACAPCycle(); }
 
 // Autonomous loop: new arbitration case every 63 seconds
-setInterval(runACAPCycle, 63000);
+setTimeout(() => setInterval(runACAPCycle, 63000), 20000);
 
 // ACAP API routes
 app.get('/api/acap/status', (req, res) => {
@@ -18245,7 +18245,7 @@ function runAQAPCycle() {
 for (let i = 0; i < 8; i++) { runAQAPCycle(); }
 
 // Autonomous loop: recalibrate every 280 seconds
-setInterval(runAQAPCycle, 280000);
+setTimeout(() => setInterval(runAQAPCycle, 280000), 23000);
 
 // AQAP API routes
 app.get('/api/aqap/status', (req, res) => {
@@ -18512,7 +18512,7 @@ function runARDRPCycle() {
 for (let i = 0; i < 8; i++) runARDRPCycle();
 
 // Autonomous loop: evaluate every 310 seconds
-setInterval(runARDRPCycle, 310000);
+setTimeout(() => setInterval(runARDRPCycle, 310000), 26000);
 
 // ARDRP API routes
 app.get('/api/ardrp/status', (req, res) => {
@@ -18773,7 +18773,7 @@ function runAlipLoop() {
 for (let i = 0; i < 18; i++) runAlipLoop();
 
 // Autonomous loop — every 47 seconds
-setInterval(runAlipLoop, 47000);
+setTimeout(() => setInterval(runAlipLoop, 47000), 29000);
 
 app.get('/api/alip/status', (req, res) => {
     const latest = alipState.chain[alipState.chain.length - 1];
@@ -19013,7 +19013,7 @@ app.get('/liability-insurance', (req, res) => {
     runNSSCLoop();
 
     // Recurring autonomous loop every 300s
-    setInterval(runNSSCLoop, 300_000);
+    setTimeout(() => setInterval(runNSSCLoop, 300000), 32000);
 
     // GET /api/nssc/certificate — latest sovereignty certificate
     app.get('/api/nssc/certificate', (req, res) => {
@@ -19272,7 +19272,7 @@ let aiafpLedger = [];
 
     // Bootstrap immediately then every 320s
     runAIAFPLoop();
-    setInterval(runAIAFPLoop, 320_000);
+    setTimeout(() => setInterval(runAIAFPLoop, 320000), 35000);
 
     // GET /api/aiafp/status — latest network fidelity
     app.get('/api/aiafp/status', (req, res) => {
@@ -19652,7 +19652,7 @@ let agcoLedger = [];
 
     // Seed initial receipt then run autonomously
     runAGCOLoop();
-    setInterval(runAGCOLoop, 340_000);
+    setTimeout(() => setInterval(runAGCOLoop, 340000), 38000);
 
     // GET /api/agco/status — summary
     app.get('/api/agco/status', (req, res) => {

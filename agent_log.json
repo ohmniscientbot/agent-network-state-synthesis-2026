@@ -2702,6 +2702,16 @@
         "edit"
       ],
       "outcome": "success"
+    },
+    {
+      "id": "L122",
+      "timestamp": "2026-03-24T02:07:00Z",
+      "type": "bug_fix",
+      "description": "Fix Railway OOM crash: 42 setInterval calls were firing simultaneously on startup causing thundering herd memory spike. Staggered 19 heavy loop starts with 3-41s setTimeout delays spread across first 40s of startup. Server now ramps up memory gradually instead of spiking at boot.",
+      "tools": [
+        "edit"
+      ],
+      "outcome": "success"
     }
   ]
 }
