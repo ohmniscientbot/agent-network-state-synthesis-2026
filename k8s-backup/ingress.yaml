@@ -1,0 +1,95 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/cors-allow-headers":"Content-Type, Authorization","nginx.ingress.kubernetes.io/cors-allow-methods":"GET, POST, PUT, DELETE, OPTIONS","nginx.ingress.kubernetes.io/cors-allow-origin":"*","nginx.ingress.kubernetes.io/enable-cors":"true","nginx.ingress.kubernetes.io/proxy-buffering":"off","nginx.ingress.kubernetes.io/proxy-read-timeout":"3600","nginx.ingress.kubernetes.io/proxy-send-timeout":"3600"},"labels":{"app":"synthocracy"},"name":"synthocracy-ingress","namespace":"openclaw"},"spec":{"ingressClassName":"public","rules":[{"host":"synthocracy.openclaw.distiller.local","http":{"paths":[{"backend":{"service":{"name":"synthocracy-api-service","port":{"number":8081}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"synthocracy-frontend-service","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}]}}
+      nginx.ingress.kubernetes.io/cors-allow-headers: Content-Type, Authorization
+      nginx.ingress.kubernetes.io/cors-allow-methods: GET, POST, PUT, DELETE, OPTIONS
+      nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/proxy-buffering: "off"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    creationTimestamp: "2026-03-15T18:35:05Z"
+    generation: 1
+    labels:
+      app: synthocracy
+    name: synthocracy-ingress
+    namespace: openclaw
+    resourceVersion: "242929053"
+    uid: da0da0d5-44f8-4bbc-8762-0897246ed556
+  spec:
+    ingressClassName: public
+    rules:
+    - host: synthocracy.openclaw.distiller.local
+      http:
+        paths:
+        - backend:
+            service:
+              name: synthocracy-api-service
+              port:
+                number: 8081
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: synthocracy-frontend-service
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 192.168.1.154
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/cors-allow-headers":"Content-Type, Authorization","nginx.ingress.kubernetes.io/cors-allow-methods":"GET, POST, PUT, DELETE, OPTIONS","nginx.ingress.kubernetes.io/cors-allow-origin":"*"},"labels":{"app":"agent-network-state"},"name":"agent-network-ingress","namespace":"openclaw"},"spec":{"ingressClassName":"public","rules":[{"host":"agent-network.openclaw.distiller.local","http":{"paths":[{"backend":{"service":{"name":"agent-network-api-service","port":{"number":8081}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"agent-network-frontend-service","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}]}}
+      nginx.ingress.kubernetes.io/cors-allow-headers: Content-Type, Authorization
+      nginx.ingress.kubernetes.io/cors-allow-methods: GET, POST, PUT, DELETE, OPTIONS
+      nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/proxy-buffering: "off"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    creationTimestamp: "2026-03-11T21:21:32Z"
+    generation: 5
+    labels:
+      app: agent-network-state
+    name: agent-network-ingress
+    namespace: openclaw
+    resourceVersion: "239762843"
+    uid: c4f656ea-c0bc-44aa-883e-d94450ff72e3
+  spec:
+    ingressClassName: public
+    rules:
+    - host: agent-network.openclaw.distiller.local
+      http:
+        paths:
+        - backend:
+            service:
+              name: agent-network-api-service
+              port:
+                number: 8081
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: agent-network-frontend-service
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 192.168.1.154
+kind: List
+metadata:
+  resourceVersion: ""

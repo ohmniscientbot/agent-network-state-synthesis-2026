@@ -1,0 +1,165 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/containerID: cb246cbeca160f4b0a9005f43ff16b89fde025e8608fe25ff7fd65bc97da8717
+    cni.projectcalico.org/podIP: ""
+    cni.projectcalico.org/podIPs: ""
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "10.1.126.223"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    k8s.v1.cni.cncf.io/networks-status: |-
+      [{
+          "name": "k8s-pod-network",
+          "ips": [
+              "10.1.126.223"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"labels":{"app":"selenium-chrome"},"name":"selenium-chrome","namespace":"openclaw"},"spec":{"containers":[{"env":[{"name":"SE_NODE_MAX_SESSIONS","value":"3"},{"name":"SE_VNC_NO_PASSWORD","value":"1"}],"image":"selenium/standalone-chrome:latest","name":"chrome","ports":[{"containerPort":4444},{"containerPort":7900}],"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"512Mi"}}}],"restartPolicy":"Never"}}
+  creationTimestamp: "2026-03-18T04:09:23Z"
+  generation: 1
+  labels:
+    app: selenium-chrome
+  name: selenium-chrome
+  namespace: openclaw
+  resourceVersion: "251533465"
+  uid: d1541352-c017-4614-ac23-72eeb6ffbcf2
+spec:
+  containers:
+  - env:
+    - name: SE_NODE_MAX_SESSIONS
+      value: "3"
+    - name: SE_VNC_NO_PASSWORD
+      value: "1"
+    image: selenium/standalone-chrome:latest
+    imagePullPolicy: Always
+    name: chrome
+    ports:
+    - containerPort: 4444
+      protocol: TCP
+    - containerPort: 7900
+      protocol: TCP
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-b7wgg
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: distiller
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Never
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-b7wgg
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-03-20T23:56:36Z"
+    observedGeneration: 1
+    status: "False"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2026-03-18T04:09:23Z"
+    observedGeneration: 1
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2026-03-20T23:56:36Z"
+    observedGeneration: 1
+    reason: PodFailed
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2026-03-20T23:56:36Z"
+    observedGeneration: 1
+    reason: PodFailed
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2026-03-18T04:09:23Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - image: selenium/standalone-chrome:latest
+    imageID: ""
+    lastState:
+      terminated:
+        exitCode: 137
+        finishedAt: null
+        message: The container could not be located when the pod was deleted.  The
+          container used to be Running
+        reason: ContainerStatusUnknown
+        startedAt: null
+    name: chrome
+    ready: false
+    restartCount: 1
+    started: false
+    state:
+      terminated:
+        exitCode: 137
+        finishedAt: null
+        message: The container could not be located when the pod was terminated
+        reason: ContainerStatusUnknown
+        startedAt: null
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-b7wgg
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 192.168.8.3
+  hostIPs:
+  - ip: 192.168.8.3
+  observedGeneration: 1
+  phase: Failed
+  qosClass: Burstable
+  startTime: "2026-03-18T04:09:23Z"

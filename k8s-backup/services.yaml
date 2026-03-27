@@ -1,0 +1,167 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"synthocracy-api"},"name":"synthocracy-api-service","namespace":"openclaw"},"spec":{"ports":[{"name":"http","port":8081,"protocol":"TCP","targetPort":8081}],"selector":{"app":"synthocracy-api"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-03-15T18:35:05Z"
+    labels:
+      app: synthocracy-api
+    name: synthocracy-api-service
+    namespace: openclaw
+    resourceVersion: "242928939"
+    uid: 21605d93-bc48-4a14-8197-3b98073e803c
+  spec:
+    clusterIP: 10.152.183.50
+    clusterIPs:
+    - 10.152.183.50
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      app: synthocracy-api
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"synthocracy-frontend"},"name":"synthocracy-frontend-service","namespace":"openclaw"},"spec":{"ports":[{"name":"http","port":80,"protocol":"TCP","targetPort":8080}],"selector":{"app":"synthocracy-frontend"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-03-15T18:35:05Z"
+    labels:
+      app: synthocracy-frontend
+    name: synthocracy-frontend-service
+    namespace: openclaw
+    resourceVersion: "242928968"
+    uid: 77710f52-d26f-43f2-8c4c-57e34b06dea9
+  spec:
+    clusterIP: 10.152.183.175
+    clusterIPs:
+    - 10.152.183.175
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: synthocracy-frontend
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"agent-network-api"},"name":"agent-network-api-service","namespace":"openclaw"},"spec":{"ports":[{"name":"http","port":8081,"protocol":"TCP","targetPort":8081}],"selector":{"app":"agent-network-api"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-03-11T21:21:23Z"
+    labels:
+      app: agent-network-api
+    name: agent-network-api-service
+    namespace: openclaw
+    resourceVersion: "239685952"
+    uid: d9962514-f0b0-4054-9d54-4fde6fc11672
+  spec:
+    clusterIP: 10.152.183.193
+    clusterIPs:
+    - 10.152.183.193
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      app: agent-network-api
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"agent-network-frontend"},"name":"agent-network-frontend-service","namespace":"openclaw"},"spec":{"ports":[{"name":"http","port":80,"protocol":"TCP","targetPort":8080}],"selector":{"app":"agent-network-frontend"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-03-11T21:21:28Z"
+    labels:
+      app: agent-network-frontend
+    name: agent-network-frontend-service
+    namespace: openclaw
+    resourceVersion: "239691970"
+    uid: e28efc23-78da-4cdb-a726-5bc55e7c3495
+  spec:
+    clusterIP: 10.152.183.91
+    clusterIPs:
+    - 10.152.183.91
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: agent-network-frontend
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"selenium-chrome","namespace":"openclaw"},"spec":{"ports":[{"name":"webdriver","port":4444,"targetPort":4444},{"name":"vnc","port":7900,"targetPort":7900}],"selector":{"app":"selenium-chrome"}}}
+    creationTimestamp: "2026-03-17T21:47:34Z"
+    name: selenium-chrome
+    namespace: openclaw
+    resourceVersion: "244699071"
+    uid: ff2a7f63-9577-4bb5-94a2-4e3dd49f9312
+  spec:
+    clusterIP: 10.152.183.101
+    clusterIPs:
+    - 10.152.183.101
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: webdriver
+      port: 4444
+      protocol: TCP
+      targetPort: 4444
+    - name: vnc
+      port: 7900
+      protocol: TCP
+      targetPort: 7900
+    selector:
+      app: selenium-chrome
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""
